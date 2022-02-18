@@ -23,6 +23,7 @@ import math
 import IMU
 import datetime
 import os
+import numpy as np # Should work on RaspberryPI?
 # import sklearn
 
 # DELTA
@@ -200,6 +201,7 @@ IMU.initIMU()       #Initialise the accelerometer, gyroscope and compass
 count = 0 # DELTA
 file1 = open(filename, "w")
 
+# List implementation of gesture classification
 gX = []
 gY = []
 gZ = []
@@ -207,10 +209,22 @@ aX = []
 aY = []
 aZ = []
 
+# Numpy implementation of gesture classification
+gX = np.array([])
+gY = np.array([])
+gZ = np.array([])
+aX = np.array([])
+aY = np.array([])
+aZ = np.array([])
 
-while True:
+gestures = [] # 0 -> stir, 1 -> chop
+conversion_constant = 0.183 * 1.279
+button_pressed = True
+window = 25
+thresh = 40000
+while (button_pressed == True):
     count += 1
-    if (count == 100): break
+    if (count == 1000): button_pressed = False
 
     #Read the accelerometer,gyroscope and magnetometer values
     ACCx = IMU.readACCx()
@@ -235,7 +249,6 @@ while True:
     a = datetime.datetime.now()
     LP = b.microseconds/(1000000*5.0) # DELTA
     outputString = "Loop Time %5.2f " % ( LP )
-
 
 
     ###############################################
@@ -398,19 +411,20 @@ while True:
 
 
     ##################### END Tilt Compensation ########################
-
-
+    
+    # EDIT BY KELLEN
+    '''
     if 1:                       #Change to '0' to stop showing the angles from the accelerometer
         outputString += "#  ACCX Angle %5.2f ACCY Angle %5.2f  #  " % (AccXangle, AccYangle)
 
     if 1:                       #Change to '0' to stop  showing the angles from the gyro
         outputString +="\t# GRYX Angle %5.2f  GYRY Angle %5.2f  GYRZ Angle %5.2f # " % (rate_gyr_x, rate_gyr_y, rate_gyr_z)# (gyroXangle,gyroYangle,gyroZangle)
 
-    conversion_constant = 0.183 * 1.279
+    
     if 1:
         outputString += "\t# ACCX %5.2f ACCY %5.2f ACCZ %5.2f # " % ((ACCx * conversion_constant * 9.81 / 1000), (ACCy * conversion_constant * 9.81 / 1000), (ACCz * conversion_constant * 9.81 / 1000))
-    # EDIT BY KELLEN
-    '''if 0:                       #Change to '0' to stop  showing the angles from the complementary filter
+    
+    if 0:                       #Change to '0' to stop  showing the angles from the complementary filter
         outputString +="\t#  CFangleX Angle %5.2f   CFangleY Angle %5.2f  #" % (CFangleX,CFangleY)'''
 
     '''if 1:                       #Change to '0' to stop  showing the heading
@@ -429,12 +443,37 @@ while True:
     gesture_data = str(rate_gyr_x) + "," + str(rate_gyr_y) + "," + str(rate_gyr_z) + "," + str(gesture_accx) + "," + str(gesture_accy) + "," + str(gesture_accz)
     # file1.write(gesture_data + "\n")
 
+    # List implementation
     gX.append(rate_gyr_x)
     gY.append(rate_gyr_y)
     gZ.append(rate_gyr_z)
     aX.append(gesture_accx)
     aY.append(gesture_accy)
     aZ.append(gesture_accz)
+    
+    if (count % 25 == 0 and count >= 100):
+        tmp_power = 0
+        for i in range(len(gX), len(gX)-100, -1):
+            tmp_power += gX[i]**2 + gZ[i]**2
+        
+        if (tmp_power > thresh): gestures.append(1)
+        else: gestures.append(0)
+    
+    # Numpy implementation
+    gX = np.append(gX, rate_gyr_x)
+    gY = np.append(gY, rate_gyr_y)
+    gZ = np.append(gZ, rate_gyr_z)
+    aX = np.append(aX, gesture_accx)
+    aY = np.append(aY, gesture_accy)
+    aZ = np.append(aZ, gesture_accz)
+    
+    if (count % 25 == 0 and count >= 100):
+        tmp_gX = np.sum(np.square(gX[-100:]))
+        tmp_gZ = np.sum(np.square(gZ[-100:]))
+        tmp_power = tmp_gX + tmp_gZ
+        
+        if (tmp_power > thresh): gestures.append(1)
+        else: gestures.append(0)
 
     #slow program down a bit, makes the output more readable
     time.sleep(0.03)
@@ -446,10 +485,13 @@ gyr_power = 0
 for i in range(len(gX)):
     gyr_power += gX[i]**2 + gZ[i]**2
 
-chop_threshold = 40000
-if (gyr_power > chop_threshold):
+if (gyr_power > thresh):
     print("This is a chopping motion!")
 else:
     print("This is a stirring motion!")
 file1.close()
+
+# Send data to the game controller
+data = gestures
+# Send via MQTT?
 
