@@ -1,0 +1,13 @@
+- game with backdrop
+
+- multiplayer
+
+- camera
+
+- environment.yml 
+
+- background stuff like orders 
+
+- different views for different starting characters 
+
+- movement by block
