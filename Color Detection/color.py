@@ -22,7 +22,7 @@ def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     return resized
 
 cap = cv2.VideoCapture(0)
-
+font = cv2.FONT_HERSHEY_COMPLEX
 m = PyMouse()
 
 while True:
@@ -31,20 +31,28 @@ while True:
 
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-	lower_green = np.array([58, 77, 62])
-	upper_green = np.array([93, 249, 255])
+	lower_green = np.array([18, 67, 38])
+	upper_green = np.array([100, 255, 255])
 	mask_green = cv2.inRange(hsv, lower_green, upper_green)
+
+	kernel = np.ones((5,5), np.uint8)
+	mask_green = cv2.erode(mask_green, kernel)
 
 	contoursGreen, _ = cv2.findContours(mask_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 	for c in contoursGreen :
-		if cv2.contourArea(c) <= 500 :
+		if cv2.contourArea(c) <= 6000 :
 			continue
+		area = cv2.contourArea(c)
+		approx = cv2.approxPolyDP(c, 0.01*cv2.arcLength(c, True), True)
 		x, y, _, _ = cv2.boundingRect(c)
-		m.move(x, y)
-		cv2.drawContours(frame, contoursGreen, -1, (0, 255, 0), 3)
 
-	frame = image_resize(frame, width = 400)  
+		if 10 < len(approx) < 30:
+			cv2.putText(frame, "Circle", (x, y), font, 1, (0, 0, 0))
+			cv2.drawContours(frame, [approx], -1, (0, 255, 0), 3)
+			m.move(x + 400, y + 400)
+			print(x,y)
+
 	cv2.imshow("frame", frame)
 	
 	key = cv2.waitKey(1)
