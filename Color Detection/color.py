@@ -21,7 +21,10 @@ def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
 
     return resized
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+
 font = cv2.FONT_HERSHEY_COMPLEX
 m = PyMouse()
 
@@ -50,9 +53,9 @@ while True:
 		if 10 < len(approx) < 30:
 			cv2.putText(frame, "Circle", (x, y), font, 1, (0, 0, 0))
 			cv2.drawContours(frame, [approx], -1, (0, 255, 0), 3)
-			m.move(x + 400, y + 400)
+			m.move(x, y)
 			print(x,y)
-
+	frame = image_resize(frame, width = 400) 
 	cv2.imshow("frame", frame)
 	
 	key = cv2.waitKey(1)
