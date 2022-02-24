@@ -44,17 +44,18 @@ while True:
 	contoursGreen, _ = cv2.findContours(mask_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 	for c in contoursGreen :
-		if cv2.contourArea(c) <= 6000 :
+		if cv2.contourArea(c) <= 400 :
 			continue
 		area = cv2.contourArea(c)
 		approx = cv2.approxPolyDP(c, 0.01*cv2.arcLength(c, True), True)
 		x, y, _, _ = cv2.boundingRect(c)
 
 		if 10 < len(approx) < 30:
+			print(len(approx))
 			cv2.putText(frame, "Circle", (x, y), font, 1, (0, 0, 0))
 			cv2.drawContours(frame, [approx], -1, (0, 255, 0), 3)
 			m.move(x, y)
-			print(x,y)
+
 	frame = image_resize(frame, width = 400) 
 	cv2.imshow("frame", frame)
 	
