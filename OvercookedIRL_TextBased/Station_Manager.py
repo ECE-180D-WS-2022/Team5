@@ -23,3 +23,6 @@ class Station_Manager:
 
         S6 = Station("Plate Station", None)
         self.stations.append(S6)
+
+        S7 = Station("Counter", None)
+        self.stations.append(S7)
