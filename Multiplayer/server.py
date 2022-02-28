@@ -1,5 +1,5 @@
 import socket
-import os
+# import os
 import pickle
 from _thread import *
 from building_blocks import *
@@ -44,7 +44,8 @@ def threaded_client(connection):
             connection.send(pickle.dumps("Confirmed player: " + data))
             connection.send(pickle.dumps("Here is your recipe: " + str(recipe)))
         else:
-            process_action(kitchen_stations, player, data, connection)
+            print("In here for the server with data:", str(data))
+            data = process_action(kitchen_stations, player, data, connection)
             connection.send(pickle.dumps(reply))
             connection.send(pickle.dumps(player.location))
             

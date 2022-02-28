@@ -20,8 +20,6 @@ count = 0
 while True:
     game_start(ClientSocket)
     
-    
-    
     Input = input("Say Something: ")
     ClientSocket.send(pickle.dumps(Input))
     Response = pickle.loads(ClientSocket.recv(HEADER))
