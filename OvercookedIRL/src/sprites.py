@@ -10,7 +10,7 @@ class Spritesheet:
     def get_sprite(self, x, y, b_x, b_y, width, height):
         sprite = pygame.Surface([width,height])
         sprite.blit(self.sheet, (b_x,b_y), (x,y,width,height))
-        sprite.set_colorkey((255,0,255))
+        sprite.set_colorkey((0,255,0))
         return sprite
 
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
@@ -31,9 +31,14 @@ class Player(pygame.sprite.Sprite):
 
         self.x_change = 0
         self.y_change = 0
+        self.dest_x = self.x
+        self.dest_y = self.y
 
         self.facing = 'down'
+        self.prev_facing = 'down'
         self.animation_loop = 1
+
+        self.side = "bottom"
 
         # self.image = pygame.Surface([self.width, self.height])
         # self.image.fill((255,0,0))
@@ -49,6 +54,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+
+        self.location = None
 
         self.right_run = [self.game.character_run_spritesheet.get_sprite(0*self.width,0,0,0,self.width, self.height),
                     self.game.character_run_spritesheet.get_sprite(1*self.width,0,0,0,self.width, self.height),
@@ -100,6 +107,7 @@ class Player(pygame.sprite.Sprite):
                         self.game.character_idle_spritesheet.get_sprite(23*self.width,0,0,0,self.width, self.height)]
 
     def collide_counters(self, direction):
+        self.location = None
         if direction == "x":
             # checks if the rect of one sprite is inside the rect of another sprite
             # False: do not want to delete sprite upon collision
@@ -112,17 +120,35 @@ class Player(pygame.sprite.Sprite):
 
         if direction == "y":
             hits = pygame.sprite.spritecollide(self, self.game.block_counters, False)
-            if hits:
+            if (hits):
                 if self.y_change > 0:   # moving down
                     self.rect.y = hits[0].rect.top - self.rect.height
                 if self.y_change < 0:
                     self.rect.y = hits[0].rect.bottom
-
-            hits = pygame.sprite.spritecollide(self, self.game.perspective_counters, False)
-            if hits:
-                if self.y_change > 0:   # moving down
-                    if(self.rect.y - hits[0].rect.top < 1):
-                        self.rect.y = hits[0].rect.top - self.rect.height
+                print('collide blocl')
+            else:
+                hits = pygame.sprite.spritecollide(self, self.game.top_perspective_counters, False)
+                if(hits):
+                    # if self.y_change > 0:   # moving down
+                    #     if(hits[0].rect.bottom - (self.rect.y + self.height) < 7):
+                    #         self.rect.y = hits[0].rect.bottom - (self.height + 7)
+                    if self.y_change < 0:
+                        if(hits[0].rect.bottom - (self.rect.y) > 18):
+                            self.rect.y = hits[0].rect.bottom - 18
+                        
+                    print('collide top')
+                else:
+                    hits = pygame.sprite.spritecollide(self, self.game.bottom_perspective_counters, False)
+                    if (hits):
+                        
+                        # if self.y_change > 0:   # moving down
+                        #     if(self.rect.y - hits[0].rect.top < 1):
+                        #         self.rect.y = hits[0].rect.top - self.rect.height
+                        if self.y_change < 0:  # moving up
+                            if(hits[0].rect.bottom - (self.rect.y + self.height)> 15):
+                                self.rect.y = hits[0].rect.top + 17
+                    else:
+                        pass  
 
 
     # player's update method called b/c game's update method calls all_sprites.update()
@@ -142,7 +168,7 @@ class Player(pygame.sprite.Sprite):
         self.y_change = 0
         self.x_change = 0
 
-        print(self.rect.x, self.rect.y)
+        # print(self.rect.x, self.rect.y)
 
 
     def movement(self):
@@ -160,6 +186,71 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_DOWN]:
             self.y_change = PLAYER_SPEED
             self.facing = 'down'
+        else:
+            if(self.rect.x % 32 != 0 or self.rect.y % 32 != 0):
+                print('continue')
+                if(self.facing == 'right'):
+                    self.x_change = PLAYER_SPEED
+                    self.facing = 'right'
+                elif(self.facing == 'left'):
+                    self.x_change = -1 * PLAYER_SPEED
+                    self.facing = 'left'
+                elif(self.facing == 'up'):
+                    self.y_change = -1 * PLAYER_SPEED
+                    self.facing = 'up'
+                elif(self.facing == 'down'):
+                    self.y_change = PLAYER_SPEED
+                    self.facing = 'down'
+            elif (self.rect.x % 32 == 0 and self.rect.y % 32 == 0):
+                # compute new direction
+                # print(self.rect.x, self.rect.y, self.dest_x, self.dest_y)
+                if(self.rect.x != self.dest_x and self.rect.y == self.dest_y):
+                    print('x not equal else here')
+                    if(self.rect.x > self.dest_x):
+                        self.prev_facing = self.facing
+                        self.x_change = -1 * PLAYER_SPEED
+                        self.facing = 'left'
+                    else:
+                        self.prev_facing = self.facing
+                        self.x_change = PLAYER_SPEED
+                        self.facing = 'right'
+                elif(self.rect.x == self.dest_x and self.rect.y != self.dest_y):
+                    print('y not equal else here')
+                    if(self.rect.y > self.dest_y):
+                        self.prev_facing = self.facing
+                        self.y_change = -1 * PLAYER_SPEED
+                        self.facing = 'up'
+                    else:
+                        self.prev_facing = self.facing
+                        self.y_change = PLAYER_SPEED
+                        self.facing = 'down'
+                elif(self.rect.x != self.dest_x and self.rect.y != self.dest_y):  
+                    new_dir = random.choice([0,1])
+                    print('randomly generate new direction')
+                    if(new_dir == 0):
+                        print('x dir')
+                        if(self.rect.x > self.dest_x):
+                            self.prev_facing = self.facing
+                            self.x_change = -1 * PLAYER_SPEED
+                            self.facing = 'left'
+                        else:
+                            self.prev_facing = self.facing
+                            self.x_change = PLAYER_SPEED
+                            self.facing = 'right'
+                    else:
+                        print('y dir')
+                        if(self.rect.y > self.dest_y):
+                            self.prev_facing = self.facing
+                            self.y_change = -1 * PLAYER_SPEED
+                            self.facing = 'up'
+                        else:
+                            self.prev_facing = self.facing
+                            self.y_change = PLAYER_SPEED
+                            self.facing = 'down'
+
+        # events = pygame.event.get()
+        # if event.type == pygame.MOUSEBUTTONUP:
+        #     pos = pygame.mouse.get_pos()
         
     def animate(self):
         if self.facing == "right":
@@ -212,23 +303,27 @@ class Counter(pygame.sprite.Sprite):
 
         self.game = game
         self._layer = COUNTER_LAYER
-        if(type == "E"):
-            self.groups = self.game.all_sprites, self.game.counters, self.game.perspective_counters
-        else:
-            self.groups = self.game.all_sprites, self.game.counters, self.game.block_counters
-        pygame.sprite.Sprite.__init__(self, self.groups)
-
         self.x = x * TILE_SIZE
         self.y = y * TILE_SIZE
         self.width = TILE_SIZE
         self.height = TILE_SIZE
+
+        if(type == "E"):
+            self.groups = self.game.all_sprites, self.game.counters, self.game.bottom_perspective_counters
+            self.image = self.game.kitchen_spritesheet.get_sprite(green_counter[type][0],green_counter[type][1],0,0,self.width,self.height)
+        elif (type == "L"):
+            self.groups = self.game.all_sprites, self.game.counters, self.game.top_perspective_counters
+            self.image = self.game.kitchen_spritesheet.get_sprite(green_counter[type][0],green_counter[type][1],0,0,self.width,self.height)
+        else:
+            self.groups = self.game.all_sprites, self.game.counters, self.game.block_counters
+            self.image = self.game.kitchen_spritesheet.get_sprite(green_counter[type][0],green_counter[type][1],0,0,self.width,self.height)
+
+        pygame.sprite.Sprite.__init__(self, self.groups)
         
         # self.image = pygame.Surface([self.width,self.height])
         # self.image.fill((0,0,255))
 
-        # x, y, b_x, b_y, width, height
-        self.image = self.game.kitchen_spritesheet.get_sprite(green_counter[type][0],green_counter[type][1],0,0,self.width,self.height)
-        
+        # x, y, b_x, b_y, width, height        
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -268,6 +363,8 @@ class Cursor(pygame.sprite.Sprite):
         # add position change to player 
         self.rect.x = self.x * TILE_SIZE
         self.rect.y = self.y * TILE_SIZE
+
+# class CookEffect(pygame.sprite.Sprite)
 
     
 
