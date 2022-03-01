@@ -34,8 +34,17 @@ stations = ["Cutting Board", "Stove", "Ingredients Stand",
             "Plates Cupboard", "Submission Countertop", "Share Station"]
 kitchen = Kitchen_Stations(stations, 2) # Int is index of ingredients stand
 
-# Add ingredients
-kitchen.add_item(stations[2], Ingredient("Lettuce", 0, stations[0]))
+# Add ingredients to the pantry
+kitchen.add_item(stations[2], Ingredient("Lettuce", 0, 0, [stations[0], stations[1]]))
+kitchen.add_item(stations[2], Ingredient("Beef", 0, 0, [stations[0], stations[1]]))
+
+# Add plates to the plate cupboard
+kitchen.add_item(stations[3], Plate(0))
+kitchen.add_item(stations[3], Plate(1))
+
+# Create our target recipe
+target = Recipe([Ingredient("Lettuce", 1, 1, [stations[0], stations[1]]),
+                 Ingredient("Beef", 2, 2, [stations[0], stations[1]])])
 
 # Connect game server online
 try:
@@ -53,6 +62,7 @@ def threaded_client(connection):
     # Continuously receive and process client data
     count = 0
     player = None # N.B. At the start, player has not been created yet
+    
     while True:
         count += 1
         
@@ -64,8 +74,44 @@ def threaded_client(connection):
         
         # Print game state for all stations
         kitchen.display_kitchen()
+        
+        
+        # Send game state to player client after first iteration
+        if (count != 1): 
+            print("Sent game state:")
+            game_state = get_status(count, stations, kitchen, player, target)
+            connection.send(pickle.dumps(game_state))
+            print(game_state)
+        
         print("##########################################")
         pass
+
+# Function: Retrieve the entire game status
+def get_status(count, stations, kitchen, player, target_recipe):
+    '''
+    Returns [player location, current inventory, pantry, target recipe]
+    '''
+    # Retrieve location
+    loc = player.location
+    
+    # Aggregate contents of the inventory
+    inventory = "["
+    
+    if (player.inventory != [] and type(player.inventory[0]) == Ingredient):
+        inventory += ", ".join([item.ingredient_name for item in player.inventory])
+    elif (player.inventory != [] and type(player.inventory[0]) == Plate):
+        inventory += ", ".join([item.ingredient_name for item in player.inventory[0].contents])
+    inventory += "]"
+    
+    # Aggregate contents of the pantry
+    pantry = "["
+    pantry += ", ".join([item.ingredient_name for item in kitchen.stations_list[2].ingredients])
+    pantry += "]"
+    
+    # Retrieve target recipe
+    target = target_recipe.recipe_string()
+    
+    return [loc, inventory, pantry, target]
 
 # Function: Print out the status of the player
 def print_state(count, data, player):
@@ -75,12 +121,19 @@ def print_state(count, data, player):
     print("Our inventory size:", str(len(player.inventory)))
     
     for item in player.inventory:
-        name = item.ingredient_name
-        state = item.state
-        process_station = item.process_station
-        print("Item:", str(name), "| State:", str(state), \
-              " | Process Station:", str(process_station))
-        pass
+        if (type(item) == Ingredient):
+            name = item.ingredient_name
+            cut_state = item.cut_state
+            cook_state = item.cook_state
+            state = str(cut_state) + "-" + str(cook_state)
+            process_station = item.process_station
+            print("Item:", str(name), "| State:", str(state), \
+                  " | Process Station:", str(process_station))
+        else: # (type(item) == Plate):
+            name = item.ID_number
+            contents = [raw.ingredient_name for raw in item.contents]
+            contents = "/".join(contents)
+            print("Plate ID:", str(name), "| Contents:", str(contents))
 
 # Function: Processes client data to alter game state
 def process_data(connection, player, data):
@@ -115,7 +168,18 @@ def process_data(connection, player, data):
                 # If item is None, station had no item to begin with
                 if (item != None): player.inventory.append(item)
                 else: print("Station empty! No item to pick up!")
-            else: # player.inventory != []
+            elif (type(player.inventory[0]) == Plate):
+                # Pick up item and put it onto our plate!
+                station_name = player.location
+                item = kitchen.pick_item(station_name)
+                
+                # If item is Non, station had no item to begin with
+                if (item != None):
+                    player.inventory[0].plate_item(item)
+                else:
+                    print("Station empty! No item to put on the plate!")
+                pass
+            else: # player.inventory != [] and type(player.inventory[0]) != Plate
                 print("Inventory full! Cannot pick up item!")
             pass
         else: # N.B. Should be a double check
@@ -127,8 +191,21 @@ def process_data(connection, player, data):
         if (player.inventory != []):
             # Fetch our item, then clear our inventory
             item = player.inventory[0]
-            player.inventory.clear()
-            kitchen.add_item(station_name, item)
+            
+            if (type(item) == Ingredient and 
+                (station_name == stations[3] or station_name == stations[4])):
+                # Can't place ingredients at the plate or submit stations!
+                print("Can't put down ingredients at the", str(station_name))
+            elif (type(item) == Plate and station_name == stations[2]):
+                # Can't put down plate at the ingredients stand
+                print("Can't put down a plate at the ingredients stand!")
+            elif (not kitchen.is_empty(player.location) and
+                  (station_name != stations[2] and station_name != stations[3])):
+                # Can't put down item at an occupied station!
+                print("Can't put down item at an occupied station!")
+            else:
+                player.inventory.clear()
+                kitchen.add_item(station_name, item)
         else: # player.inventory == []
             print("Nothing to put down!")
     elif (data[0] == 4): # Action code 4
@@ -136,20 +213,53 @@ def process_data(connection, player, data):
         if (player.location == stations[2]):
             # Pick up item only if inventory is empty and pantry stocked!
             if (player.inventory == [] and (not kitchen.is_empty(player.location))):
-                item = kitchen.pick_item(stations[2]) # Retrieve ingredient
-                player.inventory.append(item) # Add to our inventory
+                item = kitchen.pick_item(stations[2], data[1]) # Retrieve ingredient
+                
+                # If the request was for nonexistent ingredient, do nothing
+                if (item == None):
+                    print("You asked for an invalid ingredient!")
+                else:
+                    player.inventory.append(item) # Add to our inventory
             else: # player.inventory != [] or kitchen.is_empty(player.location)
                 print("Inventory full or station empty! Cannot pick up item!")
         else: # Process the ingredient if we are at the correct station!
-            # Double check that the ingredient is present first!
-            if (not kitchen.is_empty(player.location)):
+            # Double check that the ingredient is present and station is valid
+            if (player.location != stations[0] and player.location != stations[1]):
+                print("We aren't at a valid processing station!")
+            elif (not kitchen.is_empty(player.location)):
                 # Ensure we are at the correct station to process ingredient!
-                if (kitchen.stations_list[stations.index(player.location)].ingredients[0].process_station == player.location):
-                    kitchen.stations_list[stations.index(player.location)].ingredients[0].state += 1
+                if (player.location in kitchen.stations_list[stations.index(player.location)].ingredients[0].process_station):
+                    # Depending on if we are at the stove/cutting board, modify
+                    if (player.location == stations[0]): # Cutting board
+                        kitchen.stations_list[stations.index(player.location)].ingredients[0].cut_state += 1
+                    elif (player.location == stations[1]): # Stove
+                        kitchen.stations_list[stations.index(player.location)].ingredients[0].cook_state += 1
                 else:
                     print("Incorrect station to process!")
             else:
                 print("No ingredient to process!")
+    elif (data[0] == 5): # Action code 5
+        # Submit our materials to the chef!
+        if (player.location == stations[4] and not kitchen.is_empty(player.location)):
+            # Ensure we are submitting a plated final dish
+            if (type(kitchen.stations_list[stations.index(player.location)].ingredients[0]) == Plate):
+                score = target.score_dish(kitchen.stations_list[stations.index(player.location)].ingredients[0].contents)
+                print("Your dish received the score:", str(score))
+            else:
+                print("How can you serve unplated food to the chef??")
+            pass
+        else:
+            print("We aren't at the dish submission station or it's empty!")
+        pass
+    elif (data[0] == 6): # Action code 6
+        # Trash our current inventory
+        player.inventory = []
+    elif (data[0] == 7): # Action code 7
+        # Trash our current station, excluding the plate and pantry stations!
+        if (player.location != stations[2] and player.location != stations[3]):
+            kitchen.stations_list[stations.index(player.location)].ingredients = []
+        else:
+            print("We can't throw all stuff at this station!")
     else:
         print("Still under development...")
         
@@ -171,4 +281,10 @@ while True:
 
 # %% Testing Cell
 
+class tester():
+    def __init__(self, name):
+        self.name = name
 
+x = tester("xx")
+l = [0, 1, x, 3, 5, tester("xx")]
+print(l.find(tester("xx")))

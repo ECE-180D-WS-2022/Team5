@@ -6,6 +6,8 @@ Created on Thu Feb 24 14:43:02 2022
 """
 
 # Import Statements
+import sys
+import copy
 import socket
 import pickle
 
@@ -20,111 +22,22 @@ Action Codes (AKA first entry in the list of data we send to the server):
     -1   -> Do nothing (AKA error code or performed invalid action)
     0    -> Register
     1    -> Move player
+    2    -> Pick up item
+    3    -> Put down item
     4    -> Perform Gesture/Speech
+    5    -> Submit dish
+    6    -> Destroy player inventory
+    7    -> Destroy station items
+    8    -> Exit the game
     
+Additional Gameplay Notes:
+    - Cannot have both a separated plate and ingredient at a station at the
+    same time. They only coexist when the ingredient is on the plate.
+    - Our inventory may only contain one item (plate OR ingredient), however do
+    note that it can contain a plate that is NOT EMPTY (i.e. has food on it)
 '''
 ###############################################################################
 
-
-def process_action(kitchen, player, data, connection):
-    # kitchen -> station manager
-    
-    # Figure out action type
-    if (data[0] == 1): # We know the player is moving to another station
-        # Worry about error handling for moving to an already busy station LATER
-        if (player.location != "Starting Position"):
-            current_station = kitchen.stations.index(player.location)
-            kitchen.stations[current_station].busy = 0 # Set it to not be busy!
-        player.location = kitchen.stations[data[1] - 1].station_ID
-        kitchen.stations[data[1] - 1].busy = 1 # Set it to be busy!
-        pass
-    elif (data[0] == 2): # We know the player wants to pick up item
-        pass
-    elif (data[0] == 3): # We want to put down item
-        if (player.inventory != [] and player.inventory[0].process_station == player.location.station_ID):
-            raw = player.inventory[0] # Retrieve ingredient
-            kitchen.stations[kitchen.stations.index(player.location)].ingredient.append(raw)
-            pass
-        pass
-    elif (data[0] == 4): # We want to perform a gesture/pick up ingredient
-        if (player.location == kitchen.stations[2].station_ID and player.inventory == []): # AKA ingredients station
-            print("---IN HERE---")
-            connection.send(pickle.dumps([True]))
-            selection = pickle.loads(connection.recv(HEADER))
-            
-            data = selection
-            
-            selection = Ingredient(selection, 0, "Cutting Station")
-            player.inventory.append(selection)
-        elif (player.location == kitchen.stations[2].station_ID and player.inventory != []):
-            print("---Should be in here??---")
-            connection.send(pickle.dumps([False]))
-            pass
-        pass
-    
-    return data
-    pass
-
-def game_start(client_socket, header=HEADER):
-    print("Please select one of the following options:")
-    choice = int(input("(1) New Save (2) Load Save (3) Exit: "))
-    
-    if (choice == 3): pass
-    elif (choice == 2): return("Testing")
-    else: 
-        register(client_socket, header)
-
-def move(client_socket, header=HEADER): # ACTION=1
-    print("Please choose a station from one of the options below: ")
-    choice = int(input("(1) Chopping Board (2) Stove (3) Ingredients (4) Submit (5) Share (6) Plate "))
-    while (choice not in [1,2,3,4,5,6]):
-        choice = int(input("Please select a valid station: "))
-    
-    # client_socket.send(str.encode(str(choice)))
-    client_socket.send(pickle.dumps([1, choice]))
-    
-    station_name = None
-    if (choice == 3): station_name = "Ingredients Station"
-    
-    action(client_socket, header, station_name)
-    
-# def action(client_socket, header=HEADER, current_station="Game Start"):
-#     print("You are currently at the " + current_station)
-#     next_move = int(input("(1) Move (2) Pick up (3) Put down (4) Action/Gesture (5) Submit"))
-    
-#     while (next_move not in [1,2,3,4,5]):
-#         next_move = int(input("Please reselect a valid option: "))
-    
-#     if (next_move == 1): # ACTION = 1
-#         move(client_socket, header)
-#     elif (next_move == 2): # ACTION = 2
-#         # client_socket.send(pickle.dumps[2, None])
-#         pass # Do something
-#     elif (next_move == 3): # ACTION = 3
-#         client_socket.send(pickle.dumps([3]))
-        
-#         action(client_socket, header, current_station)
-#         pass # Do something
-#     elif (next_move == 4): # ACTION = 4
-#         ingredient_or_gesture = 0 # Placeholder for now!
-#         client_socket.send(pickle.dumps([4, ingredient_or_gesture]))
-#         server_response = pickle.loads(client_socket.recv(header))
-        
-#         print("Our server response is: ", str(server_response))
-        
-#         if (server_response[0] == True): # Confirm we at ingredients stand and move valid
-#             selection = input("Choose an ingredient from [fish, beans, chili peppers]: ")
-#             client_socket.send(pickle.dumps(selection))
-#             print("Here1")
-#         else:
-#             print("Here2")
-#             print("Your inventory is full!")
-        
-#         action(client_socket, header, current_station)
-#         pass # Do something
-#     elif (next_move == 5):
-#         pass # Do something
-    
 # Function: Game logic driver
 def game(client_socket):
     print("############### Welcome to Overcooked IRL ###############")
@@ -138,10 +51,30 @@ def game(client_socket):
     
     # At the start, first move to a station
     current = move(client_socket, header=HEADER)
+    status = pickle.loads(client_socket.recv(HEADER))
+    
+    # Print initial game state
+    if (status != None):
+            print("Player location:", str(status[0]))
+            print("Player inventory:", str(status[1]))
+            print("Pantry inventory:", str(status[2]))
+            print("Target recipe:", str(status[3]))
     
     # Begin game logic
     while True:
         current = action(client_socket, header=HEADER, loc=current)
+        
+        # Retrieve game state and print logistics after every action
+        status = pickle.loads(client_socket.recv(HEADER))
+        print("_________________________________________________")
+        
+        if (status != None):
+            print("Player location:", str(status[0]))
+            print("Player inventory:", str(status[1]))
+            print("Pantry inventory:", str(status[2]))
+            print("Target recipe:", str(status[3]))
+        
+        
    
 # Function: Register a game player
 def register(client_socket, header=HEADER): # ACTION = 0
@@ -160,25 +93,40 @@ def move(client_socket, header=HEADER): # ACTION = 1
 
 # Function: Complete an action
 def action(client_socket, header=HEADER, loc=None): # ACTION = VARIABLE
-    print("_________________________________________________")
     print("Select an option from one of the following below:")
     dest = int(input("(1) Move (2) Pick Up (3) Put Down" \
-                 " (4) Gesture/Speech (5) Submit\n"))
+                 " (4) Gesture/Speech (5) Submit (6) Trash Inventory"\
+                     " (7) Trash Station (8) Exit \n"))
     
-    if (dest == 1): # Move
+    if (dest == 1): # ACTION = 1
+        # Move
         loc = move(client_socket, header)
-    elif (dest == 2 and loc != stations[2]): # Pick up but not at the pantry
+    elif (dest == 2 and loc != stations[2]): # ACTION = 2
+        # Pick up but not at the pantry
         client_socket.send(pickle.dumps([2]))
-    elif (dest == 3): # Put down
+    elif (dest == 3): # ACTION = 3
+        # Put down item
         client_socket.send(pickle.dumps([3]))
     elif (dest == 4 or (dest == 2 and loc == stations[2])): # Gesture/Speech
         # Pick up item if currently at the ingredients pantry
         if (loc == stations[2]): # ACTION = 4
-            speech = "Lettuce" # Replace w/ relevant speech later!
+            # Replace w/ relevant speech later!
+            speech = input("Select an item from the pantry:\n") 
             client_socket.send(pickle.dumps([4, speech]))
         else: # ACTION = 4
             gesture = 1 # Replace w/ relevant gesture later!
             client_socket.send(pickle.dumps([4, gesture]))
+    elif (dest == 5): # ACTION = 5
+        # Attempt to submit our dish
+        client_socket.send(pickle.dumps([5]))
+    elif (dest == 6): # ACTION = 6
+        # Throw away our inventory!
+        client_socket.send(pickle.dumps([6]))
+    elif (dest == 7): # ACTION = 7
+        # Throw away everything at the station!
+        client_socket.send(pickle.dumps([7]))
+    elif (dest == 8): # ACTION = 8
+        sys.exit()
     
     return loc
 
@@ -207,15 +155,39 @@ class Kitchen_Stations:
         # Place our inventory onto a station
         self.stations_list[self.stations.index(station_name)].ingredients.append(item)
         
+    # Find item if choosing at a station
+    def find_item(self, station_name, target):
+        # Loop through the station's ingredients to see if we found it
+        for item in self.stations_list[self.stations.index(station_name)].ingredients:
+            # N.B. We will only deal with ingredients, NOT PLATES FOR NOW
+            if (item.ingredient_name == target): return item
+        
+        return None
+        
     # Pick up item from the kitchen station
-    def pick_item(self, station_name):
+    def pick_item(self, station_name, target=None):
         # Do nothing if the station has no item
         if (self.stations_list[self.stations.index(station_name)].ingredients == []):
             return None
         
+        # Pick up target item if specified
+        if (target != None):
+            item = self.find_item(station_name, target)
+            
+            # Remove item from the station, if valid
+            if (item != None):
+                self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
+            return item
+        
         # Pick up item from station and clear the station (N.B. Fix for pantry)
         item = self.stations_list[self.stations.index(station_name)].ingredients[0]
-        self.stations_list[self.stations.index(station_name)].ingredients.clear()
+        
+        # Remove item from the station
+        self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
+        
+        # # N.B. If at plates cupboard/pantry, DO NOT clear the station
+        # if (station_name != stations[2] and station_name != stations[3]):
+        #     self.stations_list[self.stations.index(station_name)].ingredients.clear()
         return item
     
     # Set the old station to be denoted empty/free
@@ -257,17 +229,73 @@ class Player:
         
 # Plate Class
 class Plate:
-    def __init__(self, ID_number, empty):
+    def __init__(self, ID_number):
         self.ID_number = ID_number # Identifier
-        self.empty = empty # True -> empty, False -> plate filled
-        self.ingredients = []
+        self.contents = []
+        
+    def plate_item(self, item):
+        self.contents.append(item)
         
 # Ingredient Class
 class Ingredient:
-    def __init__(self, name, state, process_station):
+    def __init__(self, name, cut_state, cook_state, process_station):
         self.ingredient_name = name
-        self.state = state
+        self.cut_state = cut_state
+        self.cook_state = cook_state
         self.process_station = process_station
+        
+    def compare(self, ingred2):
+        # Compare two ingredients' by similarity
+        cut = abs(self.cut_state - ingred2.cut_state)
+        cook = abs(self.cook_state - ingred2.cook_state)
+        return cut + cook
+        
+# Recipe Class
+class Recipe:
+    def __init__(self, materials):
+        self.materials = materials
+        
+    # Return the string representation of the recipe
+    def recipe_string(self):
+        representation = ""
+        mats = []
+        
+        for item in self.materials:
+            raw = "["
+            details = [str(item.ingredient_name), str(item.cut_state), 
+                       str(item.cook_state), str(item.process_station)]
+            raw += ", ".join(details) + "]"
+            mats.append(raw)
+        
+        return mats
+        
+    # Attribute a score to the target recipe
+    def score_dish(self, dish):
+        # Dish is a plate with all the necessary ingredients
+        target_dish = copy.deepcopy(self.materials)
+        test_dish = copy.deepcopy(dish)
+        
+        score = 0
+        
+        # Evaluate each element of the dish
+        for item in test_dish:
+            match = [part for part in target_dish if part.ingredient_name == item.ingredient_name]
+            
+            # Calculate the score for each item
+            if (match == []):
+                # No match found, we added a wrong ingredient!
+                score -= 5
+            else:
+                target_item = match[0]
+                diff = target_item.compare(item)
+                score -= diff * 1 # Every different in cut/cook is penalized
+            
+            # Remove the items from our copies!
+            target_dish.remove(match[0])
+            pass
+        
+        return score
+
      
 
     
