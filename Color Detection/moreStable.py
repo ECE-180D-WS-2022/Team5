@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from pymouse import PyMouse
 
+
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     dim = None
     (h, w) = image.shape[:2]
