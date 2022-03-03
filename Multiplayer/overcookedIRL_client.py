@@ -17,8 +17,8 @@ N.B. Refer to the below link for the base theory behind the code:
 
 # %% Setup Socket Client
 # Define client connection parameters
-host = "131.179.51.6" # IPv4 address of the Eng. IV lab room
-host = "192.168.1.91" # IPv4 address of my (K's) apartment
+host = "131.179.51.146" # IPv4 address of the Eng. IV lab room
+# host = "192.168.1.91" # IPv4 address of my (K's) apartment
 port = 4900 # Unique 4 digit code to verify socket connections
 client = socket.socket()
 

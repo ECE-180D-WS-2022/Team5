@@ -7,6 +7,7 @@ Created on Sat Feb 26 17:38:13 2022
 
 # Import Statements
 import sys
+import time
 import pickle
 import socket
 from _thread import *
@@ -19,8 +20,8 @@ N.B. Refer to the below link for the base theory behind the code:
 
 # %% Setup Socket Server
 # Define server connection parameters
-host = "131.179.51.6" # IPv4 address of the Eng. IV lab room
-host = "192.168.1.91" # IPv4 address of my (K's) apartment
+host = "131.179.51.146" # IPv4 address of the Eng. IV lab room
+# host = "192.168.1.91" # IPv4 address of my (K's) apartment
 port = 4900 # Unique 4 digit code to verify socket connections
 server = socket.socket()
 
@@ -56,6 +57,11 @@ except socket.error as e:
 # Define a max limit of 5 threaded client connections
 server.listen(5)
 
+'''
+Get rid of prepare stations, implement kitchen manager set up, revamp Recipe
+class to be filled with recipes. Have pantry have unlimited options.
+'''
+
 # %% Define Thread Process
 # Function: Controls thread process
 def threaded_client(connection):
@@ -74,7 +80,6 @@ def threaded_client(connection):
         
         # Print game state for all stations
         kitchen.display_kitchen()
-        
         
         # Send game state to player client after first iteration
         if (count != 1): 
@@ -281,10 +286,3 @@ while True:
 
 # %% Testing Cell
 
-class tester():
-    def __init__(self, name):
-        self.name = name
-
-x = tester("xx")
-l = [0, 1, x, 3, 5, tester("xx")]
-print(l.find(tester("xx")))
