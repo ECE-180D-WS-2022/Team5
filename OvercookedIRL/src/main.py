@@ -15,6 +15,8 @@ class Game:
         self.character_run_spritesheet = Spritesheet('../img/amelia_run_32.png')
         self.kitchen_spritesheet = Spritesheet('../img/interiors_32.png')
         # self.cook_cloud_spritesheet = Spritesheet('../img/cloud_32.png')
+        self.character_chop = Spritesheet('../img/chef_32.png')
+        self.plates_stack = Spritesheet('../img/individual_tiles/dish_pile.png')
         self.mouse = ColorMouse()
 
     def createTilemap(self,tilemap):
@@ -22,8 +24,23 @@ class Game:
             for j, column in enumerate(row):
                 # if column == "P":
                 #     Player(self, j, i)
-                if column != "." and column != "P":
-                    Counter(self, j, i, column)
+                if column == '0':
+                    BackgroundObject(self, self.plates_stack, 0, 0, j, i, COUNTERTOP_LAYER, (self.all_sprites))
+                elif column == '!':
+                    # (self, game, sprite_sheet, s_x, s_y, x, y, groups):
+                    Counter(self, self.kitchen_spritesheet,green_counter["G"][0],green_counter["G"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.ingredients_stands))
+                elif column == '$':
+                    Counter(self, self.kitchen_spritesheet,green_counter["H"][0],green_counter["H"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.chopping_stations))
+                elif column == '*':
+                    Counter(self, self.kitchen_spritesheet,green_counter["H"][0],green_counter["H"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.plate_stations))
+                elif column == '%':
+                    Counter(self, self.kitchen_spritesheet,green_counter["G"][0],green_counter["G"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.cooking_stations))
+                elif column == '&':
+                    Counter(self, self.kitchen_spritesheet,green_counter["G"][0],green_counter["G"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
+                elif column != "." and column != "P":
+                    # self, self.kitchen_spritesheet,green_counter["G"][0],green_counter["G"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.ingredients_stands)
+                    Counter(self, self.kitchen_spritesheet,green_counter[column][0],green_counter[column][1],j,i,(self.all_sprites,self.counters,self.block_counters))
+                    # self.image = self.game.kitchen_spritesheet.get_sprite(green_counter[type][0],green_counter[type][1],0,0,self.width,self.height)
         print('created tilemap')
 
     def new(self):
@@ -36,12 +53,17 @@ class Game:
         self.block_counters = pygame.sprite.LayeredUpdates()
         self.bottom_perspective_counters = pygame.sprite.LayeredUpdates()
         self.top_perspective_counters = pygame.sprite.LayeredUpdates()
-        self.chopping = pygame.sprite.LayeredUpdates()
+        self.chopping_stations = pygame.sprite.LayeredUpdates()
+        self.plate_stations = pygame.sprite.LayeredUpdates()
+        self.ingredients_stands = pygame.sprite.LayeredUpdates()
+        self.cooking_stations = pygame.sprite.LayeredUpdates()
+        self.submit_stations = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,5,2)
-        self.player = Player(self, 8,8)
+        self.player = Player(self,8,8)
         # game, x, y
 
         self.createTilemap(counter_tilemap)
+        self.createTilemap(counter_tilemap_2)
         # initialize_camera()
 
         self.mouse.setupMouse()
@@ -77,7 +99,7 @@ class Game:
     def main(self):
         # game loop
         while self.playing:
-            self.mouse.mouseMovement()
+            # self.mouse.mouseMovement()
             self.events()
             self.update()
             self.draw()
