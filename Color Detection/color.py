@@ -60,18 +60,22 @@ while(1):
         ret, track_window = cv2.meanShift(dst, track_window, term_crit)
         x,y,w,h = track_window
        
-        frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0),5)
+        frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0),3)
 
         scaled_x = x * 4
         scaled_y = y * 4
 
         m.move(scaled_x, scaled_y)
 
-        if (abs(scaled_x - last_x) < 5) and (abs(scaled_y - last_y) < 5):
+        if (abs(scaled_x - last_x) < 15) and (abs(scaled_y - last_y) < 15):
             posCount += 1
             if (posCount >= 20 and clicked == False):
                 m.click(scaled_x, scaled_y)
                 clicked = True
+            elif (posCount > 3 and posCount < 20 and clicked == False):
+                m.move(last_x, last_y)
+                scaled_x = last_x
+                scaled_y = last_y      
         else:
             posCount = 0
         last_x = scaled_x
