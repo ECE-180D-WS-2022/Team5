@@ -72,12 +72,13 @@ while(1):
             if (posCount >= 20 and clicked == False):
                 m.click(scaled_x, scaled_y)
                 clicked = True
-            elif (posCount > 3 and posCount < 20 and clicked == False):
+            elif (posCount >= 1 and posCount < 20 and clicked == False):
                 m.move(last_x, last_y)
                 scaled_x = last_x
                 scaled_y = last_y      
         else:
             posCount = 0
+
         last_x = scaled_x
         last_y = scaled_y
 
