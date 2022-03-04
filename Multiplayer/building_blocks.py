@@ -73,8 +73,7 @@ def game(client_socket):
             print("Player inventory:", str(status[1]))
             print("Pantry inventory:", str(status[2]))
             print("Target recipe:", str(status[3]))
-        
-        
+        pass
    
 # Function: Register a game player
 def register(client_socket, header=HEADER): # ACTION = 0
@@ -174,10 +173,13 @@ class Kitchen_Stations:
         if (target != None):
             item = self.find_item(station_name, target)
             
-            # Remove item from the station, if valid
-            if (item != None):
+            # Remove item from the station, if valid (excluding pantry)
+            if (item != None and station_name != stations[2]):
                 self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
-            return item
+                return item
+            elif (item != None and station_name == stations[2]):
+                # Pantry should have an unlimited supply!
+                return copy.deepcopy(item)
         
         # Pick up item from station and clear the station (N.B. Fix for pantry)
         item = self.stations_list[self.stations.index(station_name)].ingredients[0]
@@ -238,11 +240,10 @@ class Plate:
         
 # Ingredient Class
 class Ingredient:
-    def __init__(self, name, cut_state, cook_state, process_station):
+    def __init__(self, name, cut_state, cook_state):
         self.ingredient_name = name
         self.cut_state = cut_state
         self.cook_state = cook_state
-        self.process_station = process_station
         
     def compare(self, ingred2):
         # Compare two ingredients' by similarity
@@ -263,7 +264,7 @@ class Recipe:
         for item in self.materials:
             raw = "["
             details = [str(item.ingredient_name), str(item.cut_state), 
-                       str(item.cook_state), str(item.process_station)]
+                       str(item.cook_state)]
             raw += ", ".join(details) + "]"
             mats.append(raw)
         

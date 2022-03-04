@@ -18,34 +18,27 @@ N.B. Refer to the below link for the base theory behind the code:
     https://codezup.com/socket-server-with-multiple-clients-model-multithreading-python/
 '''
 
+# %% Game Configuration
+stations = ["Cutting Board", "Stove", "Ingredients Stand", 
+            "Plates Cupboard", "Submission Countertop", "Share Station"]
+config = {"host": "131.179.51.146", "port": 4900, "stations": stations,
+          "player_num": 2, "HEADER": 4096}
+
 # %% Setup Socket Server
 # Define server connection parameters
-host = "131.179.51.146" # IPv4 address of the Eng. IV lab room
+# host = "131.179.51.146" # IPv4 address of the Eng. IV lab room
 # host = "192.168.1.91" # IPv4 address of my (K's) apartment
-port = 4900 # Unique 4 digit code to verify socket connections
+host = config["host"]
+port = config["port"] # Unique 4 digit code to verify socket connections
 server = socket.socket()
 
 # Define operation runtime parameters
 thread_count = 0 # Number of threaded processes connected to the server
-HEADER = 4096 # Maximum number of bytes for data transmission, i.e. 4096 bytes
+HEADER = config["HEADER"] # Maximum number of bytes for data transmission, i.e. 4096 bytes
 
 # %% Initialize Game Server
-# Setup kitchen stations
-stations = ["Cutting Board", "Stove", "Ingredients Stand", 
-            "Plates Cupboard", "Submission Countertop", "Share Station"]
-kitchen = Kitchen_Stations(stations, 2) # Int is index of ingredients stand
-
-# Add ingredients to the pantry
-kitchen.add_item(stations[2], Ingredient("Lettuce", 0, 0, [stations[0], stations[1]]))
-kitchen.add_item(stations[2], Ingredient("Beef", 0, 0, [stations[0], stations[1]]))
-
-# Add plates to the plate cupboard
-kitchen.add_item(stations[3], Plate(0))
-kitchen.add_item(stations[3], Plate(1))
-
 # Create our target recipe
-target = Recipe([Ingredient("Lettuce", 1, 1, [stations[0], stations[1]]),
-                 Ingredient("Beef", 2, 2, [stations[0], stations[1]])])
+
 
 # Connect game server online
 try:
@@ -58,13 +51,13 @@ except socket.error as e:
 server.listen(5)
 
 '''
-Get rid of prepare stations, implement kitchen manager set up, revamp Recipe
+implement kitchen manager set up, revamp Recipe
 class to be filled with recipes. Have pantry have unlimited options.
 '''
 
 # %% Define Thread Process
 # Function: Controls thread process
-def threaded_client(connection):
+def threaded_client(connection, player_ID, kitchen, target):
     # Continuously receive and process client data
     count = 0
     player = None # N.B. At the start, player has not been created yet
@@ -73,10 +66,10 @@ def threaded_client(connection):
         count += 1
         
         data = pickle.loads(connection.recv(HEADER))
-        player = process_data(connection, player, data)
+        player = process_data(connection, player, data, kitchen, target)
         
         # Print state of game for each while loop iteration
-        print_state(count, data, player)
+        print_state(count, data, player, player_ID)
         
         # Print game state for all stations
         kitchen.display_kitchen()
@@ -84,7 +77,8 @@ def threaded_client(connection):
         # Send game state to player client after first iteration
         if (count != 1): 
             print("Sent game state:")
-            game_state = get_status(count, stations, kitchen, player, target)
+            game_state = get_status(count, stations, 
+                                    kitchen, player, target, player_ID)
             connection.send(pickle.dumps(game_state))
             print(game_state)
         
@@ -92,7 +86,7 @@ def threaded_client(connection):
         pass
 
 # Function: Retrieve the entire game status
-def get_status(count, stations, kitchen, player, target_recipe):
+def get_status(count, stations, kitchen, player, target_recipe, player_ID):
     '''
     Returns [player location, current inventory, pantry, target recipe]
     '''
@@ -119,10 +113,10 @@ def get_status(count, stations, kitchen, player, target_recipe):
     return [loc, inventory, pantry, target]
 
 # Function: Print out the status of the player
-def print_state(count, data, player):
+def print_state(count, data, player, player_ID):
     print("For iteration number:", str(count))
     print("Our connection received data:", str(data))
-    print("Our current player:", str(player.name))
+    print("Our current player:", str(player.name), ", w/ ID:", str(player_ID))
     print("Our inventory size:", str(len(player.inventory)))
     
     for item in player.inventory:
@@ -131,9 +125,7 @@ def print_state(count, data, player):
             cut_state = item.cut_state
             cook_state = item.cook_state
             state = str(cut_state) + "-" + str(cook_state)
-            process_station = item.process_station
-            print("Item:", str(name), "| State:", str(state), \
-                  " | Process Station:", str(process_station))
+            print("Item:", str(name), "| State:", str(state))
         else: # (type(item) == Plate):
             name = item.ID_number
             contents = [raw.ingredient_name for raw in item.contents]
@@ -141,7 +133,7 @@ def print_state(count, data, player):
             print("Plate ID:", str(name), "| Contents:", str(contents))
 
 # Function: Processes client data to alter game state
-def process_data(connection, player, data):
+def process_data(connection, player, data, kitchen, target):
     # Receive data as list, where data[0] defines the type of action performed
     if (data[0] == 0 and player == None): # Action code 0
         # Game would like to register new player
@@ -232,13 +224,11 @@ def process_data(connection, player, data):
             if (player.location != stations[0] and player.location != stations[1]):
                 print("We aren't at a valid processing station!")
             elif (not kitchen.is_empty(player.location)):
-                # Ensure we are at the correct station to process ingredient!
-                if (player.location in kitchen.stations_list[stations.index(player.location)].ingredients[0].process_station):
-                    # Depending on if we are at the stove/cutting board, modify
-                    if (player.location == stations[0]): # Cutting board
-                        kitchen.stations_list[stations.index(player.location)].ingredients[0].cut_state += 1
-                    elif (player.location == stations[1]): # Stove
-                        kitchen.stations_list[stations.index(player.location)].ingredients[0].cook_state += 1
+                # Depending on if we are at the stove/cutting board, modify
+                if (player.location == stations[0]): # Cutting board
+                    kitchen.stations_list[stations.index(player.location)].ingredients[0].cut_state += 1
+                elif (player.location == stations[1]): # Stove
+                    kitchen.stations_list[stations.index(player.location)].ingredients[0].cook_state += 1
                 else:
                     print("Incorrect station to process!")
             else:
@@ -271,7 +261,30 @@ def process_data(connection, player, data):
     # Return the new player state after any alterations
     return player
         
+# Function: Game server-side initialization
+def game_init(pantry_idx, config):
+    kitchens = [Kitchen_Stations(config["stations"], 
+                                 2) for i in range(config["player_num"])]
+    
+    # Add ingredients and plates to each kitchen
+    for kitchen in kitchens:
+        kitchen.add_item(stations[2], Ingredient("Lettuce", 0, 0))
+        kitchen.add_item(stations[2], Ingredient("Beef", 0, 0))
+    
+        kitchen.add_item(stations[3], Plate(0))
+        kitchen.add_item(stations[3], Plate(1))
+        
+    targets = [Recipe([Ingredient("Lettuce", 1, 1), 
+                       Ingredient("Beef", 2, 2)]) for i in range(config["player_num"])]
+    
+    # Return a kitchen manager for each player, as they should have their own
+    return kitchens, targets
+
 # %% Run Game on Client-Side
+clients = []
+addresses = []
+kitchens, targets = game_init(2, config)
+
 while True:
     client, address = server.accept() # Receive a client connection
     thread_count += 1 # Increase the number of threaded processes per client
@@ -280,9 +293,15 @@ while True:
     print("Connected to:", str(address[0]), ":", str(address[1]),
           " ||||| ", "Number of threads:", str(thread_count))
     
-    # Create a new thread process for our client
-    start_new_thread(threaded_client, (client, ))
-    pass
+    clients.append(client)
+    addresses.append(address)
+    
+    if (thread_count == config["player_num"]): 
+        clients[0].send(pickle.dumps([True]))
+        clients[1].send(pickle.dumps([True]))
+        start_new_thread(threaded_client, (clients[0], 0, kitchens[0], targets[0]))
+        start_new_thread(threaded_client, (clients[1], 1, kitchens[1], targets[1]))
+    pass  
 
 # %% Testing Cell
 

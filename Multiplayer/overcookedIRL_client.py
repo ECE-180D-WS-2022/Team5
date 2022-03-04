@@ -34,7 +34,11 @@ except socket.error as e:
     print("Our error message:", str(e))
     
 # %% Run Game
-while True:
-    # Run the game logic with the client socket connection
-    game(client)
-    pass
+condition = pickle.loads(client.recv(HEADER))
+    
+if (condition[0] == True):
+    print("Server has given the go-ahead!")
+    while True:
+        # Run the game logic with the client socket connection
+        game(client)
+        pass
