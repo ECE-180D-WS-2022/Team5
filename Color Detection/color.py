@@ -2,30 +2,28 @@ import cv2
 import numpy as np
 from pymouse import PyMouse
 
-# Resize camera feed
-def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
-    dim = None
-    (h, w) = image.shape[:2]
 
-    if width is None and height is None:
-        return image
+# Pre-Calibration Stage
+cam = cv2.VideoCapture(0)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+font = cv2.FONT_HERSHEY_DUPLEX
 
-    if width is None:
-        r = height / float(h)
-        dim = (int(w * r), height)
+while(1):
+    ret_val, img = cam.read()
+    img = cv2.flip(img, 1)
+  
+    cv2.putText(img, 'Hold object in frame', (50, 50), font, 1, (0, 255, 0), 2)
+    cv2.putText(img, 'Press ESC when ready', (50, 100), font, 1, (0, 255, 0), 2)
 
-    else:
-        r = width / float(w)
-        dim = (width, int(h * r))
+    cv2.imshow('Pre-Calibration', img)
+    if cv2.waitKey(1) == 27:
+        break
+cv2.destroyWindow('Pre-Calibration')
 
-    resized = cv2.resize(image, dim, interpolation = inter)
 
-    return resized
-
-# Camera setup
+# Calibration Stage
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-
-# Resize camera
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -36,9 +34,10 @@ last_y = 99999
 posCount = 0
 clicked = False
 
-
 # Tracker functionality
 ret,frame=cap.read()
+frame = cv2.flip(frame, 1)
+cv2.putText(frame, 'Select object using mouse', (50, 50), font, 1, (0, 255, 0), 2)
 x,y,w,h = cv2.selectROI('select', frame)
 cv2.setWindowProperty('select', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 cv2.destroyWindow('select')
@@ -50,6 +49,7 @@ roi_hist = cv2.calcHist([hsv_roi],[0],mask,[180],[0,180])
 cv2.normalize(roi_hist,roi_hist,0,255,cv2.NORM_MINMAX)
 term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
 
+# Mouse Movement Stage
 while(1):
     ret, frame = cap.read()
     frame = cv2.flip(frame, 1)
@@ -63,15 +63,15 @@ while(1):
         if last_x == 99999:
             frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0),3)
 
-        scaled_x = x * 4
-        scaled_y = y * 4
+        scaled_x = int(x * 3)
+        scaled_y = int(y * 3)
 
         m.move(scaled_x, scaled_y)
 
         if (abs(scaled_x - last_x) < 15) and (abs(scaled_y - last_y) < 15):
             posCount += 1
             frame = cv2.rectangle(frame, (frameX,frameY), (frameX+frameW,frameY+frameH), (0,255,0),3)
-            if (posCount >= 20 and clicked == False):
+            if (posCount >= 15 and clicked == False):
                 m.click(scaled_x, scaled_y)
                 clicked = True
             elif (posCount >= 1 and posCount < 20 and clicked == False):
@@ -81,7 +81,7 @@ while(1):
         else:
             posCount = 0
             frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0),3)
-
+        
 
         last_x = scaled_x
         last_y = scaled_y
@@ -96,8 +96,7 @@ while(1):
             clicked = False
             posCount = 0
 
-        #frame = image_resize(frame, width = 480, height = 640) 
-        cv2.imshow('Camera',frame)
+        cv2.imshow('Mouse Movement',frame)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:
