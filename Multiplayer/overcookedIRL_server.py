@@ -320,7 +320,8 @@ config["kitchens"] = kitchens
 config["targets"] = targets
 
 while True:
-    client, address = server.accept() # Receive a client connection
+    # Receive a client connection
+    client, address = server.accept() 
     thread_count += 1 # Increase the number of threaded processes per client
     
     # Print our confirmation message of client connection
@@ -331,10 +332,10 @@ while True:
     addresses.append(address)
     players.append(Player(pickle.loads(client.recv(HEADER))[1]))
     
-    
+    # Wait for all players to at least establish connection before proceeding
     if (thread_count == config["player_num"]): 
-        clients[0].send(pickle.dumps([True]))
-        clients[1].send(pickle.dumps([True]))
+        clients[0].send(pickle.dumps(True))
+        clients[1].send(pickle.dumps(True))
         
         # Wait for ready signal from BOTH PLAYERS
         ready1 = pickle.loads(clients[0].recv(HEADER))

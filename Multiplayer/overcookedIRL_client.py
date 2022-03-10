@@ -37,14 +37,28 @@ except socket.error as e:
     print("Our error message:", str(e))
     
 # %% Run Game
-condition = pickle.loads(client.recv(HEADER))
+# Set client as temporarily non-blocking to run loading animation
+client.setblocking(False)
+try: condition = pickle.loads(client.recv(HEADER))
+except: condition = None
+
+# Run the loading screen animation in this loop
+while (condition != True): 
+    # Error when reading non-existent data, so use try-except
+    try: condition = pickle.loads(client.recv(HEADER))
+    except: condition = None
+    pass
+
+client.setblocking(True)
     
-if (condition[0] == True):
+if (condition == True):
     print("Server has given the go-ahead!")
     
     # Wait for player input that player is ready to begin game
     ready = input("When you are ready, type anything:\n")
     client.send(pickle.dumps([ready])) # Send ready signal to game server
+    
+    # Block the game logic from running for a synchronized start time
     ready_condition = pickle.loads(client.recv(HEADER))
     
     while True:
