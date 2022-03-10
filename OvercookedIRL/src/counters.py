@@ -186,10 +186,11 @@ class ChopCounter(Counter):
         self.items[0].cut_state += 1
 
     def chopped(self):
-        if(self.items[0].cut_state >= 3):
-            return True
-        else:
-            return False
+        if(len(self.items) > 0):
+            if(self.items[0].cut_state >= 3):
+                return True
+            else:
+                return False
 
 class CookCounter(Counter):
     def __init__(self, type, *args, **kw):

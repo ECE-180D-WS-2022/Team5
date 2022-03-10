@@ -7,6 +7,7 @@ from counters import *
 import math
 import random
 import speech_recognition as sr 
+from pymouse import PyMouse
 
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
 class Player(pygame.sprite.Sprite):
@@ -805,7 +806,7 @@ class Cursor(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
 
         self.game = game
-        self._layer = CURSOR_LAYER
+        self._layer = COUNTER_FRONT_ITEMS_LAYER
 
         self.groups = self.game.all_sprites
         pygame.sprite.Sprite.__init__(self, self.groups)
@@ -816,11 +817,19 @@ class Cursor(pygame.sprite.Sprite):
         self.height = TILE_SIZE
 
         self.image = self.game.cursor_spritesheet.get_sprite(0,0,0,0,self.width, self.height)
+        self.dest_cursor = BackgroundObject(self.game,self.game.cursor_spritesheet,0,0,self.x,self.y,CURSOR_LAYER,self.groups)
+
+        # game, spritesheet, s_x, s_y, x, y, layer, groups
+                            
         # self.image.fill((255,255,0,128))
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+
+        self.m = PyMouse()
+        # pos = m.position()
+
 
     def movement(self, x, y):
         # get all keys that have been pressed
@@ -833,5 +842,12 @@ class Cursor(pygame.sprite.Sprite):
         # self.movement(x, y)
 
         # # add position change to player 
-        self.rect.x = self.game.player.dest_x
-        self.rect.y = (self.game.player.dest_y + TILE_SIZE)
+        x,y = pygame.mouse.get_pos()
+        self.rect.x = x-TILE_SIZE
+        self.rect.y = y
+        print("pymouse coord: " + str(x-TILE_SIZE) + ", " + str(y))
+
+        self.dest_cursor.rect.x = self.game.player.dest_x
+        self.dest_cursor.rect.y= (self.game.player.dest_y + TILE_SIZE)
+
+        
