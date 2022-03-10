@@ -10,6 +10,7 @@ import sys
 import copy
 import socket
 import pickle
+import numpy as np
 
 # Game Parameters
 HEADER = 4096
@@ -46,9 +47,6 @@ def game(client_socket):
     current = None # Local copy of the name of the current player location
     # inventory = 0 # Local copy of inventory size
     
-    # Register a new player
-    register(client_socket, header=HEADER)
-    
     # At the start, first move to a station
     current = move(client_socket, header=HEADER)
     status = pickle.loads(client_socket.recv(HEADER))
@@ -59,6 +57,7 @@ def game(client_socket):
             print("Player inventory:", str(status[1]))
             print("Pantry inventory:", str(status[2]))
             print("Target recipe:", str(status[3]))
+            print("Share station:", str(status[4]))
     
     # Begin game logic
     while True:
@@ -73,6 +72,7 @@ def game(client_socket):
             print("Player inventory:", str(status[1]))
             print("Pantry inventory:", str(status[2]))
             print("Target recipe:", str(status[3]))
+            print("Share station:", str(status[4]))
         pass
    
 # Function: Register a game player
@@ -137,6 +137,7 @@ class Kitchen_Stations:
         self.idx = idx # Index of where the ingredient stand is
         self.stations = stations
         self.stations_list = []
+        self.plate_counter = 0
         
         for name in stations:
             self.stations_list.append(Station(name))
@@ -173,12 +174,17 @@ class Kitchen_Stations:
         if (target != None):
             item = self.find_item(station_name, target)
             
-            # Remove item from the station, if valid (excluding pantry)
-            if (item != None and station_name != stations[2]):
+            # Remove item from the station, if valid (excluding pantry and plates)
+            if (item != None and (station_name != stations[2] and
+                                  station_name != stations[3])):
                 self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
                 return item
             elif (item != None and station_name == stations[2]):
                 # Pantry should have an unlimited supply!
+                return copy.deepcopy(item)
+            elif (item != None and station_name == stations[3]):
+                # Plates should have an unlimited supply!
+                item.increment_ID()
                 return copy.deepcopy(item)
         
         # Pick up item from station and clear the station (N.B. Fix for pantry)
@@ -238,6 +244,9 @@ class Plate:
     def plate_item(self, item):
         self.contents.append(item)
         
+    def increment_ID(self):
+        self.ID_number += 1
+        
 # Ingredient Class
 class Ingredient:
     def __init__(self, name, cut_state, cook_state):
@@ -251,10 +260,60 @@ class Ingredient:
         cook = abs(self.cook_state - ingred2.cook_state)
         return cut + cook
         
-# Recipe Class
+# Recipe Class and Methods
+def generate_recipe():
+    # Pick a type of recipe to generate
+    recipe_types = ["sandwich", "soup", "steak", "noodles"]
+    recipe_type = recipe_types[np.random.randint(3)]
+    
+    # Depending on the recipe type, choose ingredients wisely!
+    if (recipe_type == recipe_types[0]):
+        # Generate a sandwich type recipe (2 Bread, 1 Meat, 1/2 Vegetable)
+        bun1 = Ingredient("Bread", 0, 1)
+        bun2 = Ingredient("Bread", 0, 1)
+        meat = Ingredient("Beef", 1, 3)
+        
+        # If needed, we can even randomize whether it's lettuce/tomato/both
+        toppings = Ingredient("Lettuce", 3, 0)
+        materials = [bun1, bun2, meat, toppings]
+        return Recipe(materials)
+    elif (recipe_type == recipe_types[1]):
+        # Generate a soup type recipe
+        tofu = Ingredient("Tofu", 5, 3)
+        cabbage = Ingredient("Cabbage", 2, 3)
+        chicken = Ingredient("Chicken", 4, 3)
+        
+        # If needed, further randomization/customization
+        materials = [tofu, cabbage, chicken]
+        return Recipe(materials)
+    elif (recipe_type == recipe_types[2]):
+        # Generate a steak type recipe
+        steak = Ingredient("Beef", 0, 6)
+        potato = Ingredient("Potato", 2, 2)
+        celery = Ingredient("Celery", 3, 3)
+        
+        # If needed, further randomization/customization
+        materials = [steak, potato, celery]
+        return Recipe(materials)
+    else: # Once more types are added, we can alter this conditional
+        # Generate a noodle type recipe/further recipe
+        print("Still under development!")
+        pass
+    pass
+
 class Recipe:
     def __init__(self, materials):
         self.materials = materials
+        
+    # Get the ingredients of the recipe
+    def get_ingredients(self):
+        ingredient_names = []
+        
+        for item in self.materials:
+            ingredient_names.append(item.ingredient_name)
+            pass
+        
+        return ingredient_names
         
     # Return the string representation of the recipe
     def recipe_string(self):
@@ -267,6 +326,7 @@ class Recipe:
                        str(item.cook_state)]
             raw += ", ".join(details) + "]"
             mats.append(raw)
+            pass
         
         return mats
         
