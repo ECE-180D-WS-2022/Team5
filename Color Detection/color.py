@@ -3,7 +3,7 @@ import numpy as np
 from pymouse import PyMouse
 
 
-# Pre-Calibration Stage
+# # Pre-Calibration Stage
 cam = cv2.VideoCapture(0)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -38,6 +38,8 @@ clicked = False
 ret,frame=cap.read()
 frame = cv2.flip(frame, 1)
 cv2.putText(frame, 'Select object using mouse', (50, 50), font, 1, (0, 255, 0), 2)
+cv2.putText(frame, 'Press enter when ready', (50, 100), font, 1, (0, 255, 0), 2)
+
 x,y,w,h = cv2.selectROI('select', frame)
 cv2.setWindowProperty('select', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 cv2.destroyWindow('select')
@@ -63,8 +65,8 @@ while(1):
         if last_x == 99999:
             frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0),3)
 
-        scaled_x = int(x * 3)
-        scaled_y = int(y * 3)
+        scaled_x = int(x * 2)
+        scaled_y = int(y * 2)
 
         m.move(scaled_x, scaled_y)
 
@@ -82,7 +84,6 @@ while(1):
             posCount = 0
             frame = cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0),3)
         
-
         last_x = scaled_x
         last_y = scaled_y
 
