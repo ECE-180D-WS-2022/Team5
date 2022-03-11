@@ -8,8 +8,12 @@ Created on Thu Feb 24 14:43:02 2022
 # Import Statements
 import sys
 import copy
+import time
+import queue
+import msvcrt
 import socket
 import pickle
+import threading
 import numpy as np
 
 # Game Parameters
@@ -39,40 +43,63 @@ Additional Gameplay Notes:
 '''
 ###############################################################################
 
-# Function: Game logic driver
+# Function: Get data (blocking version)
+def get_data(client_socket, condition=None, count=0):
+    # If we don't set a certain amount of timed data retrieval
+    if (count == 0):
+        while True:
+            try: condition = pickle.loads(client_socket.recv(HEADER))
+            except: condition = None
+            
+            if (condition != None): break
+    else:
+        while count > 0:
+            try: condition = pickle.loads(client_socket.recv(HEADER))
+            except: condition = None
+            
+            if (condition != None): break    
+            count -= 1
+    return condition
+
+# Function: Get data (nonblocking version)
+def get_unblocked_data(client_socket, condition=None):
+    try: condition = pickle.loads(client_socket.recv(HEADER))
+    except: condition = None
+    return condition
+
+# Function: Blocked accept (blocking version)
+def get_accept(server):
+    while True:
+        try: 
+            client, address = server.accept() 
+            break
+        except: 
+            pass
+    return client, address
+
 def game(client_socket):
     print("############### Welcome to Overcooked IRL ###############")
-    
-    # Store local copies of any player parameters
     current = None # Local copy of the name of the current player location
-    # inventory = 0 # Local copy of inventory size
     
-    # At the start, first move to a station
-    current = move(client_socket, header=HEADER)
-    status = pickle.loads(client_socket.recv(HEADER))
-    
-    # Print initial game state
-    if (status != None):
-            print("Player location:", str(status[0]))
-            print("Player inventory:", str(status[1]))
-            print("Pantry inventory:", str(status[2]))
-            print("Target recipe:", str(status[3]))
-            print("Share station:", str(status[4]))
-    
+    # Set a dedicated thread for checking for updates to the game state
+    input_thread = threading.Thread(target=retrieve_state, 
+                                    args=(client_socket, ), 
+                                    daemon=True)
+    input_thread.start()
+        
     # Begin game logic
-    while True:
-        current = action(client_socket, header=HEADER, loc=current)
-        
-        # Retrieve game state and print logistics after every action
-        status = pickle.loads(client_socket.recv(HEADER))
+    changes = 0
+    while True:      
+        # Move to a station on the first iteration, perform action otherwise
+        if (changes == 0):
+            current = move(client_socket, header=HEADER)
+            changes = 1
+        else:
+            current = action(client_socket, header=HEADER, loc=current)
         print("_________________________________________________")
-        
-        if (status != None):
-            print("Player location:", str(status[0]))
-            print("Player inventory:", str(status[1]))
-            print("Pantry inventory:", str(status[2]))
-            print("Target recipe:", str(status[3]))
-            print("Share station:", str(status[4]))
+
+        # Prevent simultaneous erroneous fetching inbetween internal actions            
+        time.sleep(0.01)
         pass
    
 # Function: Register a game player
@@ -83,19 +110,31 @@ def register(client_socket, header=HEADER): # ACTION = 0
 # Function: Move stations as a player
 def move(client_socket, header=HEADER): # ACTION = 1
     print("Select a station from one of the following below:")
-    dest = int(input("(1) Cutting Board (2) Stove (3) Ingredients Stand" \
+    print("(1) Cutting Board (2) Stove (3) Ingredients Stand" \
                  " (4) Plates Cupboard (5) Submission Countertop" \
-                     " (6) Share Station\n"))
-    
+                     " (6) Share Station\n")
+    dest = int(input())
     client_socket.send(pickle.dumps([1, dest])) # Send information to be stored
     return stations[dest - 1]
+
+# Function: Non-blocking input
+def retrieve_state(client_socket):
+    prev = None
+    while (True):
+        command = get_unblocked_data(client_socket)
+        if (command != None and command != prev):
+            prev = command
+            print(command)
+            print("End of state:-----------------------")
+        pass
 
 # Function: Complete an action
 def action(client_socket, header=HEADER, loc=None): # ACTION = VARIABLE
     print("Select an option from one of the following below:")
-    dest = int(input("(1) Move (2) Pick Up (3) Put Down" \
+    print("(1) Move (2) Pick Up (3) Put Down" \
                  " (4) Gesture/Speech (5) Submit (6) Trash Inventory"\
-                     " (7) Trash Station (8) Exit \n"))
+                     " (7) Trash Station (8) Exit \n")
+    dest = int(input())
     
     if (dest == 1): # ACTION = 1
         # Move
@@ -192,10 +231,6 @@ class Kitchen_Stations:
         
         # Remove item from the station
         self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
-        
-        # # N.B. If at plates cupboard/pantry, DO NOT clear the station
-        # if (station_name != stations[2] and station_name != stations[3]):
-        #     self.stations_list[self.stations.index(station_name)].ingredients.clear()
         return item
     
     # Set the old station to be denoted empty/free

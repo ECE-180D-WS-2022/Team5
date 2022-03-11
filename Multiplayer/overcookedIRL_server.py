@@ -10,6 +10,7 @@ import sys
 import time
 import pickle
 import socket
+import threading
 from _thread import *
 from building_blocks import *
 
@@ -21,7 +22,7 @@ N.B. Refer to the below link for the base theory behind the code:
 # %% Game Configuration
 stations = ["Cutting Board", "Stove", "Ingredients Stand", 
             "Plates Cupboard", "Submission Countertop", "Share Station"]
-config = {"host": "131.179.50.229", "port": 4900, "stations": stations,
+config = {"host": "192.168.1.91", "port": 4900, "stations": stations,
           "player_num": 2, "HEADER": 4096}
 
 # %% Setup Socket Server
@@ -34,12 +35,9 @@ server = socket.socket()
 
 # Define operation runtime parameters
 thread_count = 0 # Number of threaded processes connected to the server
-HEADER = config["HEADER"] # Maximum number of bytes for data transmission, i.e. 4096 bytes
+HEADER = config["HEADER"] # Maximum number of bytes for transmission, i.e. 4096 bytes
 
 # %% Initialize Game Server
-# Create our target recipe
-
-
 # Connect game server online
 try:
     server.bind((host, port))
@@ -50,39 +48,72 @@ except socket.error as e:
 # Define a max limit of 5 threaded client connections
 server.listen(5)
 
+# We want realtime response and transmission
+server.setblocking(False) 
+
 # %% Define Thread Process
-# Function: Controls thread process
-def threaded_client(connection, player, player_ID, kitchen, target, config, kitchen1):
-    # Continuously receive and process client data
-    count = 0
-    # player = None # N.B. At the start, player has not been created yet
+# Function: Continuously retrieves state
+def update_state(stations, kitchen, player, target, player_ID, connection):
+    prev_state = None
     
-    while True:
-        count += 1
-        
-        data = pickle.loads(connection.recv(HEADER))
-        player = process_data(connection, player, data, kitchen, target, kitchen1)
-        
-        # Print state of game for each while loop iteration
-        print_state(count, data, player, player_ID)
-        
-        # Print game state for all stations
-        kitchen.display_kitchen()
-        
-        # Send game state to player client after first iteration
-        print("Sent game state:")
-        game_state = get_status(count, stations, 
-                                kitchen, player, target, player_ID)
-        connection.send(pickle.dumps(game_state))
-        print(game_state)
-        
-        print("##########################################")
+    # In threaded background, continuously check for a change in game state
+    while (True):
+        current_state = get_status(stations, kitchen, player, target, player_ID)
+        if (current_state != None and current_state != prev_state):
+            # Send the updated game state to the player
+            connection.send(pickle.dumps(current_state))
+            print_status_as_string(current_state)
+            print("__________Above: New State | Below: Old State__________")
+            print_status_as_string(prev_state)
+            print("-------------------------------------------------------")
+            prev_state = current_state
+            
+        # Set delay to avoid retrieving state between internal actions
+        time.sleep(0.10)
         pass
 
+# Function: Controls thread process
+def threaded_client(connection, player, player_ID, kitchen, target, config, kitchen1=None):   
+    # Set a dedicated thread for checking for updates to the game state
+    input_thread = threading.Thread(target=update_state, args=(stations, kitchen,
+                                                          player, target, player_ID, 
+                                                          connection), daemon=True)
+    input_thread.start()
+    
+    # Continuously check for player actions
+    while True:
+        data = get_unblocked_data(connection)
+        # Update the player
+        player = process_data(connection, player, data, kitchen, target, kitchen1)
+        pass
+    
+# Function: Prints the game status as an easy to read string
+def print_status_as_string(status):
+    # If dealing with a nonetype, print NONE and return
+    if (status == None): 
+        print("State is NONE!")
+        return
+    
+    loc = status[0]
+    inventory = status[1]
+    pantry = status[2]
+    target = status[3]
+    share = status[4]
+    ID = status[5]
+    name = status[6]
+    
+    print("Current Player location:", loc)
+    print("Current Player Inventory:", inventory)
+    print("Pantry Ingredients:", pantry)
+    print("Target Recipe:", target)
+    print("Share Station:", share)
+    print("Player ID:", str(ID), ", with Player Name:", name)
+
 # Function: Retrieve the entire game status
-def get_status(count, stations, kitchen, player, target_recipe, player_ID):
+def get_status(stations, kitchen, player, target_recipe, player_ID):
     '''
-    Returns [player location, current inventory, pantry, target recipe]
+    Returns [player location, current inventory, pantry, target recipe, 
+    share, player_ID, name]
     '''
     # Retrieve location
     loc = player.location
@@ -125,11 +156,11 @@ def get_status(count, stations, kitchen, player, target_recipe, player_ID):
     share += "|||||".join(share_items)
     share += "]"
     
-    return [loc, inventory, pantry, target, share]
+    return [loc, inventory, pantry, target, share, player_ID, player.name]
 
 # Function: Print out the status of the player
-def print_state(count, data, player, player_ID):
-    print("For iteration number:", str(count))
+def print_state(data, player, player_ID):    
+    if (data == None): data = "None"
     print("Our connection received data:", str(data))
     print("Our current player:", str(player.name), ", w/ ID:", str(player_ID))
     print("Our inventory size:", str(len(player.inventory)))
@@ -146,9 +177,13 @@ def print_state(count, data, player, player_ID):
             contents = [raw.ingredient_name for raw in item.contents]
             contents = "/".join(contents)
             print("Plate ID:", str(name), "| Contents:", str(contents))
+        pass
 
 # Function: Processes client data to alter game state
 def process_data(connection, player, data, kitchen, target, kitchen1):
+    # Leave if no data received
+    if (data == None): return player
+    
     # Receive data as list, where data[0] defines the type of action performed
     if (data[0] == 0 and player == None): # Action code 0
         # Game would like to register new player
@@ -321,16 +356,17 @@ config["targets"] = targets
 
 while True:
     # Receive a client connection
-    client, address = server.accept() 
+    # client, address = server.accept() 
+    client, address = get_accept(server)
     thread_count += 1 # Increase the number of threaded processes per client
     
     # Print our confirmation message of client connection
     print("Connected to:", str(address[0]), ":", str(address[1]),
-          " ||||| ", "Number of threads:", str(thread_count))
+          " |||||", "Number of threads:", str(thread_count))
     
     clients.append(client)
     addresses.append(address)
-    players.append(Player(pickle.loads(client.recv(HEADER))[1]))
+    players.append(Player(get_data(client)))
     
     # Wait for all players to at least establish connection before proceeding
     if (thread_count == config["player_num"]): 
@@ -338,8 +374,8 @@ while True:
         clients[1].send(pickle.dumps(True))
         
         # Wait for ready signal from BOTH PLAYERS
-        ready1 = pickle.loads(clients[0].recv(HEADER))
-        ready2 = pickle.loads(clients[1].recv(HEADER))
+        ready1 = get_data(clients[0])
+        ready2 = get_data(clients[1])
         
         # Send confirmation for synchronized start
         clients[0].send(pickle.dumps(ready1))
@@ -347,12 +383,12 @@ while True:
         
         # Begin game logic on the server side
         start_new_thread(threaded_client, (clients[0], players[0], 0, 
-                                           kitchens[0], targets[0], config, kitchens[1]))
+                                           kitchens[0], targets[0], config, kitchens[1])) 
         start_new_thread(threaded_client, (clients[1], players[1], 1, 
-                                           kitchens[1], targets[1], config, kitchens[0]))
+                                            kitchens[1], targets[1], config, kitchens[0]))
     pass  
 
-# %% Testing Cell
+# %% Testing Cell 1
 import numpy as np
 class c1():
     def __init__(self, x, y):

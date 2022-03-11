@@ -18,7 +18,7 @@ N.B. Refer to the below link for the base theory behind the code:
 # %% Setup Socket Client
 # Define client connection parameters
 host = "131.179.50.229" # IPv4 address of the Eng. IV lab room
-# host = "192.168.1.91" # IPv4 address of my (K's) apartment
+host = "192.168.1.91" # IPv4 address of my (K's) apartment
 port = 4900 # Unique 4 digit code to verify socket connections
 client = socket.socket()
 
@@ -37,7 +37,7 @@ except socket.error as e:
     print("Our error message:", str(e))
     
 # %% Run Game
-# Set client as temporarily non-blocking to run loading animation
+# Set client as non-blocking to run loading animation + be async
 client.setblocking(False)
 try: condition = pickle.loads(client.recv(HEADER))
 except: condition = None
@@ -48,8 +48,6 @@ while (condition != True):
     try: condition = pickle.loads(client.recv(HEADER))
     except: condition = None
     pass
-
-client.setblocking(True)
     
 if (condition == True):
     print("Server has given the go-ahead!")
@@ -59,9 +57,7 @@ if (condition == True):
     client.send(pickle.dumps([ready])) # Send ready signal to game server
     
     # Block the game logic from running for a synchronized start time
-    ready_condition = pickle.loads(client.recv(HEADER))
+    ready_condition = get_data(client)
     
-    while True:
-        # Run the game logic with the client socket connection
-        game(client)
-        pass
+    # Run the game logic with the client socket connection
+    game(client)
