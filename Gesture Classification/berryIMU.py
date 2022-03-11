@@ -23,7 +23,7 @@ import math
 import IMU
 import datetime
 import os
-import numpy as np # Should work on RaspberryPI?
+# import numpy as np # Should work on RaspberryPI?
 # import sklearn
 
 # DELTA
@@ -210,12 +210,12 @@ aY = []
 aZ = []
 
 # Numpy implementation of gesture classification
-gX = np.array([])
-gY = np.array([])
-gZ = np.array([])
-aX = np.array([])
-aY = np.array([])
-aZ = np.array([])
+# gX = np.array([])
+# gY = np.array([])
+# gZ = np.array([])
+# aX = np.array([])
+# aY = np.array([])
+# aZ = np.array([])
 
 gestures = [] # 0 -> stir, 1 -> chop
 conversion_constant = 0.183 * 1.279
@@ -460,20 +460,20 @@ while (button_pressed == True):
         else: gestures.append(0)
     
     # Numpy implementation
-    gX = np.append(gX, rate_gyr_x)
-    gY = np.append(gY, rate_gyr_y)
-    gZ = np.append(gZ, rate_gyr_z)
-    aX = np.append(aX, gesture_accx)
-    aY = np.append(aY, gesture_accy)
-    aZ = np.append(aZ, gesture_accz)
+    # gX = np.append(gX, rate_gyr_x)
+    # gY = np.append(gY, rate_gyr_y)
+    # gZ = np.append(gZ, rate_gyr_z)
+    # aX = np.append(aX, gesture_accx)
+    # aY = np.append(aY, gesture_accy)
+    # aZ = np.append(aZ, gesture_accz)
     
-    if (count % 25 == 0 and count >= 100):
-        tmp_gX = np.sum(np.square(gX[-100:]))
-        tmp_gZ = np.sum(np.square(gZ[-100:]))
-        tmp_power = tmp_gX + tmp_gZ
+    # if (count % 25 == 0 and count >= 100):
+    #     # tmp_gX = np.sum(np.square(gX[-100:]))
+    #     # tmp_gZ = np.sum(np.square(gZ[-100:]))
+    #     tmp_power = tmp_gX + tmp_gZ
         
-        if (tmp_power > thresh): gestures.append(1)
-        else: gestures.append(0)
+    #     if (tmp_power > thresh): gestures.append(1)
+    #     else: gestures.append(0)
 
     #slow program down a bit, makes the output more readable
     time.sleep(0.03)
