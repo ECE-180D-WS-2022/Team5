@@ -5,11 +5,12 @@ import os
 import random
 
 from numpy import isin
-from Ingredients import Ingredients
 from Station_Manager import Station_Manager
 from Player import Player
 from Plate import Plate
-from Target_Recipes import Target_Recipes
+from Ingredients import *
+from Target_Recipes import *
+import random
 # import speech_recognition as sr
 import copy
 
@@ -19,24 +20,21 @@ valid_actions = ['put down', 'pick up']
 stations = ["Cutting Station", "Stove Station", "Ingredients Station", "Submit Station", "Share Station", "Plate Station", "Counter"]
 station_num = ["1", "2", "3", "4", "5", "6", "7"]
 station_manager = Station_Manager()
-target_recipes = Target_Recipes()
-base_ingr = target_recipes.base_ingredients
+completed_current_recipe = True
+
+T_R = Target_Recipes()
+num_extra_ingr = random.randint(1,3)
+print("number of extra ingredients")
+print(num_extra_ingr)
+print("==========")
+target_recipes_list = list(T_R.recipes_list.items())
+set_of_base_ingr = []
+base_ingr = T_R.base_ingr
 valid_ingredients_names = []
-completed_current_recipe = False
 i = 0
 while (i < len(base_ingr)):
     valid_ingredients_names.append(base_ingr[i].ingredient_name)
     i += 1
-# to choose a random recipe
-target_recipes_list = list(target_recipes.simple_recipes_list.items())
-target_recipe = random.choice(target_recipes_list) # results in a list that contains: name, ingredients list
-# print(target_recipe)
-# input("Press enter to continue")
-
-#target_recipe1 = [Ingredients("tomato", 2, 0), Ingredients("cheese", 3, 0), Ingredients("bread", 1, 0), Ingredients("beef", 1, 1), Ingredients("lettuce", 1, 0)]
-#target_recipe2 = [Ingredients("lettuce", 1, 1)]
-#base_ingr = [Ingredients("tomato", 0, 0), Ingredients("cheese", 0, 0), Ingredients("bread", 0, 0), Ingredients("beef", 0, 0), Ingredients("lettuce", 0, 0)]
-
 
 def main():
     os.system('cls') # use cls for PowerShell; may need to change for other output terminals
@@ -67,11 +65,31 @@ def start():
 
 def start2():
     os.system('cls')
-    global completed_current_recipe, target_recipe
+    global completed_current_recipe, target_recipe, station_manager, current_score, set_of_base_ingr, target_recipe_li
     if completed_current_recipe:
-        target_recipe = random.choice(target_recipes_list)
+        target_recipe_li = random.choice(target_recipes_list) # results in a list that contains: name, ingredients list
+        target_recipe = target_recipe_li[1]
+        possible_ingr = T_R.base_ingr
+        i = 0
+        skip = False
+        while i < num_extra_ingr:
+            rand_ingr = T_R.random_ingr(target_recipe, possible_ingr)
+            for a in range(len(target_recipe)):
+                if rand_ingr.ingredient_name in target_recipe[a].ingredient_name:
+                    possible_ingr.remove(Ingredients(rand_ingr.ingredient_name))
+                    skip = True
+                    break
+            if skip == True:
+                skip = False
+                break
+            target_recipe.append(rand_ingr)
+            i += 1
+
+        set_of_base_ingr = []
+        for a in range(len(target_recipe)):
+            set_of_base_ingr.append(Ingredients(target_recipe[a].ingredient_name))
         completed_current_recipe = False
-    global station_manager, current_score
+        
     print ("Name: %s" % PlayerIG.name)
     print("Current Score: %s" % current_score)
     print("Target Recipe: %s" % target_recipe[0])
@@ -123,6 +141,7 @@ def start2():
     print ("6.) Trash Inventory")
     print ("7.) Trash Location Ingredient")
     print ("8.) Inspect Recipe")
+    print ("9.) View Recipe")
     
     option = input("-> ")
     if option == "1":
@@ -141,8 +160,19 @@ def start2():
         trash_loc_ingr()
     elif option == "8":
         inspect_recipe()
+    elif option == "9":
+        view_recipe()
     else:
         start2()
+
+def view_recipe():
+    global target_recipe_li, target_recipe
+    os.system('cls')
+    print("Recipe name: " + target_recipe_li[0])
+    for b in range(len(target_recipe)):
+        print(target_recipe[b].ingredient_name, target_recipe[b].cut_state, target_recipe[b].cook_state)
+    input("Press Enter to continue.")
+    start2()
 
 def pick_station(): 
     os.system('cls')
@@ -296,90 +326,6 @@ def pickup():
                 print("Inventory is full with an ingredient; cannot pick up anything")
                 input("Press enter to continue")
             start2()
-
-
-
-
-
-
-    # if not PlayerIG.plate: # if player is holding 0 plates
-    #     if PlayerIG.location == "Plate Station":
-    #         global plate_num
-    #         PlayerIG.plate.append(Plate(plate_num)) # player now holds an empty plate that has no ingredients
-    #         plate_num += 1
-    #         start2()
-    #     elif PlayerIG.location == "Share Station": # need to add case to pick up plates from shared location; for multiplayer only
-    #         pass
-    #     elif PlayerIG.location == "Ingredients Station": # pick up command does not work at this station
-    #         start2()
-    #     else: # add unprepared foods to inv if player inv is empty, but do nothing if player inv is full; cannot pick up prepared ingr
-    #         if not PlayerIG.inventory:
-    #             n = 0
-    #             while n < len(station_manager.stations):
-    #                 if (PlayerIG.location == station_manager.stations[n].station_name) and (station_manager.stations[n].ingredient.cut_state == 0) and ((station_manager.stations[n].ingredient.cook_state == 0)):
-    #                     PlayerIG.inventory.append(station_manager.stations[n].ingredient)
-    #                     station_manager.stations[n].busy = 0
-    #                     station_manager.stations[n].ingredient = None
-    #                     break
-    #                 n += 1
-    #             start2()
-    #         else:
-    #             start2()         
-    # else: # if player is holding a plate
-    #     if PlayerIG.location in ["Plate Station", "Ingredients Station", "Submit Station"]:
-    #         start2()
-    #     elif PlayerIG.location == "Share Station": # add when share station is necessary
-    #         pass
-    #     else:  # add unprepared foods to inv if player inv is empty, but do nothing if player inv is full; add prepared ingr to plate
-    #         if not PlayerIG.inventory:
-    #             n = 0
-    #             while n < len(station_manager.stations):
-    #                 if (PlayerIG.location == station_manager.stations[n].station_name) and (station_manager.stations[n].ingredient.cut_state == 0) and (station_manager.stations[n].ingredient.cook_state == 0):
-    #                     PlayerIG.inventory.append(station_manager.stations[n].ingredient)
-    #                     station_manager.stations[n].busy = 0
-    #                     station_manager.stations[n].ingredient = None
-    #                     break
-    #                 if (PlayerIG.location == station_manager.stations[n].station_name) and ((station_manager.stations[n].ingredient.cut_state > 0) or (station_manager.stations[n].ingredient.cook_state > 0)):
-    #                     PlayerIG.plate[0].ingredients.append(station_manager.stations[n].ingredient)
-    #                     station_manager.stations[n].busy = 0
-    #                     station_manager.stations[n].ingredient = None
-    #                     break
-    #                 n += 1
-    #             start2()
-    #         else:
-    #             start2()
-
-# player can only put down ingredients onto a station that processes food; plates are always kept with the player for now
-# can only put down ingredients at a station if the ingredients belong to that station
-
-
-# def putdown():
-#     os.system('cls')
-#     global station_manager
-#     global PlayerIG
-#     if not PlayerIG.inventory and not PlayerIG.plate:
-#         start2()
-#     else:
-#         ingredient = PlayerIG.inventory[0]
-#         if isinstance(ingredient, Ingredients): # if the inventory contains an ingredient, place it down
-#             n = 0
-#             while n < len(station_manager.stations):
-#                 if (PlayerIG.location == station_manager.stations[n].station_name) and (station_manager.stations[n].station_name in ingredient.prepare_stations):
-#                     if (station_manager.stations[n].busy == 0):
-#                         station_manager.stations[n].busy = 1
-#                         station_manager.stations[n].ingredient = ingredient
-#                         PlayerIG.inventory.clear()
-#                         break
-#                 n += 1
-#             start2()
-#         else: # if the inventory contains a plate, ask what the player wants to put down
-#             if ingredient.ingredients: # if the plate holds something
-#                 print("Which ingredient do you want to put down?")
-
-
-#             else: # don't do anything if there is nothing on the plate
-#                 start2()
-
 
 def putdown():
     os.system('cls')
