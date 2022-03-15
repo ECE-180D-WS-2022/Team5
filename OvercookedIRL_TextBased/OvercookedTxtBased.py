@@ -11,7 +11,7 @@ from Plate import Plate
 from Ingredients import *
 from Target_Recipes import *
 import random
-# import speech_recognition as sr
+import speech_recognition as sr
 import copy
 
 current_score = 0
@@ -24,17 +24,9 @@ completed_current_recipe = True
 
 T_R = Target_Recipes()
 num_extra_ingr = random.randint(1,3)
-print("number of extra ingredients")
-print(num_extra_ingr)
-print("==========")
 target_recipes_list = list(T_R.recipes_list.items())
 set_of_base_ingr = []
-base_ingr = T_R.base_ingr
 valid_ingredients_names = []
-i = 0
-while (i < len(base_ingr)):
-    valid_ingredients_names.append(base_ingr[i].ingredient_name)
-    i += 1
 
 def main():
     os.system('cls') # use cls for PowerShell; may need to change for other output terminals
@@ -88,11 +80,15 @@ def start2():
         set_of_base_ingr = []
         for a in range(len(target_recipe)):
             set_of_base_ingr.append(Ingredients(target_recipe[a].ingredient_name))
+        i = 0
+        while (i < len(set_of_base_ingr)):
+            valid_ingredients_names.append(set_of_base_ingr[i].ingredient_name)
+            i += 1
         completed_current_recipe = False
         
     print ("Name: %s" % PlayerIG.name)
     print("Current Score: %s" % current_score)
-    print("Target Recipe: %s" % target_recipe[0])
+    print("Target Recipe: %s" % target_recipe_li[0])
     if PlayerIG.inventory:
         if isinstance(PlayerIG.inventory[0], Ingredients):
             print("Inventory: %s, cut_state: %s, cook_state: %s" % (PlayerIG.inventory[0].ingredient_name, PlayerIG.inventory[0].cut_state, PlayerIG.inventory[0].cook_state))
@@ -139,28 +135,26 @@ def start2():
     print ("4.) Action")
     print ("5.) Submit ")
     print ("6.) Trash Inventory")
-    print ("7.) Trash Location Ingredient")
-    print ("8.) Inspect Recipe")
-    print ("9.) View Recipe")
-    
-    option = input("-> ")
-    if option == "1":
+    print ("7.) Trash Location")
+    print ("8.) Look at Recipe")
+    # option = input("-> ")
+    input("Press Enter to begin speaking...")
+    option = listen()
+    if option == "move":
         pick_station()
-    elif option == "2":
+    elif option == "pick up":
         pickup()
-    elif option == "3":
+    elif option == "put down":
         putdown()
-    elif option == "4":
+    elif option == "action":
         action()
-    elif option == "5":
+    elif option == "submit":
         submit()
-    elif option == "6":
+    elif option == "trash inventory":
         trash_inv()
-    elif option == "7":
+    elif option == "trash location":
         trash_loc_ingr()
-    elif option == "8":
-        inspect_recipe()
-    elif option == "9":
+    elif option == "look":
         view_recipe()
     else:
         start2()
@@ -201,14 +195,15 @@ def action():
     global PlayerIG
     if (PlayerIG.location == "Ingredients Station") and not PlayerIG.inventory:
         print ("What ingredient do you want?")
-        #listen_ingredients()
         print(*valid_ingredients_names, sep = ", ")
-        option = input("-> ")
+        input("Press Enter to begin speaking...")
+        option = listen()
+        # option = input("-> ")
         if option in valid_ingredients_names:
             n = 0
-            while n < len(base_ingr): # is there a better way to access a single attribute of a list of objects?
-                if option == base_ingr[n].ingredient_name:
-                    PlayerIG.inventory.append(copy.copy(base_ingr[n])) # want new object that is a copy; don't want to reference the same exact object to use
+            while n < len(set_of_base_ingr): # is there a better way to access a single attribute of a list of objects?
+                if option == set_of_base_ingr[n].ingredient_name:
+                    PlayerIG.inventory.append(copy.copy(set_of_base_ingr[n])) # want new object that is a copy; don't want to reference the same exact object to use
                     break
                 n += 1
             start2()
@@ -226,9 +221,9 @@ def action():
             option = input("-> ")
             if option in valid_ingredients_names:
                 n = 0
-                while n < len(base_ingr):
-                    if option == base_ingr[n].ingredient_name:
-                        PlayerIG.inventory.append(base_ingr[n])
+                while n < len(set_of_base_ingr):
+                    if option == set_of_base_ingr[n].ingredient_name:
+                        PlayerIG.inventory.append(set_of_base_ingr[n])
                         break
                     n += 1
                 start2()
@@ -452,28 +447,20 @@ def inspect_recipe():
     input("Press Enter to go back")
     start2()
 
-# def listen_ingredients():
-#     r = sr.Recognizer()
-#     with sr.Microphone() as source:
-#         print("Say something!")
-#         audio = r.listen(source)
-#     try:
-#         recog_word = r.recognize_google(audio)
-#         if not inventory: #player inventory is empty, empty 'inventory' is false
-#             if recog_word in valid_ingredients:
-#                 inventory = recog_word
-#                 print(inventory + " is added to your inventory")
-#             else:
-#                 print("Invalid item or action")
-#         else: #player inventory is full
-#             if recog_word in valid_actions: #so far only action is to put down which results in empty inv
-#                 inventory = ''
-#             else:
-#                 print("Inventory is full") #nothing else but 'put down' works for now if inv is full
-#     except sr.UnknownValueError:
-#         print("Google Speech Recognition could not understand audio")
-#     except sr.RequestError as e:
-#         print("Could not request results from Google Speech Recognition service; {0}".format(e))
+def listen():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Say something!")
+        audio = r.listen(source)
+    try:
+        recog_word = r.recognize_google(audio)
+        return recog_word
+    except sr.UnknownValueError:
+        print("Google Speech Recognition could not understand audio")
+        return None
+    except sr.RequestError as e:
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
+        return None
 
 
 main()
