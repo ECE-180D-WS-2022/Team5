@@ -18,4 +18,4 @@ Plan:
 - Integrate with the visuals-based prototype game.
 - Add more fail safe checks to guard against invalid inputs (e.g. if speech recognized the ingredient name incorrectly, how should the server process this incorrect name?)
 - Further customizeability with different game modes and setups.
-- The implementation with the user interface (intro screen, title screen, etc.) in the 'Newton' branch has not been merged with the 'main' branch as there are currently some merge conflictions that need to be dealt with. 
+- The implementation with the user interface (intro screen, title screen, etc.) in the 'Newton' branch has not been merged with the 'main' branch as there are currently some merge conflictions that need to be dealt with. To view these changes, visit the 'Newton' branch and its Multiplayer directory.
