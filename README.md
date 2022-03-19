@@ -1,6 +1,4 @@
 # Team 5
-Our github repo contains 3 branches, which all contain relevant code developed during the testing and implementation of our project. 
-
 ## Main Branch
 In the main branch, please see the README files in the following folders:
 
@@ -8,9 +6,8 @@ In the main branch, please see the README files in the following folders:
  - Gesture Detection: Contains the gesture classification algorithm currently integrated into our game.
  - Multiplayer: Contains our current implementation of the multi-player framework for the next phase of our game.
  - OvercookedIRL_Textbased: Contains a text-based implementation of the game used during testing.
-
-## v0.1 Branch
-In the v0.1 branch, please see the README files in the following folders:
-
  - OvercookedIRL: Contains our current implementation of the game logic with visuals using pygame.
+
+
+
 
