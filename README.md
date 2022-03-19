@@ -9,12 +9,6 @@ In the main branch, please see the README files in the following folders:
  - Multiplayer: Contains our current implementation of the multi-player framework for the next phase of our game.
  - OvercookedIRL_Textbased: Contains a text-based implementation of the game used during testing.
 
-## Newton Branch
-
-In the Newton branch, please see the README files in the following folders:
-
- - Multiplayer: Contains our current implementation of a two-player connection integrated with a basic visual game. 
-
 ## v0.1 Branch
 In the v0.1 branch, please see the README files in the following folders:
 
