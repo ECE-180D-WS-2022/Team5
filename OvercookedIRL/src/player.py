@@ -726,7 +726,7 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
-                            self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_IMU', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -752,7 +752,7 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
-                            self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_IMU', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player

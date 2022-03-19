@@ -27,10 +27,10 @@ client.on_message = on_message
 client.connect_async("test.mosquitto.org")
 client.connect("test.mosquitto.org", 1883, 60)
 
-client.loop_start()
-client.publish('overcooked_mic', "start", qos=1)
+# client.loop_start()
+client.publish('overcooked_mic', "c", qos=1)
 print('send')
-# client.loop_forever()
+client.loop_forever()
 # while True: # perhaps add a stopping condition using some break or something.
 #     pass # do your non-blocked other stuff here, like receive IMU data or something.
 while(True):
