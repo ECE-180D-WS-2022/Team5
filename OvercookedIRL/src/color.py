@@ -23,6 +23,7 @@ buffer = 0
 # Mouse Movement Stage
 while(1):   
     ret, frame = cap.read()
+    cv2.normalize(frame, frame, 30, 230, cv2.NORM_MINMAX)
     frame = cv2.flip(frame, 1)
 
     if ret == True:
