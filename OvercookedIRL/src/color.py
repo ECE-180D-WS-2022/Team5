@@ -73,14 +73,14 @@ while(1):
                     posCount += 1
                     frame = cv2.rectangle(frame, (frameX,frameY), (frameX+frameW,frameY+frameH), (0,255,0),3)
 
-                    if (posCount >= 15 and clicked == False):
+                    if (posCount >= 10 and clicked == False):
                         m.click(scaled_x, scaled_y)
                         clicked = True
-                    elif (posCount >= 1 and posCount < 15 and clicked == False):
+                    elif (posCount >= 1 and posCount < 10 and clicked == False):
                         m.move(last_x, last_y)
                         scaled_x = last_x
                         scaled_y = last_y
-                        if (posCount == 5):
+                        if (posCount == 3):
                             last_b = b
                             last_g = g
                             last_r = r
@@ -105,6 +105,7 @@ while(1):
 
 
         cv2.imshow('Mouse Movement',frame)
+        cv2.moveWindow('Mouse Movement', 1200, 0)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:
