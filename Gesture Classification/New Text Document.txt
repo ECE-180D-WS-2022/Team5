@@ -1,0 +1,6 @@
+Note that IMU data is stored in column format in the *.txt files in this repository.
+There are 100 time points of data in each file, with each file representing data taken from a trial gesture.
+The columns of the IMU data are organized as such:
+[gyroX, gyroY, gyroZ, accX, accY, accZ].
+
+Additionally, there are visualizations of the defining parameters, gyroscopicX and gyroscopicZ that were used in the classifier.

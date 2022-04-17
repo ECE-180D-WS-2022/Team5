@@ -453,7 +453,7 @@ while (button_pressed == True):
     
     if (count % 25 == 0 and count >= 100):
         tmp_power = 0
-        for i in range(len(gX), len(gX)-100, -1):
+        for i in range(len(gX)-1, len(gX)-100, -1):
             tmp_power += gX[i]**2 + gZ[i]**2
         
         if (tmp_power > thresh): gestures.append(1)

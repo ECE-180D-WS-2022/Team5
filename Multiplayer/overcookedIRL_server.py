@@ -86,28 +86,6 @@ def threaded_client(connection, player, player_ID, kitchen, target, config, kitc
         # Update the player
         player = process_data(connection, player, data, kitchen, target, kitchen1)
         pass
-    
-# Function: Prints the game status as an easy to read string
-def print_status_as_string(status):
-    # If dealing with a nonetype, print NONE and return
-    if (status == None): 
-        print("State is NONE!")
-        return
-    
-    loc = status[0]
-    inventory = status[1]
-    pantry = status[2]
-    target = status[3]
-    share = status[4]
-    ID = status[5]
-    name = status[6]
-    
-    print("Current Player location:", loc)
-    print("Current Player Inventory:", inventory)
-    print("Pantry Ingredients:", pantry)
-    print("Target Recipe:", target)
-    print("Share Station:", share)
-    print("Player ID:", str(ID), ", with Player Name:", name)
 
 # Function: Retrieve the entire game status
 def get_status(stations, kitchen, player, target_recipe, player_ID):

@@ -7,6 +7,7 @@ Created on Wed Feb  9 09:43:58 2022
 
 # Import Statements
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
@@ -50,6 +51,85 @@ test_chop3 = process_data("test_chop3.txt")
 test_stir1 = process_data("test_stir1.txt")
 test_stir2 = process_data("test_stir2.txt")
 test_stir3 = process_data("test_stir3.txt")
+
+# %% Power of Training Data
+def gesture_power(gX, gZ):
+    return np.sum(gX**2 + gZ**2)
+
+train_chops = [chopping1, chopping2, chopping3, chopping4, chopping5]
+train_stir = [stirring1, stirring2, stirring3, stirring4, stirring5]
+
+test_chops = [test_chop1, test_chop2, test_chop3]
+test_stir = [test_stir1, test_stir2, test_stir3]
+
+chops = []
+for elem in train_chops:
+    chops.append(elem)
+for elem in test_chops:
+    chops.append(elem)
+    
+stirs = []
+for elem in train_stir:
+    stirs.append(elem)
+for elem in test_stir:
+    stirs.append(elem)
+
+train_chop_power = [gesture_power(data[:, 0], data[:, 2]) for data in train_chops]
+train_stir_power = [gesture_power(data[:, 0], data[:, 2]) for data in train_stir]
+test_chop_power = [gesture_power(data[:, 0], data[:, 2]) for data in test_chops]
+test_stir_power = [gesture_power(data[:, 0], data[:, 2]) for data in test_stir]
+
+# %% Plot gX Values
+gXes_chop = [elem[:, 0] for elem in chops]
+gZes_chop = [elem[:, 2] for elem in chops]
+gXes_stir = [elem[:, 0] for elem in stirs]
+gZes_stir = [elem[:, 2] for elem in stirs]
+
+# %% Process Gyroscopic Values
+gXes_chop = np.array(gXes_chop)
+print(gXes_chop.shape)
+gXes_chop = np.reshape(gXes_chop, gXes_chop.shape[0] * gXes_chop.shape[1])
+
+gXes_stir = np.array(gXes_stir)
+gXes_stir = np.reshape(gXes_stir, gXes_stir.shape[0] * gXes_stir.shape[1])
+
+gZes_chop = np.array(gZes_chop)
+gZes_chop = np.reshape(gZes_chop, gZes_chop.shape[0] * gZes_chop.shape[1])
+
+gZes_stir = np.array(gZes_stir)
+gZes_stir = np.reshape(gZes_stir, gZes_stir.shape[0] * gZes_stir.shape[1])
+
+# %% Plot Gyroscopic Values
+plt.title("Visualization of Gyroscopic X-Axis Stir v. Chop Gestures")
+plt.plot(gXes_chop, c="black")
+plt.plot(gXes_stir, c="red")
+plt.xlabel("Time Point")
+plt.ylabel("Gyroscopic Value")
+
+plt.figure()
+plt.title("Visualization of Gyroscopic Z-Axis Stir v. Chop Gestures")
+plt.plot(gZes_chop, c="black")
+plt.plot(gZes_stir, c="red")
+plt.xlabel("Time Point")
+plt.ylabel("Gyroscopic Value")
+
+# %% Plot Gesture Powers
+plt.title("Training: Gesture Power v. Trial")
+plt.plot(train_chop_power, c="black")
+plt.plot(train_stir_power, c="red")
+plt.xlim([1.0, 5.0])
+plt.xticks([0, 1, 2, 3, 4], [1.0, 2.0, 3.0, 4.0, 5.0])
+plt.xlabel("Trial Data Number")
+plt.ylabel("Gesture Power (100 Time Points)")
+
+plt.figure()
+plt.title("Testing: Gesture Power v. Trial")
+plt.plot(test_chop_power, c="black")
+plt.plot(test_stir_power, c="red")
+plt.xlim([1.0, 3.0])
+plt.xticks([0, 1, 2], [1.0, 2.0, 3.0])
+plt.xlabel("Trial Data Number")
+plt.ylabel("Gesture Power (100 Time Points)")
 
 # %% Compose Training and Testing Dataset
 X_train = np.array([chopping1, chopping2, chopping3, chopping4, chopping5,
