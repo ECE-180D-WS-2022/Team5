@@ -41,9 +41,11 @@ def check_server(client):
         data = get_unblocked_data(client)
         
         # Print received data, if it exists
-        if (data != None and data != prev_message):
+        if (data != None and data != prev_message and type(data) == list):
             prev_message = data
             print("SERVER SENDS -> " + str(prev_message))
+        elif (data != None and type(data) == float):
+            print("TIMER -> " + str(data))
 
 # Function : Temporary game loop for prototype purposes
 def temp_game(client):

@@ -20,6 +20,7 @@ import math
 # import speech_recognition as sr 
 import paho.mqtt.client as mqtt
 # from playground_building_blocks import *
+import threading
 
 def on_connect(client,userdata,flags,rc):
     client.subscribe("overcooked_game", qos=1)
@@ -252,8 +253,28 @@ class Game:
         self.client.connect("test.mosquitto.org", 1883, 60)
         self.client.loop_start()
         # self.client.publish('overcooked_mic', "t", qos=1)
+        
+    def check_server(self, client):
+        prev_message = None
+        
+        # Continuously check for received data
+        while True:
+            data = get_unblocked_data(client)
+            
+            # Print received data, if it exists
+            if (data != None and data != prev_message and type(data) == list):
+                prev_message = data
+                print("SERVER SENDS -> " + str(prev_message))
+            elif (data != None and type(data) == float):
+                print("TIMER -> " + str(data))
 
     def main(self):
+        input_thread = threading.Thread(target=self.check_server, 
+                                    args=(self.socket_client, ), 
+                                    daemon=True)
+        input_thread.start()
+
+        
         font = pygame.font.Font(None,40)
         gray = pygame.Color('gray19')
         blue = pygame.Color('dodgerblue')
@@ -300,8 +321,8 @@ from playground_building_blocks import *
 
 # %% Client Configuration
 config = dict()
-config["Host"] = "127.0.0.1" # IPv4 address of ENG IV lab room
-config["Port"] = 4901 # Unique ID, can be any number but must match server's
+config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
+config["Port"] = 4900 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 
 # %% Client Setup
