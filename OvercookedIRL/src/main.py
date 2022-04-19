@@ -5,9 +5,11 @@ from ingredients import *
 from sprites import *
 from player import *
 from counters import *
+from timer import *
 import sys
 from color_mouse import *
 import os
+import math
 # import speech_recognition as sr 
 import paho.mqtt.client as mqtt
 
@@ -34,7 +36,28 @@ def on_message(client, userdata, message):
     #     # client.publish('overcooked_mic', 'tomato', qos=1)
     #     print("recieved tomato")
 
-    userdata.player.message = line
+    # if(userdata.player.action is not None):
+    #     userdata.player.message = line
+    if (line == "Mic Start"):
+        if(userdata.player.location is not None):
+            if(userdata.player.action is None):
+                userdata.player.action = "Speak"
+                userdata.player.before = True
+    elif (line == "Pick Up"):
+        if(userdata.player.action is not None):
+            userdata.player.message = "Pick Up"
+    elif (line == "Put Down"):
+        if(userdata.player.action is not None):
+            userdata.player.message = "Put Down"
+    elif(line == "Gesture"):
+        if(userdata.player.location == "Chopping Station"):
+            if(userdata.player.action is None):
+                userdata.player.action = "Gesture"
+                # userdata.player.message = "c"
+                userdata.player.before = True
+    else:
+        userdata.player.stop_everything()
+
 
 class Game:
     def __init__(self):
@@ -79,13 +102,13 @@ class Game:
                 if column == '0':
                     BackgroundObject(self, self.plates_stack, 0, 0, j, i, layer, (self.all_sprites))
                 elif column == '!':
-                    IngredientsCounter("Tomato",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Tomato",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
                 elif column == '^':
-                    IngredientsCounter("Lettuce",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Lettuce",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
                 elif column == '(':
-                    IngredientsCounter("Meat",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Meat",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
                 elif column == ')':
-                    IngredientsCounter("Bun",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Bun",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
                 elif column == 'E':
                     Counter(self, self.kitchen_spritesheet,white_counter["E"][0],white_counter["E"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == '$':
@@ -124,7 +147,7 @@ class Game:
                     # self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.ingredients_stands)
                     Counter(self, self.kitchen_spritesheet,white_counter[column][0],white_counter[column][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters))
                     # self.image = self.game.kitchen_spritesheet.get_sprite(white_counter[type][0],white_counter[type][1],0,0,self.width,self.height)
-        print('created tilemap')
+        # print('created tilemap')
 
     def new(self):
         # a new game starts
@@ -144,7 +167,8 @@ class Game:
         self.left_counters = pygame.sprite.LayeredUpdates()
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
-        self.player = Player(self,6,4)
+        self.player = Player(self,10,11)
+        self.timer = Timer(self,17,0,120,FPS)
         # game, x, y
 
         self.animations = pygame.sprite.LayeredUpdates()
@@ -158,7 +182,7 @@ class Game:
         # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
         # initialize_camera()
 
-        ProgressBar(self, self.progress_spritesheet, 0*TILE_SIZE, 0*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
+        ProgressBar(self, self.progress_spritesheet, 0*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
         self.mouse.setupMouse()
 
         # self.setup_audiofile()
@@ -169,10 +193,15 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
-                self.player.dest_x = (int(pos[0]/32) * 32)
-                self.player.dest_y = ((int(pos[1]/32)-1) * 32)
+                self.player.dest_x = ((round(pos[0]/32)-1) * 32)
+                self.player.dest_y = ((round(pos[1]/32)-1) * 32)
+                if(self.player.action is not None):
+                    self.client.publish('overcooked_mic', "Stop", qos=1)
+                    self.client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    self.player.stop_everything()
+
                 print('CLICK')
-                print(int(pos[0]/32) * 32, int(pos[1]/32) * 32)
+                # print(int(pos[0]/32) * 32, int(pos[1]/32) * 32)
             if event.type == pygame.QUIT:
                 self.playing = False
                 self.running = False
@@ -212,6 +241,12 @@ class Game:
         # self.client.publish('overcooked_mic', "t", qos=1)
 
     def main(self):
+        font = pygame.font.Font(None,40)
+        gray = pygame.Color('gray19')
+        blue = pygame.Color('dodgerblue')
+        timer = 120
+        clock = pygame.time.Clock()
+        dt = 0
         # game loop
         while self.playing:
         # if(self.playing):
@@ -219,6 +254,21 @@ class Game:
             self.events()
             self.update()
             self.draw()
+            # round_timer = int(math.ceil(timer))
+            # min = str(int(round_timer/60))
+            # sec = str(int(round_timer%60))
+            # if(int(sec)<10):
+            #     sec = '0'+str(sec)
+            
+            # txt = font.render(min+':'+sec, True, blue)
+            # self.screen.blit(txt, (70, 70))
+            # pygame.display.flip()
+            # dt = clock.tick(30) / 1000  # / 1000 to convert to seconds.
+
+            # if int(sec) == 0 and int(min) == 0:
+            #     done = True
+            # else:
+            #     timer -= dt
         self.client.publish('overcooked_mic', "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()

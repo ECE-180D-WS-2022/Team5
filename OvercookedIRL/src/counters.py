@@ -183,7 +183,8 @@ class ChopCounter(Counter):
                 self.place_all_but_plate()
 
     def chop(self):
-        self.items[0].cut_state += 1
+        if(self.counter_has_raw()):
+            self.items[0].cut_state += 1
 
     def chopped(self):
         if(len(self.items) > 0):
@@ -218,7 +219,8 @@ class CookCounter(Counter):
                 self.pick_up_all()  # player's inventory either contains a plated item or nothing
     
     def cook(self):
-        self.items[0].cook_state += 1
+        if(self.counter_has_chopped()):
+            self.items[0].cook_state += 1
 
     def cooked(self):
         if(self.items[0].cook_state >= 3):

@@ -105,7 +105,6 @@ while(1):
 
 
         cv2.imshow('Mouse Movement',frame)
-        cv2.moveWindow('Mouse Movement', 1200, 0)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:

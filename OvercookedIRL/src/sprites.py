@@ -1,6 +1,5 @@
 import pygame
 from config import * 
-import speech_recognition as sr 
 class Spritesheet:
     def __init__(self, file):
         self.sheet = pygame.image.load(file).convert_alpha()
@@ -36,11 +35,12 @@ class BackgroundObject(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-        print('background object created')
+        # print('background object created')
 
     def update(self):
-        print(self.rect.x, self.rect.y)
-        print("background " + str(self._layer))
+        # print(self.rect.x, self.rect.y)
+        # print("background " + str(self._layer))
+        pass
 
 class Inventory(BackgroundObject):
     def __init__(self, *args, **kw):
@@ -76,16 +76,16 @@ class ProgressBar(pygame.sprite.Sprite):
         self.animate()
 
     def animate(self):
-        print('animate of progress bar.................')
-        print(len(self.image_sprites))
+        # print('animate of progress bar.................')
+        # print(len(self.image_sprites))
         if(self.player.location == "Chopping Station"):
             if(len(self.player.location_sprite.items) > 0):
                 num = min(CHOP_TIMES, self.player.location_sprite.items[0].cut_state)
                 curren_len = len(self.image_sprites)
                 for n in range (num - curren_len):
-                    print(self.x, curren_len, n)
-                    print('create knife icon' + str(self.x+((curren_len+n)*TILE_SIZE)))
-                    print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+                    # print(self.x, curren_len, n)
+                    # print('create knife icon' + str(self.x+((curren_len+n)*TILE_SIZE)))
+                    # print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
                     self.image_sprites.append(BackgroundObject(self.game,self.game.knife_icon,0,0,(self.x)/TILE_SIZE+((curren_len+n)),self.y/TILE_SIZE,self._layer+1,(self.game.all_sprites)))
             elif(len(self.player.location_sprite.items) == 0):
                 for image in self.image_sprites:

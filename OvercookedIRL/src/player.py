@@ -8,6 +8,8 @@ import math
 import random
 import speech_recognition as sr 
 from pymouse import PyMouse
+import pickle
+from playground_building_blocks import *
 
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
 class Player(pygame.sprite.Sprite):
@@ -212,43 +214,61 @@ class Player(pygame.sprite.Sprite):
         self.after = False
 
     def check_set_location(self, hit):
+        if(self.game.bottom_perspective_counters in hit.groups):
+            # print('c-s bottom groups')
+            pass
+        if(self.game.top_perspective_counters in hit.groups):
+            # print('c-s top perspective groups')
+            pass
+        if(self.game.ingredients_stands in hit.groups):
+            # print('c-s ingredients stands')
+            pass
         # print(hit_groups)
-        if(self.game.bottom_perspective_counters in hit.groups and self.game.bottom_perspective_counters):
-            print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+        # if(self.game.bottom_perspective_counters in hit.groups and self.game.bottom_perspective_counters):
+        #     print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
 
         if(self.game.ingredients_stands in hit.groups):
+            # print('by ingredients stand')
             self.location = "Ingredients Stand"
             self.location_sprite = hit
-            print(self.location)
         elif(self.game.chopping_stations in hit.groups):
             self.location = "Chopping Station"
             self.location_sprite = hit
-            print(self.location)
         elif(self.game.plate_stations in hit.groups):
             self.location = "Plate Station"
             self.location_sprite = hit
-            print(self.location)
         elif(self.game.cooking_stations in hit.groups):
             self.location = "Cooking Station"
             self.location_sprite = hit
-            print(self.location)
         elif(self.game.submit_stations in hit.groups):
             self.location = "Submit Station"
             self.location_sprite = hit
-            print(self.location)
+        elif((self.game.bottom_perspective_counters in hit.groups) and not (self.game.ingredients_stands in hit.groups)):
+            # print('by bottom counter')
+            self.location = "Bottom Counter"
+            self.location_sprite = hit
         elif(self.game.top_perspective_counters in hit.groups):
             # if(self.rect.y == self.dest_y and self.)
+            # print(hit.groups)
             self.location = "Top Counter"
             self.location_sprite = hit
-            print(self.location)
         elif(self.game.left_counters in hit.groups):
             self.location = "Left Counter"
             self.location_sprite = hit
-            print(self.location)
         elif(self.game.right_counters in hit.groups):
             self.location = "Right Counter"
             self.location_sprite = hit
-            print(self.location)
+
+        # print("cs: ")
+        # print(self.location)
+
+    def stop_everything(self):
+        self.action = None
+        self.message = None
+        self.before = False
+        self.during = False
+        self.after = False
+
 
     def collide_counters(self, direction):
         # self.location = None
@@ -258,33 +278,42 @@ class Player(pygame.sprite.Sprite):
 
             hits = pygame.sprite.spritecollide(self, self.game.top_perspective_counters, False)
             if hits:
-                print("hits1")
+                # print("hits1")
                 self.check_set_location(hits[0])
                     
             else: 
-                hits = hits = pygame.sprite.spritecollide(self, self.game.bottom_perspective_counters, False)
+                hits = pygame.sprite.spritecollide(self, self.game.bottom_perspective_counters, False)
                 if hits:
-                    print("hits2")
+                    # print("hits2")
                     self.check_set_location(hits[0])
                 else:
                     hits = pygame.sprite.spritecollide(self, self.game.block_counters, False)
                     if hits:
-                        print('block!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+                        # print('block!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
                         if self.x_change > 0:   # moving right
-                            if(abs(self.dest_x-self.rect.x) <= TILE_SIZE and self.rect.y == self.dest_y):
+                            # if(abs(self.dest_x-self.rect.x) <= TILE_SIZE and self.rect.y == self.dest_y):
+                            if(self.rect.y == self.dest_y):
                                 self.x_change = 0
-                                self.dest_x = self.dest_x - TILE_SIZE
+                                # self.dest_x = self.dest_x - TILE_SIZE
+                                self.dest_x = self.dest_x
+                                # print(str(self.dest_x), hits[0].rect.left, self.rect.x)
+                                self.dest_x = hits[0].rect.left - TILE_SIZE
                                 self.prev_x =  self.rect.x
                             self.rect.x = hits[0].rect.left - self.rect.width
                             
                         if self.x_change < 0:
                             # print('left here')
-                            if(abs(self.dest_x-self.rect.x) <= TILE_SIZE and self.rect.y == self.dest_y):
+                            # if(abs(self.dest_x-self.rect.x) <= TILE_SIZE and self.rect.y == self.dest_y):
+                            if(self.rect.y == self.dest_y):
                                 self.x_change = 0
-                                self.dest_x = self.dest_x + TILE_SIZE
+                                # self.dest_x = self.dest_x + TILE_SIZE
+                                # print(str(self.dest_x), hits[0].rect.right, self.rect.x)
+                                self.dest_x = hits[0].rect.right
+                                self.dest_x = self.dest_x
                                 self.prev_x =  self.rect.x
                             self.rect.x = hits[0].rect.right
 
+                        # print('hits 3')
                         self.check_set_location(hits[0])
 
                         # print('collide 1')
@@ -293,66 +322,47 @@ class Player(pygame.sprite.Sprite):
         if direction == "y":
             hits = pygame.sprite.spritecollide(self, self.game.top_perspective_counters, False)
             if(hits):
-                if (pygame.sprite.spritecollide(self, self.game.bottom_perspective_counters, False)):
+                hits_bottom = pygame.sprite.spritecollide(self, self.game.bottom_perspective_counters, False)
+                if (hits_bottom):
                     if(self.y_change < 0):
-                        if (self.rect.y + self.height < hits[0].rect.bottom):
-                            self.rect.y = hits[0].rect.bottom - self.height
-                            # self.prev_dest_y = self.dest_y
-                            # self.dest_y = self.rect.y
-                            self.y_change = 0
-                            # print('yahoo2')
-                            # print(self.rect.y, self.dest_y)
-                    print('collide bottom counter')
-                    self.check_set_location(hits[0])
-                else:
-                    if (self.y_change >= 0): 
-                        if (self.rect.y + self.height >= hits[0].rect.top + cover_height):
-                            self.rect.y = hits[0].rect.top + cover_height - self.height
-                            if (abs(self.dest_y - self.rect.y) < TILE_SIZE):
+                        if (self.rect.y + self.height < hits_bottom[0].rect.bottom):
+                            self.rect.y = hits_bottom[0].rect.bottom - self.height
+                            if(self.dest_x == self.rect.x):
                                 self.prev_dest_y = self.dest_y
                                 self.dest_y = self.rect.y
-                                self.y_change = 0
-                                # print('yahoo')
-                                # print(self.rect.y, self.dest_y)
-                                # print(self.rect.x, self.dest_x)
-                            else:
-                                # print('yahpp')
-                                # print(self.rect.y, self.dest_y)
-                                # print(self.rect.x, self.dest_x)
-                                pass
+                            self.y_change = 0
+                            # print('stopping here')
+                            self.location = "Bottom Counter"
+                            # print('yahoo2')
+                            # print(self.rect.y, self.dest_y)
+                    # print('collide bottom counter')
+                    # print(hits_bottom[0])
+                    # print('hits 4')
+                    self.check_set_location(hits_bottom[0])
+                else:
+                    if (self.y_change >= 0): 
+                        # print('yahoo3')
+                        if (self.rect.y + self.height >= hits[0].rect.top + cover_height):
+                            self.rect.y = hits[0].rect.top + cover_height - self.height
+                            # print('yahoo2')
+                            # if (abs(self.dest_y - self.rect.y) < TILE_SIZE + cover_height):
+                            if(self.dest_x == self.rect.x):
+                                self.prev_dest_y = self.dest_y
+                                self.dest_y = self.rect.y
+                            self.y_change = 0
+                            # print('yahoo')
                     else:
-                        # if (self.rect.y < hits[0].rect.top):
-                        #     self.rect.y = hits[0].rect.top
                         pass
 
+                    # print('hits 5')
                     self.check_set_location(hits[0])
-                            
-
-                self.check_set_location(hits[0])
-                # print(self.y_change, self.x_change)
 
             else:
                 hits = pygame.sprite.spritecollide(self, self.game.bottom_perspective_counters, False)
                 if (hits):
-                    # if(self.y_change < 0):
-                    #     if (self.rect.y + self.height < hits[0].rect.bottom):
-                    #         self.rect.y = hits[0].rect.bottom - self.height
-                    #         # self.prev_dest_y = self.dest_y
-                    #         # self.dest_y = self.rect.y
-                    #         self.y_change = 0
-                    #         # print('yahoo2')
-                    #         # print(self.rect.y, self.dest_y)
+                    # print('hits 6')
                     self.check_set_location(hits[0])
                     pass
-                    # if(self.y_change < 0):
-                    #     if (self.rect.y + self.height < hits[0].rect.bottom):
-                    #         self.rect.y = hits[0].rect.bottom - self.height
-                    #         # self.prev_dest_y = self.dest_y
-                    #         # self.dest_y = self.rect.y
-                    #         self.y_change = 0
-                    #         # print('yahoo2')
-                    #         # print(self.rect.y, self.dest_y)
-                    # self.check_set_location(hits[0])
 
                 else:
                     hits = pygame.sprite.spritecollide(self, self.game.block_counters, False)
@@ -367,6 +377,7 @@ class Player(pygame.sprite.Sprite):
                                 # print('yahoo3')
                                 # print(self.rect.y, self.dest_y)
 
+                        # print('hits 7')
                         self.check_set_location(hits[0])
 
 
@@ -398,6 +409,11 @@ class Player(pygame.sprite.Sprite):
         self.y_change = 0
         self.x_change = 0
 
+        temp_data = [self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
+        self.game.socket_client.send(pickle.dumps(temp_data))
+
+        # call server function (,,,,,,,,,,,,,,,,,)
+        get_unblocked_data(self.game.socket_client)
         # print('update')
         # print(self.rect.x, self.rect.y)
     def movement(self):
@@ -493,19 +509,13 @@ class Player(pygame.sprite.Sprite):
                                     self.y_change = PLAYER_SPEED
                                     self.facing = 'down'
                 else:
-                    print("equal")
-                    print(self.location)
-                    if (self.location == None):
-                        print("3")
                     if(self.location == "Left Counter"):
                         self.facing = 'left'
                     elif(self.location == 'Right Counter'):
                         self.facing = 'right'
-                        print('print it here 4')
                     elif(self.location == 'Bottom Counter'):
                         self.facing = 'up'
                     elif(self.location == 'Top Counter'):
-                        print('its happening')
                         self.facing = 'down'
                     elif(self.location == 'Chopping Station'):
                         self.facing = 'down'
@@ -525,49 +535,55 @@ class Player(pygame.sprite.Sprite):
     def user_action(self):
         # get all keys that have been pressed
         if(self.location is not None):
-            events = pygame.event.get()
-            for event in events:
-                if event.type == pygame.KEYUP:    # check if a key press occurs in that frame
-                # keys = pygame.key.get_pressed()
-                # if keys[pygame.K_a]:
-                    print('key pressed')
-                    print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
-                    if event.key == pygame.K_a:
-                        if(self.location is not None):
-                            if(self.action is None):
-                                self.action = "Speak"
-                                self.before = True
-                                print('true again')
-                    # if keys[pygame.K_u]:
-                    if event.key == pygame.K_u:
-                        if(self.location is not None):
-                            if(self.action is None):
-                                self.action = "Speak"
-                                if(self.location == "Plate Station"):
-                                    self.message = "p"
-                                else:
-                                    self.message = "u"
-                                self.before = True
-                    # if keys[pygame.K_d]:
-                    if event.key == pygame.K_d:
-                        if(self.location is not None):
-                            if(self.action is None):
-                                self.action = "Speak"
-                                self.message = "d"
-                                self.before = True
-                    if event.key == pygame.K_c:
-                        if(self.location == "Chopping Station"):
-                            if(self.action is None):
-                                self.action = "Gesture"
-                                self.message = "c"
-                                self.before = True
-                        if(self.location == "Cooking Station"):
-                            if(self.action is None):
-                                self.action = "Gesture"
-                                self.message = "s"
-                                self.before = True
+            # events = pygame.event.get()
+            # print(events)
+            # for event in events:
+                # if event.type == pygame.KEYDOWN:    # check if a key press occurs in that frame
+            keys = pygame.key.get_pressed()
+            # if keys[pygame.K_a]:
+            # print('key pressed')
+            # print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+            if keys[pygame.K_a]:
+                if(self.location is not None):
+                    if(self.action is None):
+                        self.action = "Speak"
+                        self.before = True
+            # if keys[pygame.K_u]:
+            if keys[pygame.K_u]:
+                if(self.location is not None):
+                    if(self.action is None):
+                        self.action = "Speak"
+                        if(self.location == "Plate Station"):
+                            self.message = "p"
+                        else:
+                            self.message = "u"
+                        self.before = True
+            # if keys[pygame.K_d]:
+            if keys[pygame.K_d]:
+                if(self.location is not None):
+                    if(self.action is None):
+                        self.action = "Speak"
+                        self.message = "d"
+                        self.before = True
+            if keys[pygame.K_c]:
+                if(self.location == "Chopping Station"):
+                    if(self.action is None):
+                        self.action = "Gesture"
+                        self.message = "c"
+                        self.before = True
+                if(self.location == "Cooking Station"):
+                    if(self.action is None):
+                        self.action = "Gesture"
+                        self.message = "s"
+                        self.before = True
+            if keys[pygame.K_q]:
+                if(self.location is not None):
+                    if(self.action is not None):
+                        self.stop_everything()
+                        self.game.client.publish('overcooked_mic', "Stop", qos=1)
+                        self.game.client.publish('overcooked_imu', "Mic Stop", qos=1)
 
-            print(self.action)
+            # print(self.action)
                     
     def stand_or_walk(self):
         if self.facing == "right":
@@ -677,28 +693,22 @@ class Player(pygame.sprite.Sprite):
                     self.after = False
         
     def animate(self):
-        # print("animate")
-        # print(self.location)
+        print("animate: ")
+        print(self.action)
+        print(self.location)
         if (self.action is None):
             self.stand_or_walk()
         elif(self.action == "Speak" or self.action == "Pick Up" or self.action == "Put Down"):
-            print(self.action)
-            print(self.before,self.during,self.after)
-            print(self.message)
-            print(self.location[-7:])
-
             if (self.location[-7:] == "Counter"):
                 self.animate_mic_sequence()
             if (self.location == "Plate Station"):
                 self.animate_mic_sequence()
             elif(self.location == 'Ingredients Stand'):
-                print(self.location_sprite.ingredient)
                 if(self.before):
                     # play open fridge animation, pass mic callback
                     # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, player, play, play_next,call_back):
                     self.before = False
                     AnimateOnce(self.game,self.game.fridge_open_animation,self.location_sprite.x,(self.location_sprite.y-TILE_SIZE),COUNTER_LAYER+1,(self.game.all_sprites),0.1,FRIDGE_OPEN_FRAMES,TILE_SIZE*2,TILE_SIZE*3,self,None,self.send_message)
-                    print('animate crated')
                 elif(self.during):
                     if(self.message is not None):
                         # kill during animation by setting the boolean to false
@@ -726,7 +736,7 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
-                            self.game.client.publish('overcooked_IMU', self.message, qos=1)
+                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -739,10 +749,10 @@ class Player(pygame.sprite.Sprite):
                             self.animation_loop = 1
                         
                         if(self.message == "Chop"):
-                            print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+                            # print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
                             self.message = None
                             self.location_sprite.chop()
-                            print("chop times" + str(self.location_sprite.items[0].cut_state))
+                            # print("chop times" + str(self.location_sprite.items[0].cut_state))
 
                         if(self.location_sprite.chopped()):
                             self.during = False
@@ -765,10 +775,10 @@ class Player(pygame.sprite.Sprite):
                             self.animation_loop = 1
                         
                         if(self.message == "Stir"):
-                            print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+                            # print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
                             self.message = None
                             self.location_sprite.cook()
-                            print("cook times" + str(self.location_sprite.items[0].cook_state))
+                            # print("cook times" + str(self.location_sprite.items[0].cook_state))
 
                         if(self.location_sprite.cooked()):
                             self.during = False
@@ -843,9 +853,12 @@ class Cursor(pygame.sprite.Sprite):
 
         # # add position change to player 
         x,y = pygame.mouse.get_pos()
-        self.rect.x = x-TILE_SIZE
-        self.rect.y = y
-        print("pymouse coord: " + str(x-TILE_SIZE) + ", " + str(y))
+        # self.rect.x = x-TILE_SIZE
+        # self.rect.y = y
+        # print("pymouse coord: " + str(x-TILE_SIZE) + ", " + str(y))
+
+        self.rect.x = ((round(x/32)-1) * 32)
+        self.rect.y = ((round(y/32)) * 32)
 
         self.dest_cursor.rect.x = self.game.player.dest_x
         self.dest_cursor.rect.y= (self.game.player.dest_y + TILE_SIZE)

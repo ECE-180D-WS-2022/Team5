@@ -31,28 +31,64 @@ def on_message(client, userdata, message):
         client.disconnect()
         return
 
-    # client.publish('overcooked_game', 'tomato', qos=1)
-    with sr.Microphone() as source:
-        print("Say something!")
-        audio = r.listen(source)
-        try:
-            # for testing purposes, we're just using the default API key
-            # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-            # instead of `r.recognize_google(audio)`
-            line = r.recognize_google(audio)
-            print("Google Speech Recognition thinks you said " + line)
-            speech_log.write(line + "/n")
-            # client.publish('overcooked_game', line, qos=1)
-        except sr.UnknownValueError:
-            line = "count not understand audio"
-            print("Google Speech Recognition could not understand audio")
-            # client.publish('overcooked_game', line, qos=1)
-            speech_log.write(line + "/n")
-        except sr.RequestError as e:
-            line = "could not request results"
-            print("Could not request results from Google Speech Recognition service; {0}".format(e))
-            # client.publish('overcooked_game', line, qos=1)
-            speech_log.write(line + "/n")
+    if(msg == "Start"):
+        # client.publish('overcooked_game', 'tomato', qos=1)
+        with sr.Microphone() as source:
+            print("Say something!")
+            audio = r.listen(source)
+            try:
+                # for testing purposes, we're just using the default API key
+                # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+                # instead of `r.recognize_google(audio)`
+                line = r.recognize_google(audio)
+                print("Google Speech Recognition thinks you said " + line)
+                speech_log.write(line + "/n")
+                if(line == 'pick up'):
+                    client.publish('overcooked_game', "Pick Up", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                elif(line == 'put down'):
+                    client.publish('overcooked_game', "Put Down", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                elif(line == 'tomato'):
+                    client.publish('overcooked_game', "Tomato", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                elif(line == 'bun'):
+                    client.publish('overcooked_game', "Bun", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                elif(line == 'lettuce'):
+                    client.publish('overcooked_game', "Lettuce", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                elif(line == 'meet' or line == 'meat'):
+                    client.publish('overcooked_game', "Meat", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                elif(line == 'plate'):
+                    client.publish('overcooked_game', "Plate", qos=1)
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                else:
+                    client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                # client.publish('overcooked_game', line, qos=1)
+            except sr.UnknownValueError:
+                line = "count not understand audio"
+                print("Google Speech Recognition could not understand audio")
+                # client.publish('overcooked_game', line, qos=1)
+                speech_log.write(line + "/n")
+                client.publish('overcooked_imu', "Mic Stop", qos=1)
+                client.publish('overcooked_game', "Mic Stop", qos=1)
+            except sr.RequestError as e:
+                line = "could not request results"
+                print("Could not request results from Google Speech Recognition service; {0}".format(e))
+                # client.publish('overcooked_game', line, qos=1)
+                speech_log.write(line + "/n")
+                client.publish('overcooked_imu', "Mic Stop", qos=1)
+                client.publish('overcooked_game', "Mic Stop", qos=1)
     # time.sleep(5)
     chop = False
     chop_count = 0
