@@ -413,7 +413,13 @@ class Player(pygame.sprite.Sprite):
         self.game.socket_client.send(pickle.dumps(temp_data))
 
         # call server function (,,,,,,,,,,,,,,,,,)
-        get_unblocked_data(self.game.socket_client)
+        recv_data = get_unblocked_data(self.game.socket_client)
+        if (recv_data != None and type(recv_data) == list):
+            # prev_message = recv_data
+            print("SERVER SENDS -> " + str(recv_data))
+        elif (recv_data != None and type(recv_data) == float):
+            print("TIMER -> " + str(recv_data))
+
         # print('update')
         # print(self.rect.x, self.rect.y)
     def movement(self):
@@ -693,7 +699,7 @@ class Player(pygame.sprite.Sprite):
                     self.after = False
         
     def animate(self):
-        print("animate: ")
+        # print("animate: ")
         print(self.action)
         print(self.location)
         if (self.action is None):

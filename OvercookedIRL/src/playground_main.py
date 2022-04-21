@@ -321,7 +321,8 @@ from playground_building_blocks import *
 
 # %% Client Configuration
 config = dict()
-config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
+# config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
+config["Host"] = "127.0.0.1"
 config["Port"] = 4900 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 
