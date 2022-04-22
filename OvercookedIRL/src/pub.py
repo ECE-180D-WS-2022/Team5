@@ -46,31 +46,31 @@ def on_message(client, userdata, message):
                 if(line == 'pick up'):
                     client.publish('overcooked_game', "Pick Up", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 elif(line == 'put down'):
                     client.publish('overcooked_game', "Put Down", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 elif(line == 'tomato'):
                     client.publish('overcooked_game', "Tomato", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 elif(line == 'bun'):
                     client.publish('overcooked_game', "Bun", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 elif(line == 'lettuce'):
                     client.publish('overcooked_game', "Lettuce", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 elif(line == 'meet' or line == 'meat'):
                     client.publish('overcooked_game', "Meat", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 elif(line == 'plate'):
                     client.publish('overcooked_game', "Plate", qos=1)
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    client.publish('overcooked_game', "Mic Stop", qos=1)
+                    # client.publish('overcooked_game', "Mic Stop", qos=1)
                 else:
                     client.publish('overcooked_imu', "Mic Stop", qos=1)
                     client.publish('overcooked_game', "Mic Stop", qos=1)

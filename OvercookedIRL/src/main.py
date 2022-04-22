@@ -43,18 +43,22 @@ def on_message(client, userdata, message):
             if(userdata.player.action is None):
                 userdata.player.action = "Speak"
                 userdata.player.before = True
-    elif (line == "Pick Up"):
+    elif (line == "Pick Up" or line == "Put Down"):
         if(userdata.player.action is not None):
-            userdata.player.message = "Pick Up"
-    elif (line == "Put Down"):
-        if(userdata.player.action is not None):
-            userdata.player.message = "Put Down"
+            userdata.player.message = line
     elif(line == "Gesture"):
-        if(userdata.player.location == "Chopping Station"):
+        if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action is None):
                 userdata.player.action = "Gesture"
-                # userdata.player.message = "c"
+                userdata.player.message = "Gesture"
                 userdata.player.before = True
+    elif(line == "Mic Stop"):
+        userdata.player.stop_everything()
+    elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
+        userdata.player.message = line
+    elif(line == "Plate"):
+        # userdata.player.action == "Pick Up"
+        userdata.player.message = line
     else:
         userdata.player.stop_everything()
 
