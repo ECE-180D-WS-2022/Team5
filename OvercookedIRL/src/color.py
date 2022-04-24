@@ -66,7 +66,7 @@ while(1):
 
                 scaled_x = int(x * 3)
                 scaled_y = int(y * 3)
-
+                
                 m.move(scaled_x, scaled_y)
 
                 if (abs(scaled_x - last_x) < 15) and (abs(scaled_y - last_y) < 15):
