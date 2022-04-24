@@ -41,6 +41,7 @@ def on_message(client, userdata, message):
     if (line == "Mic Start"):
         if(userdata.player.location is not None):
             if(userdata.player.action is None):
+                userdata.client.publish('overcooked_mic', 'Start', qos=1)
                 userdata.player.action = "Speak"
                 userdata.player.before = True
     elif (line == "Pick Up" or line == "Put Down"):
@@ -95,6 +96,7 @@ class Game:
 
         self.fridge_open_animation = Spritesheet('../img/object_animations/fridge_open_spritesheet.png')
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
+        self.recipe_card = Spritesheet('../img/recipe_card.png')
 
         self.mouse = ColorMouse()
 

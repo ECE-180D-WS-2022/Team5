@@ -111,6 +111,7 @@ class Game:
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
 
         self.mouse = ColorMouse()
+        self.recipe_card = Spritesheet('../img/recipe_card.png')
 
         self.font = pygame.font.SysFont("comicsansms", 40)
         self.smallfont = pygame.font.SysFont("comicsansms", 30)
