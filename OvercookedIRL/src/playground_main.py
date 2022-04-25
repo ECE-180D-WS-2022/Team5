@@ -7,12 +7,14 @@ Created on Mon Apr 18 15:27:07 2022
 
 import pygame
 from sprites import *
-from config import *
+from multiplayer_config import *
 from ingredients import * 
 from sprites import *
 from player import *
 from counters import *
 from timer import *
+from score import *
+from recipe import *
 import sys
 from color_mouse import *
 import os
@@ -50,20 +52,29 @@ def on_message(client, userdata, message):
     if (line == "Mic Start"):
         if(userdata.player.location is not None):
             if(userdata.player.action is None):
+                userdata.client.publish('overcooked_mic', 'Start', qos=1)
                 userdata.player.action = "Speak"
                 userdata.player.before = True
-    elif (line == "Pick Up"):
+    elif (line == "Pick Up" or line == "Put Down"):
         if(userdata.player.action is not None):
-            userdata.player.message = "Pick Up"
-    elif (line == "Put Down"):
-        if(userdata.player.action is not None):
-            userdata.player.message = "Put Down"
+            userdata.player.message = line
     elif(line == "Gesture"):
-        if(userdata.player.location == "Chopping Station"):
+        if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action is None):
                 userdata.player.action = "Gesture"
-                # userdata.player.message = "c"
+                userdata.player.message = "Gesture"
                 userdata.player.before = True
+    elif(line == "Chop" or line == "Stir"):
+        userdata.player.message = line
+    elif(line == "Mic Stop"):
+        userdata.player.stop_everything()
+    elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
+        userdata.player.message = line
+    elif(line == "Plate"):
+        # userdata.player.action == "Pick Up"
+        userdata.player.message = line
+    elif(line == "Stop Gesture"):
+        userdata.player.stop_everything()
     else:
         userdata.player.stop_everything()
 
@@ -71,7 +82,8 @@ def on_message(client, userdata, message):
 class Game:
     def __init__(self, client_socket):
         pygame.init()
-        self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        print(WIN_WIDTH)
+        self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, WIN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
         self.socket_client = client_socket
@@ -101,6 +113,7 @@ class Game:
 
         self.fridge_open_animation = Spritesheet('../img/object_animations/fridge_open_spritesheet.png')
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
+        self.recipe_card = Spritesheet('../img/recipe_card.png')
 
         self.mouse = ColorMouse()
 
@@ -177,18 +190,21 @@ class Game:
         self.left_counters = pygame.sprite.LayeredUpdates()
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
-        self.player = Player(self,10,11)
-        self.timer = Timer(self,17,0,120,FPS)
+        # self.player = None
+        self.player = Player(self,-10,-11)
+        self.timer = Timer(self,17,0,780,FPS)
+        self.score = Score(self,0,0)
+        self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
         # game, x, y
 
         self.animations = pygame.sprite.LayeredUpdates()
 
 
-        self.createTilemap(counter_tilemap_back,COUNTER_BACK_LAYER)
-        self.createTilemap(counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
-        self.createTilemap(counter_tilemap,COUNTER_LAYER)
-        self.createTilemap(counter_tilemap_2,COUNTER_FRONT_LAYER)
-        self.createTilemap(counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
+        self.createTilemap(mult_counter_tilemap_back,COUNTER_BACK_LAYER)
+        self.createTilemap(mult_counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
+        self.createTilemap(mult_counter_tilemap,COUNTER_LAYER)
+        self.createTilemap(mult_counter_tilemap_2,COUNTER_FRONT_LAYER)
+        self.createTilemap(mult_counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
         # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
         # initialize_camera()
 
@@ -202,20 +218,21 @@ class Game:
         # game loop events
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
-                pos = pygame.mouse.get_pos()
-                self.player.dest_x = ((round(pos[0]/32)-1) * 32)
-                self.player.dest_y = ((round(pos[1]/32)-1) * 32)
+                if(self.player.client_ID != None):
+                    pos = pygame.mouse.get_pos()
+                    self.player.dest_x = ((round(pos[0]/32)-1) * 32)
+                    self.player.dest_y = ((round(pos[1]/32)-1) * 32)
 
-                # temp_data = [int(pos[0]/32) * 32, int(pos[1]/32) * 32]
-                # self.socket_client.send(pickle.dumps(temp_data))
+                    # temp_data = [int(pos[0]/32) * 32, int(pos[1]/32) * 32]
+                    # self.socket_client.send(pickle.dumps(temp_data))
 
-                if(self.player.action is not None):
-                    self.client.publish('overcooked_mic', "Stop", qos=1)
-                    self.client.publish('overcooked_imu', "Mic Stop", qos=1)
-                    self.player.stop_everything()
+                    if(self.player.action is not None):
+                        self.client.publish('overcooked_mic', "Stop", qos=1)
+                        self.client.publish('overcooked_imu', "Mic Stop", qos=1)
+                        self.player.stop_everything()
 
-                print('CLICK')
-                # print(int(pos[0]/32) * 32, int(pos[1]/32) * 32)
+                    print('CLICK')
+                    # print(int(pos[0]/32) * 32, int(pos[1]/32) * 32)
             if event.type == pygame.QUIT:
                 self.playing = False
                 self.running = False
@@ -257,16 +274,16 @@ class Game:
     def check_server(self, client):
         prev_message = None
         
-        # Continuously check for received data
-        while True:
-            data = get_unblocked_data(client)
+        # # Continuously check for received data
+        # while True:
+        #     data = get_unblocked_data(client)
             
-            # Print received data, if it exists
-            if (data != None and data != prev_message and type(data) == list):
-                prev_message = data
-                print("SERVER SENDS -> " + str(prev_message))
-            elif (data != None and type(data) == float):
-                print("TIMER -> " + str(data))
+        #     # Print received data, if it exists
+        #     if (data != None and data != prev_message and type(data) == list):
+        #         prev_message = data
+        #         print("SERVER SENDS -> " + str(prev_message))
+        #     elif (data != None and type(data) == float):
+        #         print("TIMER -> " + str(data))
 
     def main(self):
         input_thread = threading.Thread(target=self.check_server, 

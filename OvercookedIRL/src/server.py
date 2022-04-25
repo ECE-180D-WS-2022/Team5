@@ -97,7 +97,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     while True:
         data = get_unblocked_data(clients[ID])
         if data == None: 
-            print('data is none')
+            # print('data is none')
             if (round((time.time() - startTime), 2) > prev_Time + 1):
                 prev_Time += 1
             
@@ -138,8 +138,8 @@ while True:
         clients[0].send(pickle.dumps(True))
         clients[1].send(pickle.dumps(True))
 
-        clients[0].send(pickle.dumps(["ClientID: 0"]))
-        clients[1].send(pickle.dumps(["ClientID: 1"]))
+        clients[0].send(pickle.dumps("ClientID: 0"))
+        clients[1].send(pickle.dumps("ClientID: 1"))
         
         start_time = time.time()
         

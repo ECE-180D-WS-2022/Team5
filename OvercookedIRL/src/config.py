@@ -3,8 +3,8 @@ WIN_WIDTH = 640
 TILE_SIZE = 32
 FPS = 60
 
-CHOP_TIMES = 3
-STIR_TIMES = 3
+CHOP_TIMES = 1
+STIR_TIMES = 1
 
 PLAYER_SPEED = 1
 
@@ -49,7 +49,7 @@ FRIDGE_OPEN_FRAMES = 6
 FRIDGE_CLOSE_FRAMES = 4
 
 INVENTORY_X = 32
-INVENTORY_Y = 416
+INVENTORY_Y = 544
 INVENTORY_LAYER = 17
 
 counter_tilemap_back = [
@@ -108,7 +108,7 @@ counter_tilemap = [
     '....G..........H....',
     '....G..........H....',
     '....G..........H....',
-    '....G......JJJJH....',
+    '....M......JJJJH....',
     '....G..........H....',
     '....G..........*....',
     '....G..........H....',
@@ -206,6 +206,7 @@ white_counter = {
     "D": (0,96),
     "F": (32,96),
     "G": (0,64),
+    "M": (0,64),
     "H": (32,64),
     "I": (64,320),
     "J": (96,320),
