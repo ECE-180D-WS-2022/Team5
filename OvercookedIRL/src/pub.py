@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import speech_recognition as sr
 import threading
 from threading import Thread
+import pronouncing as pr
 import time
 import os
 
@@ -81,37 +82,43 @@ def perform_speech(tid):
             line = r.recognize_google(audio)
             print("Google Speech Recognition thinks you said " + line)
             speech_log.write(line + "/n")
-            if(line == 'pick up'):
+            pronounce = pr.phones_for_word(line)[0].split()
+            first2phones = ''
+            if len(pronounce) >= 2:
+                first2phones = pronounce[0]+pronounce[1]
+            else:
+                first2phones = pronounce[0]
+            if(line == 'up' or line in rhyme_dict['up'] or first2phones == first_phones['up']):
                 # client.publish('overcooked_game', "Pick Up", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Pick Up"
                 imu_msg = "Mic Stop"
-            elif(line == 'put down' or line == 'down'):
+            elif(line == 'down' or line in rhyme_dict['down'] or first2phones == first_phones['down']):
                 # client.publish('overcooked_game', "Put Down", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Put Down"
                 imu_msg = "Mic Stop"
-            elif(line == 'tomato'):
+            elif(line == 'tomato' or line in rhyme_dict['tomato'] or first2phones == first_phones['tomato']):
                 # client.publish('overcooked_game', "Tomato", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Tomato"
                 imu_msg = "Mic Stop"
-            elif(line == 'bun' or line == 'fun'):
+            elif(line == 'bread' or line in rhyme_dict['bread'] or first2phones == first_phones['bread']):
                 # client.publish('overcooked_game', "Bun", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Bun"
                 imu_msg = "Mic Stop"
-            elif(line == 'lettuce'):
+            elif(line == 'lettuce' or line in rhyme_dict['lettuce'] or first2phones == first_phones['lettuce']):
                 # client.publish('overcooked_game', "Lettuce", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Lettuce"
                 imu_msg = "Mic Stop"
-            elif(line == 'meet' or line == 'meat' or line == 'beat' or line == 'beet' or line == 'eat'):
+            elif(line == 'meat' or line in rhyme_dict['meat'] or first2phones == first_phones['meat']):
                 # client.publish('overcooked_game', "Meat", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Meat"
                 imu_msg = "Mic Stop"
-            elif(line == 'plate'):
+            elif(line == 'plate' or line in rhyme_dict['plate'] or first2phones == first_phones['plate']):
                 # client.publish('overcooked_game', "Plate", qos=1)
                 # client.publish('overcooked_imu', "Mic Stop", qos=1)
                 game_msg = "Plate"
@@ -194,6 +201,17 @@ def perform_speech(tid):
     '''
 
     print('sent message')
+
+rhyme_dict = {}
+first_phones = {}
+commands = ['up', 'down', 'tomato', 'bread', 'lettuce', 'meat', 'plate']
+for cmd in commands: 
+    rhyme_dict[cmd] = pr.rhymes(cmd)
+    pronounce = pr.phones_for_word(cmd)[0].split()
+    if len(pronounce) >= 2: # if the word takes 2(+) phones, consider first two phones
+        first_phones[cmd] = pronounce[0]+pronounce[1]
+    else: # if the word only is 1 phone, consider only the first phone
+        first_phones[cmd] = pronounce[0]
 
 i = 0
 while os.path.exists("speech%s.txt" % i):
