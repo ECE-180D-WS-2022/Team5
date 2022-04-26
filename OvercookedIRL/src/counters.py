@@ -227,3 +227,79 @@ class CookCounter(Counter):
             return True
         else:
             return False
+
+class SubmitStation(Counter):
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw) 
+        self.frames = 60
+
+    def place_item(self):
+        if(len(self.items) == 0):
+            if(self.player_has_plate()):
+                self.place_all_items()
+
+    def pickup_item(self):
+        pass
+
+    def update(self):
+        self.frames -= 1
+        if(self.frames == 0):
+            # check if matches any recipecard
+            del_index = -1
+            index = -1
+            for recipe in self.game.recipes:
+                score = 0
+                index += 1
+                for item in self.items:
+                    # if match, then add to score
+                    if(item.ingredient_name == 'Lettuce' and recipe.ingredient_3 == None):
+                        break
+                    if(item.ingredient_name == 'Tomato' and recipe.ingredient_3 == None):
+                        break
+                    if(item.ingredient_name == 'Lettuce' and recipe.ingredient_3 != None):
+                        if(item.cut_state != recipe.ingredient_3.cut_state or item.cook_state != recipe.ingredient_3.cook_state):
+                            break
+                        elif(item.cut_state == recipe.ingredient_3.cut_state and item.cook_state == recipe.ingredient_3.cook_state):
+                            score += item.score
+                    if(item.ingredient_name == 'Tomato' and recipe.ingredient_4 != None):
+                        if(item.cut_state != recipe.ingredient_4.cut_state or item.cook_state != recipe.ingredient_4.cook_state):
+                            break
+                        elif(item.cut_state == recipe.ingredient_4.cut_state and item.cook_state == recipe.ingredient_4.cook_state):
+                            score += item.score
+                    if(item.ingredient_name == 'Bun'): 
+                        if(item.cut_state == recipe.ingredient_1.cut_state and item.cook_state == recipe.ingredient_1.cook_state):
+                            score += item.score
+                    if(item.ingredient_name == 'Meat'):
+                        if(item.cut_state == recipe.ingredient_2.cut_state and item.cook_state == recipe.ingredient_2.cook_state):
+                            score += item.score
+                if(len(recipe) == 2 and score == 40):
+                    self.game.score.update_score(score)
+                    del_index = index
+                    break
+                if(len(recipe) == 3 and score == 60):
+                    self.game.score.update_score(score)
+                    del_index = index
+                    break
+                if(len(recipe) == 4 and score == 80):
+                    self.game.score.update_score(score)
+                    del_index = index
+                    break
+
+            if(del_index != -1):
+                del self.game.recipes[del_index]
+                for i in range(len(self.game.recipes)):
+                    self.game.recipes[i].x = i * 2 * TILE_SIZE      
+            self.items.clear()
+
+class IngredientsCounter(Counter):
+    def __init__(self, ingredient, *args, **kw):
+        super().__init__(*args, **kw) 
+        self.ingredient = ingredient
+
+    def place_item(self):
+        pass
+
+    def pickup_item(self):
+        if(self.game.player.message == self.ingredient):
+            if(len(self.game.player.inventory) == 0):
+                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))

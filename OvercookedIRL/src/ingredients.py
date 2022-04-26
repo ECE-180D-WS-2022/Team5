@@ -52,7 +52,7 @@ class Ingredient(pygame.sprite.Sprite):
         self.height = TILE_SIZE
         self.image_sprites = []
 
-        print(self.ingredient_name)
+        # print(self.ingredient_name)
 
         if(self.ingredient_name == "Tomato"):
             self.spritesheet = self.game.tomato_spritesheet
@@ -61,6 +61,7 @@ class Ingredient(pygame.sprite.Sprite):
             self.states = 2
             self.ingredient_layers = [TOMATO_LAYER]
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))
+            self.score = 20
             print('created tomato')
         elif(self.ingredient_name == "Lettuce"):
             self.spritesheet = self.game.lettuce_spritesheet
@@ -69,6 +70,7 @@ class Ingredient(pygame.sprite.Sprite):
             self.states = 2
             self.ingredient_layers = [LETTUCE_LAYER]
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))   
+            self.score = 20
         elif(self.ingredient_name == "Meat"):
             self.spritesheet = self.game.meat_spritesheet
             self.cut_state = 0
@@ -76,6 +78,7 @@ class Ingredient(pygame.sprite.Sprite):
             self.states = 3
             self.ingredient_layers = [MEAT_LAYER]
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))     
+            self.score = 30
         elif(self.ingredient_name == "Bun"):
             self.spritesheet = self.game.bun_spritesheet
             self.cut_state = 0
@@ -84,6 +87,7 @@ class Ingredient(pygame.sprite.Sprite):
             self.ingredient_layers = [TOP_BUN_LAYER, BOTTOM_BUN_LAYER]
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,TILE_SIZE,0,self.x,self.y,self._layer+self.ingredient_layers[1],(self.game.all_sprites)))
+            self.score = 10
         elif(self.ingredient_name == "Plate"):
             self.spritesheet = self.game.plate_spritesheet
             self.cut_state = 0
@@ -91,6 +95,7 @@ class Ingredient(pygame.sprite.Sprite):
             self.states = 1
             self.ingredient_layers = [PLATE_LAYER]
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))
+            self.score = 0
             print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
             print('created plate')
         # def __init__(self, game, spritesheet, s_x, s_y, x, y, layer, groups):
@@ -106,12 +111,12 @@ class Ingredient(pygame.sprite.Sprite):
         self.animate()
 
     def animate(self):
-        print('animate ingredeint')
+        # print('animate ingredeint')
         for i in range (len(self.image_sprites)):
             self.image_sprites[i].rect.x = self.x
             self.image_sprites[i].rect.y = self.y
             self.image_sprites[i]._layer = self._layer + self.ingredient_layers[i]
-            print(self._layer, self.image_sprites[i]._layer)
+            # print(self._layer, self.image_sprites[i]._layer)
             self.game.all_sprites.change_layer(self.image_sprites[i],self.image_sprites[i]._layer)
         if(len(self.image_sprites) == 1):
             self.update_image()

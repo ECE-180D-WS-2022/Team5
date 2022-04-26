@@ -6,6 +6,8 @@ from sprites import *
 from player import *
 from counters import *
 from timer import *
+from score import *
+from recipe import *
 import sys
 from color_mouse import *
 import os
@@ -41,20 +43,29 @@ def on_message(client, userdata, message):
     if (line == "Mic Start"):
         if(userdata.player.location is not None):
             if(userdata.player.action is None):
+                userdata.client.publish('overcooked_mic', 'Start', qos=1)
                 userdata.player.action = "Speak"
                 userdata.player.before = True
-    elif (line == "Pick Up"):
+    elif (line == "Pick Up" or line == "Put Down"):
         if(userdata.player.action is not None):
-            userdata.player.message = "Pick Up"
-    elif (line == "Put Down"):
-        if(userdata.player.action is not None):
-            userdata.player.message = "Put Down"
+            userdata.player.message = line
     elif(line == "Gesture"):
-        if(userdata.player.location == "Chopping Station"):
+        if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action is None):
                 userdata.player.action = "Gesture"
-                # userdata.player.message = "c"
+                userdata.player.message = "Gesture"
                 userdata.player.before = True
+    elif(line == "Chop" or line == "Stir"):
+        userdata.player.message = line
+    elif(line == "Mic Stop"):
+        userdata.player.stop_everything()
+    elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
+        userdata.player.message = line
+    elif(line == "Plate"):
+        # userdata.player.action == "Pick Up"
+        userdata.player.message = line
+    elif(line == "Stop Gesture"):
+        userdata.player.stop_everything()
     else:
         userdata.player.stop_everything()
 
@@ -91,6 +102,7 @@ class Game:
 
         self.fridge_open_animation = Spritesheet('../img/object_animations/fridge_open_spritesheet.png')
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
+        self.recipe_card = Spritesheet('../img/recipe_card.png')
 
         self.mouse = ColorMouse()
 
@@ -116,7 +128,7 @@ class Game:
                 elif column == '*':
                     IngredientsCounter("Plate",self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.plate_stations))
                 elif column == '%':
-                    CookCounter('pan',self, self.kitchen_spritesheet,white_counter["%"][0],white_counter["%"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.cooking_stations))
+                    CookCounter('pan',self, self.kitchen_spritesheet,white_counter["%"][0],white_counter["%"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.cooking_stations))
                 elif column == '&':
                     Counter(self, self.kitchen_spritesheet,white_counter["&"][0],white_counter["&"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
                 elif column == 'B':
@@ -133,6 +145,8 @@ class Game:
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,layer,(self.all_sprites))             
                 elif column == 'S':
                     Counter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
+                elif column == 'M':
+                    SubmitStation(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters,self.submit_stations))
                 elif column == 'Z':
                     BackgroundObject(self,self.kitchen_shadowless_spritesheet,front_items["Z"][0],front_items["Z"][1],j,i,layer,(self.all_sprites))   
                 elif column == 'U':
@@ -168,7 +182,9 @@ class Game:
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
         self.player = Player(self,10,11)
-        self.timer = Timer(self,17,0,120,FPS)
+        self.timer = Timer(self,17,0,780,FPS)
+        self.score = Score(self,0,0)
+        self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
         # game, x, y
 
         self.animations = pygame.sprite.LayeredUpdates()

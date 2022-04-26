@@ -46,7 +46,8 @@ if __name__ == '__main__':
 '''
 import pygame
 import math
-from config import * 
+from config import *
+from recipe import RecipeCard 
 
 class Timer(pygame.sprite.Sprite):
     def __init__(self, game, x, y, timer, fps):
@@ -65,7 +66,8 @@ class Timer(pygame.sprite.Sprite):
         self.font = pygame.font.SysFont("Arial", 40)
         self.txt = self.font.render('', 1, self.color)
         self.image = pygame.Surface((self.width, self.height))
-        # self.image.fill((255,255,255))
+        self.image.fill((255,255,255))
+        self.image.blit(self.txt, [self.width/2 - self.txt.get_width()/2, self.height/2 - self.txt.get_height()/2])
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -75,7 +77,7 @@ class Timer(pygame.sprite.Sprite):
         self.min = self.timer/60
         self.sec = self.timer%60
         self.fps = fps
-        self.count = 0
+        self.count = 1
 
         # print('background object created')
 
@@ -85,11 +87,15 @@ class Timer(pygame.sprite.Sprite):
         sec = str(int(round_timer%60))
         if(int(sec)<10):
             sec = '0'+str(sec)
+
+        if(self.count%1800 == 0):
+            self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0))
         
         self.txt = self.font.render(min+':'+sec, True, self.color)
 
         if int(sec) == 0 and int(min) == 0:
             done = True
+            self.game.client.disconnect()
         else:
             self.timer -= (1/60)
 
@@ -101,3 +107,4 @@ class Timer(pygame.sprite.Sprite):
         
         self.min = min
         self.sec = sec
+        self.count += 1

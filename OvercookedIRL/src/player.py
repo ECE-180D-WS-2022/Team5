@@ -212,6 +212,8 @@ class Player(pygame.sprite.Sprite):
         self.before = False
         self.during = False
         self.after = False
+        self.client_ID = None
+        self.frame = 0
 
     def check_set_location(self, hit):
         if(self.game.bottom_perspective_counters in hit.groups):
@@ -409,16 +411,45 @@ class Player(pygame.sprite.Sprite):
         self.y_change = 0
         self.x_change = 0
 
-        temp_data = [self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
+        temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
         self.game.socket_client.send(pickle.dumps(temp_data))
 
         # call server function (,,,,,,,,,,,,,,,,,)
-        recv_data = get_unblocked_data(self.game.socket_client)
-        if (recv_data != None and type(recv_data) == list):
-            # prev_message = recv_data
-            print("SERVER SENDS -> " + str(recv_data))
-        elif (recv_data != None and type(recv_data) == float):
-            print("TIMER -> " + str(recv_data))
+        # recv_data = get_unblocked_data(self.game.socket_client)
+        # if (recv_data != None and type(recv_data) == list):
+        #     # prev_message = recv_data
+        #     print("SERVER SENDS -> " + str(recv_data))
+        #     print("len" + str(len(recv_data)))
+        #     if(len(recv_data) == 1):
+        #         print('len is 1')
+        #         self.client_ID = int(recv_data[0][10:])
+        #         print(recv_data[0][0:8])
+        # elif (recv_data != None and type(recv_data) == float):
+        #     print("TIMER -> " + str(recv_data))
+
+        self.frame += 1
+
+        data = get_unblocked_data(self.game.socket_client)
+            
+        # Print received data, if it exists
+        if (data != None and type(data) == list):
+            prev_message = data
+            print("SERVER SENDS -> " + str(data))
+        elif(data != None and type(data)==str):
+            print('my client id: ' + data[10:])
+            self.client_ID = int(data[10:])
+            if(self.client_ID == 0):
+                self.x = 10*TILE_SIZE
+                self.y = 11*TILE_SIZE
+                self.rect.x = self.x
+                self.rect.y = self.y
+            elif(self.client_ID == 1):
+                self.x = 22*TILE_SIZE
+                self.y = 11*TILE_SIZE
+                self.rect.x = self.x
+                self.rect.y = self.y
+        elif (data != None and type(data) == float):
+            print("TIMER -> " + str(data))
 
         # print('update')
         # print(self.rect.x, self.rect.y)
@@ -640,7 +671,7 @@ class Player(pygame.sprite.Sprite):
     def animate_mic_sequence(self):
         if(self.before):
             # send message to pub 
-            if(self.message is not None):
+            if(self.message is not None or self.message is None):
                 self.game.client.publish('overcooked_mic', self.message, qos=1)
                 self.message = None
                 # create thinking bubble
@@ -699,9 +730,12 @@ class Player(pygame.sprite.Sprite):
                     self.after = False
         
     def animate(self):
-        # print("animate: ")
-        print(self.action)
-        print(self.location)
+        # print("action: ")
+        # print(self.action)
+        # print("----------------")
+        # print("location: ")
+        # print(self.location)
+        # print("----------------")
         if (self.action is None):
             self.stand_or_walk()
         elif(self.action == "Speak" or self.action == "Pick Up" or self.action == "Put Down"):
@@ -716,7 +750,7 @@ class Player(pygame.sprite.Sprite):
                     self.before = False
                     AnimateOnce(self.game,self.game.fridge_open_animation,self.location_sprite.x,(self.location_sprite.y-TILE_SIZE),COUNTER_LAYER+1,(self.game.all_sprites),0.1,FRIDGE_OPEN_FRAMES,TILE_SIZE*2,TILE_SIZE*3,self,None,self.send_message)
                 elif(self.during):
-                    if(self.message is not None):
+                    if(self.message == "Tomato" or self.message == "Bun" or self.message == "Lettuce" or self.message == "Meat"):
                         # kill during animation by setting the boolean to false
                         self.location_sprite.pickup_item()
                         self.animation_loop = 1 # set animation loop to beginning frame
@@ -755,7 +789,7 @@ class Player(pygame.sprite.Sprite):
                             self.animation_loop = 1
                         
                         if(self.message == "Chop"):
-                            # print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+                            print("I will chop")
                             self.message = None
                             self.location_sprite.chop()
                             # print("chop times" + str(self.location_sprite.items[0].cut_state))
@@ -768,7 +802,7 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
-                            self.game.client.publish('overcooked_IMU', self.message, qos=1)
+                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player

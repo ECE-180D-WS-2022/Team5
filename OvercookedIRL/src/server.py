@@ -49,18 +49,20 @@ def update_state(clients, startTime):
     while (True):
         current_state = copy.deepcopy(temporary_data)
         
-        if (current_state == [None, None]): continue
+        # if (current_state == [None, None]): continue
 
-        if (prev_state == [None, None]):
-            for client in clients:
-                client.send(pickle.dumps([current_state, time.time() - startTime]))
-            prev_state = current_state
-        elif (current_state[0][4] != prev_state[0][4] or 
-              current_state[0][5] != prev_state[0][5]):
-            for client in clients:
-                client.send(pickle.dumps([current_state, time.time() - startTime]))
-            prev_state = current_state
+        # if (prev_state == [None, None]):
+        #     for client in clients:
+        #         client.send(pickle.dumps([current_state, time.time() - startTime]))
+        #     prev_state = current_state
+        # elif (current_state[0][4] != prev_state[0][4] or 
+        #       current_state[0][5] != prev_state[0][5]):
+        #     for client in clients:
+        #         client.send(pickle.dumps([current_state, time.time() - startTime]))
+        #     prev_state = current_state
         
+        # for client in clients:
+        #     client.send(pickle.dumps([current_state, time.time() - startTime]))
         
         # if (current_state != None and 
         #     (prev_state != [None, None] and current_state[0][0] != prev_state[0][0] and
@@ -97,12 +99,14 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     while True:
         data = get_unblocked_data(clients[ID])
         if data == None: 
-            print('data is none')
+            # print('data is none')
             if (round((time.time() - startTime), 2) > prev_Time + 1):
                 prev_Time += 1
             
                 clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
             continue
+        else:
+            clients[not ID].send(pickle.dumps(data))
         temp_game_data[ID] = data
         loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
         
@@ -110,8 +114,8 @@ def threaded_client(clients, ID, temp_game_data, startTime):
         
         
         
-        print("Server data from client:", str(ID), ",", str(data),
-              "||", str(temporary_data[0]), ",", str(temporary_data[1]))
+        # print("Server data from client:", str(ID), ",", str(data),
+        #       "||", str(temporary_data[0]), ",", str(temporary_data[1]))
         
     pass
 
@@ -138,8 +142,8 @@ while True:
         clients[0].send(pickle.dumps(True))
         clients[1].send(pickle.dumps(True))
 
-        clients[0].send(pickle.dumps(["ClientID: 0"]))
-        clients[1].send(pickle.dumps(["ClientID: 1"]))
+        clients[0].send(pickle.dumps("ClientID: 0"))
+        clients[1].send(pickle.dumps("ClientID: 1"))
         
         start_time = time.time()
         
