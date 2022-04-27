@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Apr 12 13:39:00 2022
-
 @author: Kellen Cheng
 """
 
@@ -17,7 +16,7 @@ from playground_building_blocks import *
 # %% Server Configuration
 config = dict()
 # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
-config["Host"] = "127.0.0.1"
+config["Host"] = "192.168.1.91"
 config["Port"] = 4900 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 config["Player_Num"] = 4 # Configure the number of players for the server
@@ -102,13 +101,14 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             # print('data is none')
             if (round((time.time() - startTime), 2) > prev_Time + 1):
                 prev_Time += 1
-            
                 clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
             continue
         else:
-            clients[not ID].send(pickle.dumps(data))
+            if (type(data) == list and data[0] == 99):
+                clients[not ID].send(pickle.dumps(data))
+                print(data)
         temp_game_data[ID] = data
-        loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
+        # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
         
         
         
@@ -150,22 +150,4 @@ while True:
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
         start_new_thread(threaded_client, (clients, 1, temporary_data, start_time))
     pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
