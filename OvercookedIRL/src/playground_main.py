@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr 18 15:27:07 2022
-
 @author: Kellen Cheng
 """
 
@@ -116,6 +115,36 @@ class Game:
         self.recipe_card = Spritesheet('../img/recipe_card.png')
 
         self.mouse = ColorMouse()
+        
+        self.all_share_stations = []
+        
+    def check_if_share(self, row, column):
+        columns = [15, 16]
+        rows = [8, 9, 10, 12, 14, 15, 16]
+        
+        if (row in rows and column in columns):
+            return True
+        else:
+            return False
+        
+    def find_share_station(self, row, column):
+        print("This is the amount of share stations:", str(len(self.all_share_stations)))
+        
+        for station in self.all_share_stations:
+            print(str(station.x) + "," + str(station.y))
+            # Maybe something wrong with the way share stations are indexed?
+            if ((station.x == (column - 32) or station.x == (column - 32))
+                and station.y == row):
+                return station
+            
+        if (len(self.all_share_stations) == 0):
+            print("NO SHARE STATIONS!!!!!!")
+        else:
+            return self.all_share_stations[0]
+        
+        
+        return None
+    
 
     def createTilemap(self,tilemap,layer):
         for i, row in enumerate(tilemap):
@@ -147,11 +176,17 @@ class Game:
                 elif column == 'J':
                     Counter(self, self.kitchen_spritesheet,white_counter["J"][0],white_counter["J"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
                 elif column == 'G':
-                    Counter(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters))
+                    temp = Counter(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters))
+                    if (self.check_if_share(i, j)):
+                        self.all_share_stations.append(temp)
                 elif column == 'H':
-                    Counter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
+                    temp = Counter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
+                    if (self.check_if_share(i, j)):
+                        self.all_share_stations.append(temp)
                 elif column == 'H':
-                    Counter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
+                    temp = Counter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
+                    if (self.check_if_share(i, j)):
+                        self.all_share_stations.append(temp)
                 elif column == 'V':
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,layer,(self.all_sprites))             
                 elif column == 'S':
@@ -279,10 +314,11 @@ class Game:
         #     data = get_unblocked_data(client)
             
         #     # Print received data, if it exists
-        #     if (data != None and data != prev_message and type(data) == list):
+        #     if (data != None and type(data) == list and data[0] == 99):
         #         prev_message = data
         #         print("SERVER SENDS -> " + str(prev_message))
         #     elif (data != None and type(data) == float):
+        #         pass
         #         print("TIMER -> " + str(data))
 
     def main(self):
@@ -339,7 +375,7 @@ from playground_building_blocks import *
 # %% Client Configuration
 config = dict()
 # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
-config["Host"] = "127.0.0.1"
+config["Host"] = "192.168.1.91"
 config["Port"] = 4900 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 
