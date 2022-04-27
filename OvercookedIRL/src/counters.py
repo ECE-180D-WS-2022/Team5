@@ -4,6 +4,7 @@ from ingredients import *
 from sprites import *
 from animations import *
 from player import *
+import pickle
 
 class Counter(pygame.sprite.Sprite):
     def __init__(self, game, sprite_sheet, s_x, s_y, x, y, layer, groups):
@@ -43,8 +44,21 @@ class Counter(pygame.sprite.Sprite):
         elif(len(self.items) > 1):
             plate = True
         return plate
+    
+    def manually_place_one_item(self, attributes):
+        item = Ingredient(self.game,attributes[0],
+                                     attributes[1],attributes[2],attributes[3])
+        
+        item._layer = self._layer + 3
+        item.x = self.x
+        if(not self.game.top_perspective_counters in self.groups):
+            item.y = self.y + TILE_SIZE
+        else:
+            item.y = self.y
+        self.items.append(item)
 
     def place_all_items(self):
+        item_attrs = [99, ]
         for item in self.game.player.inventory:
             item._layer = self._layer + 3
             item.x = self.x
@@ -53,7 +67,12 @@ class Counter(pygame.sprite.Sprite):
             else:
                 item.y = self.y
             self.items.append(item)
+            useful_attributes = item.get_characteristic_attributes() # length = 7
+            useful_attributes.append(self.x)
+            useful_attributes.append(self.y)
+            item_attrs.append(useful_attributes)
         self.game.player.inventory.clear()
+        self.game.socket_client.send(pickle.dumps(item_attrs))
 
     def place_all_but_plate(self):
         # move everything from inventory to counter that isn't a plate
