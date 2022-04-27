@@ -285,6 +285,28 @@ class Game:
         #     elif (data != None and type(data) == float):
         #         print("TIMER -> " + str(data))
 
+        # Print received data, if it exists
+        while(True):
+            data = get_unblocked_data(self.game.socket_client)
+            if (data != None and type(data) == list):
+                prev_message = data
+                print("SERVER SENDS -> " + str(data))
+            elif(data != None and type(data)==str):
+                print('my client id: ' + data[10:])
+                self.player.client_ID = int(data[10:])
+                if(self.player.client_ID == 0):
+                    self.player.x = 10*TILE_SIZE
+                    self.player.y = 11*TILE_SIZE
+                    self.player.rect.x = self.player.x
+                    self.player.rect.y = self.player.y
+                elif(self.player.client_ID == 1):
+                    self.player.x = 22*TILE_SIZE
+                    self.player.y = 11*TILE_SIZE
+                    self.player.rect.x = self.player.x
+                    self.player.rect.y = self.player.y
+            elif (data != None and type(data) == float):
+                print("TIMER -> " + str(data))
+
     def main(self):
         input_thread = threading.Thread(target=self.check_server, 
                                     args=(self.socket_client, ), 

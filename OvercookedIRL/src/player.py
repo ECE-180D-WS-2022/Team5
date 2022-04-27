@@ -412,7 +412,7 @@ class Player(pygame.sprite.Sprite):
         self.x_change = 0
 
         temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
-        self.game.socket_client.send(pickle.dumps(temp_data))
+        # self.game.socket_client.send(pickle.dumps(temp_data))
 
         # call server function (,,,,,,,,,,,,,,,,,)
         # recv_data = get_unblocked_data(self.game.socket_client)
@@ -429,27 +429,27 @@ class Player(pygame.sprite.Sprite):
 
         self.frame += 1
 
-        data = get_unblocked_data(self.game.socket_client)
+        # data = get_unblocked_data(self.game.socket_client)
             
         # Print received data, if it exists
-        if (data != None and type(data) == list):
-            prev_message = data
-            print("SERVER SENDS -> " + str(data))
-        elif(data != None and type(data)==str):
-            print('my client id: ' + data[10:])
-            self.client_ID = int(data[10:])
-            if(self.client_ID == 0):
-                self.x = 10*TILE_SIZE
-                self.y = 11*TILE_SIZE
-                self.rect.x = self.x
-                self.rect.y = self.y
-            elif(self.client_ID == 1):
-                self.x = 22*TILE_SIZE
-                self.y = 11*TILE_SIZE
-                self.rect.x = self.x
-                self.rect.y = self.y
-        elif (data != None and type(data) == float):
-            print("TIMER -> " + str(data))
+        # if (data != None and type(data) == list):
+        #     prev_message = data
+        #     print("SERVER SENDS -> " + str(data))
+        # elif(data != None and type(data)==str):
+        #     print('my client id: ' + data[10:])
+        #     self.client_ID = int(data[10:])
+        #     if(self.client_ID == 0):
+        #         self.x = 10*TILE_SIZE
+        #         self.y = 11*TILE_SIZE
+        #         self.rect.x = self.x
+        #         self.rect.y = self.y
+        #     elif(self.client_ID == 1):
+        #         self.x = 22*TILE_SIZE
+        #         self.y = 11*TILE_SIZE
+        #         self.rect.x = self.x
+        #         self.rect.y = self.y
+        # elif (data != None and type(data) == float):
+        #     print("TIMER -> " + str(data))
 
         # print('update')
         # print(self.rect.x, self.rect.y)
