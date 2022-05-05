@@ -223,6 +223,8 @@ class CookCounter(Counter):
             self.items[0].cook_state += 1
 
     def cooked(self):
+        if(len(self.items)==0):
+            return False
         if(self.items[0].cook_state >= 3):
             return True
         else:
