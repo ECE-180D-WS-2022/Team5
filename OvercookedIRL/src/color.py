@@ -3,10 +3,11 @@ import numpy as np
 from pymouse import PyMouse
 import paho.mqtt.client as mqtt
 import keyboard
-
+import pyautogui
 
 
 font = cv2.FONT_HERSHEY_DUPLEX
+width, height = pyautogui.size()
 
 # Calibration Stage
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -152,7 +153,7 @@ while True:
 
 
         cv2.imshow('Mouse Movement',frame)
-        cv2.moveWindow('Mouse Movement', 1200, 0)
+        cv2.moveWindow('Mouse Movement', height + 75, 0)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:
