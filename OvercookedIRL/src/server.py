@@ -18,7 +18,7 @@ config = dict()
 # <<<<<<< multiplayer_item_passing
 # # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
 # config["Host"] = "192.168.1.91"
-=======
+# =======
 config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
 config["Port"] = 4900 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
