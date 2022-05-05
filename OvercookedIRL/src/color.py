@@ -11,8 +11,8 @@ width, height = pyautogui.size()
 
 # Calibration Stage
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, width / (width / 640))
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height / (height / 480))
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 # Mouse movement functionality
 m = PyMouse()
@@ -153,7 +153,7 @@ while True:
 
 
         cv2.imshow('Mouse Movement',frame)
-        cv2.moveWindow('Mouse Movement', height + 75, 0)
+        cv2.moveWindow('Mouse Movement', width-650, 0)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:

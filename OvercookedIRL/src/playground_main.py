@@ -254,8 +254,7 @@ class Game:
         self.left_counters = pygame.sprite.LayeredUpdates()
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
-        # self.player = None
-        self.player = Player(self,-10,-11)
+        self.player = Player(self,10,11)
         self.timer = Timer(self,17,0,780,FPS)
         self.score = Score(self,0,0)
         self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
@@ -446,6 +445,7 @@ class Game:
                         self.screen.blit(title_screen, (0,0))
                         ready_up_button.draw(self.screen)
                         if ready_button.draw(self.screen) and self.clicked is True:
+                            exec(open("main.py").read())
                             return None
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:

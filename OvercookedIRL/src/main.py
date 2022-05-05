@@ -12,7 +12,6 @@ import sys
 from color_mouse import *
 import os
 # import math
-import new_button
 # import speech_recognition as sr 
 import paho.mqtt.client as mqtt
 
@@ -111,7 +110,7 @@ class Game:
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
         self.recipe_card = Spritesheet('../img/recipe_card.png')
 
-        self.mouse = ColorMouse()
+        # self.mouse = ColorMouse()
 
     def createTilemap(self,tilemap,layer):
         for i, row in enumerate(tilemap):
@@ -206,7 +205,7 @@ class Game:
         # initialize_camera()
 
         ProgressBar(self, self.progress_spritesheet, 0*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
-        self.mouse.setupMouse()
+        # self.mouse.setupMouse()
 
         # self.setup_audiofile()
         self.setup_mqtt()
@@ -301,77 +300,8 @@ class Game:
     def game_over(self):
         pass
 
-    # def intro_screen(self):
-    #     self.clicked = False
-    #     start_button_img = pygame.image.load('Game_Texts/Start_the_game.png').convert_alpha()
-    #     start_button_alt_img = pygame.image.load('Game_Texts/Start_the_game_alt.png').convert_alpha()
-    #     tutorial_button_img = pygame.image.load('Game_Texts/tutorial.png').convert_alpha()
-    #     tutorial_button_alt_img = pygame.image.load('Game_Texts/tutorial_alt.png').convert_alpha()
-    #     title_img = pygame.image.load('Game_Texts/new_title.png').convert_alpha()
-    #     exit_img = pygame.image.load('Game_Texts/exit.png').convert_alpha()
-    #     exit_alt_img = pygame.image.load('Game_Texts/exit_alt.png').convert_alpha()
-    #     exit_button = new_button.Button(exit_img, exit_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, WIN_WIDTH - 80, WIN_HEIGHT-80)
-    #     new_start_button = new_button.Button(start_button_img, start_button_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, -90)
-    #     new_tutorial_button = new_button.Button(tutorial_button_img, tutorial_button_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, 10)
-    #     new_title = new_button.Button(title_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
-    #     while True:
-    #         if self.clicked:
-    #             self.screen.blit(title_screen, (0,0))
-    #             new_title.draw(self.screen)
-    #             if new_start_button.draw(self.screen):
-    #                 return self.player_input_screen()
-    #             if new_tutorial_button.draw(self.screen):
-    #                 return self.tutorial_screen_intro()
-    #             if exit_button.draw(self.screen):
-    #                 print("exit")
-    #                 pygame.quit()
-    #                 sys.exit()
-    #         self.clicked = True
-
-    #         for event in pygame.event.get():
-    #             if event.type == pygame.QUIT:
-    #                 pygame.quit()
-    #                 sys.exit()
-    #             # if event.type == pygame.MOUSEBUTTONDOWN:
-    #             #     self.clicked = True
-    #         self.clicked=False
-    #         pygame.display.update()
-    #         self.clock.tick(FPS)
-
-
-    # def player_input_screen(self):
-    #     self.clicked = False
-    #     player1_txt = font.render("Enter Your Name", True, black)
-    #     input_box1 = InputBox((WIN_WIDTH - player1_txt.get_width()) / 2, WIN_HEIGHT / 7 + 50, 140, 32)
-    #     enter_name_img = pygame.image.load('Game_Texts/enter_name.png').convert_alpha()
-    #     enter_name = new_button.Button(enter_name_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
-    #     back_img = pygame.image.load('Game_Texts/back.png').convert_alpha()
-    #     back_alt_img = pygame.image.load('Game_Texts/back_alt.png').convert_alpha()
-    #     back_button = new_button.Button(back_img, back_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, WIN_WIDTH - 80, WIN_HEIGHT-80)
-    
-    #     while True:
-    #         self.screen.blit(title_screen, (0,0))
-    #         enter_name.draw(self.screen)
-    #         for event in pygame.event.get():
-    #             if event.type == pygame.QUIT:
-    #                 pygame.quit()
-    #                 sys.exit()
-    #             name = input_box1.handle_event(event)
-    #             if name != None:
-    #                 self.register(self.client, name)
-    #                 return self.waiting_connection_screen()
-    #         if back_button.draw(self.screen):
-    #             return self.intro_screen()
-    #         input_box1.update()
-    #         input_box1.draw(self.screen)
-            
-    #         pygame.display.update()
-    #         self.clock.tick(FPS)
-
-
 
 g = Game()
-# g.intro_screen()
 g.new()
 while g.running:
     g.main()
