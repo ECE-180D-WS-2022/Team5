@@ -68,6 +68,19 @@ def on_message(client, userdata, message):
     else:
         client.publish('overcooked_game', "Mic Stop", qos=1)
 
+rhyme_dict = {}
+first_phones = {}
+commands = ['up', 'down', 'tomato', 'bread', 'lettuce', 'meat', 'plate']
+for cmd in commands: 
+    rhyme_dict[cmd] = pr.rhymes(cmd)
+    pronounce = pr.phones_for_word(cmd)[0].split()
+    if len(pronounce) >= 2: # if the word takes 2(+) phones, consider first two phones
+        first_phones[cmd] = pronounce[0]+pronounce[1]
+    else: # if the word only is 1 phone, consider only the first phone
+        first_phones[cmd] = pronounce[0]
+
+print(first_phones)
+input('lol')
 def perform_speech(tid):
     # client.publish('overcooked_game', 'tomato', qos=1)
     with sr.Microphone() as source:
@@ -201,17 +214,6 @@ def perform_speech(tid):
     '''
 
     print('sent message')
-
-rhyme_dict = {}
-first_phones = {}
-commands = ['up', 'down', 'tomato', 'bread', 'lettuce', 'meat', 'plate']
-for cmd in commands: 
-    rhyme_dict[cmd] = pr.rhymes(cmd)
-    pronounce = pr.phones_for_word(cmd)[0].split()
-    if len(pronounce) >= 2: # if the word takes 2(+) phones, consider first two phones
-        first_phones[cmd] = pronounce[0]+pronounce[1]
-    else: # if the word only is 1 phone, consider only the first phone
-        first_phones[cmd] = pronounce[0]
 
 i = 0
 while os.path.exists("speech%s.txt" % i):

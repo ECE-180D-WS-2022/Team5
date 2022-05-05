@@ -1,6 +1,6 @@
 import pygame
 import math
-from config import * 
+from multiplayer_config import * 
 
 class Score(pygame.sprite.Sprite):
     def __init__(self, game, x, y):

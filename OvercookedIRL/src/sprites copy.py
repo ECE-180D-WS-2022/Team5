@@ -1,5 +1,5 @@
 import pygame
-from config import * 
+from multiplayer_config import * 
 import math
 import random
 

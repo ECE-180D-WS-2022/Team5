@@ -1,6 +1,6 @@
 from lib2to3.pgen2.token import TILDE
 import pygame
-from config import * 
+from multiplayer_config import * 
 from ingredients import *
 import random
 
