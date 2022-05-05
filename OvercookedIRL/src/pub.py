@@ -27,11 +27,12 @@ threadLock = threading.Lock()
 # wont be used if only publishing, but can still exist
 def on_message(client, userdata, message):
     msg = str(message.payload)[2:][:-1]
-    print('Received message: ' + msg + " on topic " + message.topic + '" with QoS ' + str(message.qos))
-    print(message.payload)
+    
+    #print('Received message: ' + msg + " on topic " + message.topic + '" with QoS ' + str(message.qos))
+    #print(message.payload)
     # if(str(message.payload) == "b'" + "start" + "'"):
         # client.publish("tomato")
-    print('match')
+    #print('match')
 
     if(str(message.payload) == "b'" + "stop" + "'"):
         client.loop_stop()

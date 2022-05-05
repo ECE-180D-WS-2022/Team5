@@ -388,12 +388,6 @@ class Player(pygame.sprite.Sprite):
         self.movement()
         self.user_action()
         self.animate()
-
-        # add position change to player 
-        # if(self.x_change != 0):
-        #     self.prev_x = self.rect.x
-        # if(self.y_change != 0):
-        #     self.prev_x = self.rect.y
         if (self.x_change != 0 or self.y_change != 0):
             self.location = None
             self.location_sprite = None
@@ -414,29 +408,28 @@ class Player(pygame.sprite.Sprite):
         temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
         self.game.socket_client.send(pickle.dumps(temp_data))
 
-        # call server function (,,,,,,,,,,,,,,,,,)
-        # recv_data = get_unblocked_data(self.game.socket_client)
-        # if (recv_data != None and type(recv_data) == list):
-        #     # prev_message = recv_data
-        #     print("SERVER SENDS -> " + str(recv_data))
-        #     print("len" + str(len(recv_data)))
-        #     if(len(recv_data) == 1):
-        #         print('len is 1')
-        #         self.client_ID = int(recv_data[0][10:])
-        #         print(recv_data[0][0:8])
-        # elif (recv_data != None and type(recv_data) == float):
-        #     print("TIMER -> " + str(recv_data))
-
         self.frame += 1
 
         data = get_unblocked_data(self.game.socket_client)
+        
+        if (data != None and type(data) == list and data[0] == 99):
+            test_item = data[1] # list of item's attributes
+            print("This is test item:")
+            print(test_item)
+            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            coords = (data[1][-2], data[1][-1])
+            station_test = self.game.find_share_station(coords[1], coords[0])
+            
+            # Code copied from counter.place_all_items()
+            station_test.manually_place_one_item(test_item)
+            
             
         # Print received data, if it exists
-        if (data != None and type(data) == list):
+        if (data != None and type(data) == list and data[0] != 99):
             prev_message = data
-            print("SERVER SENDS -> " + str(data))
+            #print("SERVER SENDS -> " + str(data))
         elif(data != None and type(data)==str):
-            print('my client id: ' + data[10:])
+            # print('my client id: ' + data[10:])
             self.client_ID = int(data[10:])
             if(self.client_ID == 0):
                 self.x = 10*TILE_SIZE
@@ -449,7 +442,8 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x = self.x
                 self.rect.y = self.y
         elif (data != None and type(data) == float):
-            print("TIMER -> " + str(data))
+            pass
+            # print("TIMER -> " + str(data))
 
         # print('update')
         # print(self.rect.x, self.rect.y)
@@ -486,7 +480,7 @@ class Player(pygame.sprite.Sprite):
                         elif(self.facing == 'right'):
                             self.x_change = PLAYER_SPEED
                             self.facing = 'right'
-                            print('it here 1')
+                            # print('it here 1')
                         elif(self.facing == 'left'):
                             self.x_change = -1 * PLAYER_SPEED
                             self.facing = 'left'
@@ -498,10 +492,10 @@ class Player(pygame.sprite.Sprite):
                             self.facing = 'down'
                     elif ((self.rect.x % 32 == 0) and (self.rect.y % 32 == 0 or self.rect.y == self.dest_y)):
                         # compute new direction
-                        print('compute new direction')
-                        print(self.rect.x, self.rect.y, self.dest_x, self.dest_y)
+                        # print('compute new direction')
+                        # print(self.rect.x, self.rect.y, self.dest_x, self.dest_y)
                         if(self.rect.x != self.dest_x and self.rect.y == self.dest_y):
-                            print('x not equal else here')
+                            # print('x not equal else here')
                             if(self.rect.x > self.dest_x):
                                 self.prev_facing = self.facing
                                 self.x_change = -1 * PLAYER_SPEED
@@ -510,9 +504,9 @@ class Player(pygame.sprite.Sprite):
                                 self.prev_facing = self.facing
                                 self.x_change = PLAYER_SPEED
                                 self.facing = 'right'
-                                print('it here 2')
+                                # print('it here 2')
                         elif(self.rect.x == self.dest_x and self.rect.y != self.dest_y):
-                            print('y not equal else here')
+                            # print('y not equal else here')
                             if(self.rect.y > self.dest_y):
                                 self.prev_facing = self.facing
                                 self.y_change = -1 * PLAYER_SPEED
@@ -523,9 +517,9 @@ class Player(pygame.sprite.Sprite):
                                 self.facing = 'down'
                         elif(self.rect.x != self.dest_x and self.rect.y != self.dest_y):  
                             new_dir = random.choice([0,1])
-                            print('randomly generate new direction')
+                            # print('randomly generate new direction')
                             if(new_dir == 0):
-                                print('x dir')
+                                # print('x dir')
                                 if(self.rect.x > self.dest_x):
                                     self.prev_facing = self.facing
                                     self.x_change = -1 * PLAYER_SPEED
@@ -534,9 +528,9 @@ class Player(pygame.sprite.Sprite):
                                     self.prev_facing = self.facing
                                     self.x_change = PLAYER_SPEED
                                     self.facing = 'right'
-                                    print('it here 3')
+                                    # print('it here 3')
                             else:
-                                print('y dir')
+                                # print('y dir')
                                 if(self.rect.y > self.dest_y):
                                     self.prev_facing = self.facing
                                     self.y_change = -1 * PLAYER_SPEED
@@ -902,5 +896,3 @@ class Cursor(pygame.sprite.Sprite):
 
         self.dest_cursor.rect.x = self.game.player.dest_x
         self.dest_cursor.rect.y= (self.game.player.dest_y + TILE_SIZE)
-
-        

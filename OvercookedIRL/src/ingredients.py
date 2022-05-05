@@ -100,6 +100,11 @@ class Ingredient(pygame.sprite.Sprite):
         # def __init__(self, game, spritesheet, s_x, s_y, x, y, layer, groups):
         # self.image = self.game.spritesheet.get_sprite(0,0,0,0,self.width,self.height)
 
+    def get_characteristic_attributes(self):
+        attributes = [self.ingredient_name, self.x, self.y, 
+                      self._layer, self.cut_state, self.cook_state, self.states]
+        return attributes
+    
     def update_image(self):
         if(self.cut_state > 0):
             state = int(self.cut_state/CHOP_TIMES) + int(self.cook_state/CHOP_TIMES)
