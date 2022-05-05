@@ -179,8 +179,6 @@ class Game:
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
         self.recipe_card = Spritesheet('../img/recipe_card.png')
 
-        self.mouse = ColorMouse()
-
     def createTilemap(self,tilemap,layer):
         for i, row in enumerate(tilemap):
             for j, column in enumerate(row):
@@ -272,7 +270,6 @@ class Game:
         # initialize_camera()
 
         ProgressBar(self, self.progress_spritesheet, 0*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
-        self.mouse.setupMouse()
 
         # self.setup_audiofile()
         self.setup_mqtt()
@@ -323,15 +320,15 @@ class Game:
         # self.r = sr.Recognizer()
 
     def setup_mqtt(self):
-        self.socket_client = mqtt.Client()
-        self.socket_client.on_connect = on_connect
-        self.socket_client.on_disconnect = on_disconnect
-        self.socket_client.on_message = on_message
-        self.socket_client.user_data_set(self)
+        self.client = mqtt.Client()
+        self.client.on_connect = on_connect
+        self.client.on_disconnect = on_disconnect
+        self.client.on_message = on_message
+        self.client.user_data_set(self)
 
-        self.socket_client.connect_async("test.mosquitto.org")
-        self.socket_client.connect("test.mosquitto.org", 1883, 60)
-        self.socket_client.loop_start()
+        self.client.connect_async("test.mosquitto.org")
+        self.client.connect("test.mosquitto.org", 1883, 60)
+        self.client.loop_start()
         # self.client.publish('overcooked_mic', "t", qos=1)
         
     def check_server(self, client):
@@ -349,26 +346,28 @@ class Game:
         #         print("TIMER -> " + str(data))
 
         # Print received data, if it exists
-        while(True):
-            data = get_unblocked_data(self.game.socket_client)
-            if (data != None and type(data) == list):
-                prev_message = data
-                print("SERVER SENDS -> " + str(data))
-            elif(data != None and type(data)==str):
-                print('my client id: ' + data[10:])
-                self.player.client_ID = int(data[10:])
-                if(self.player.client_ID == 0):
-                    self.player.x = 10*TILE_SIZE
-                    self.player.y = 11*TILE_SIZE
-                    self.player.rect.x = self.player.x
-                    self.player.rect.y = self.player.y
-                elif(self.player.client_ID == 1):
-                    self.player.x = 22*TILE_SIZE
-                    self.player.y = 11*TILE_SIZE
-                    self.player.rect.x = self.player.x
-                    self.player.rect.y = self.player.y
-            elif (data != None and type(data) == float):
-                print("TIMER -> " + str(data))
+        # while(True):
+        #     data = get_unblocked_data(self.socket_client)
+        #     if (data != None and type(data) == list):
+        #         prev_message = data
+        #         print("SERVER SENDS -> " + str(data))
+        #     elif(data != None and type(data)==str):
+        #         print('my client id: ' + data[10:])
+        #         self.player.client_ID = int(data[10:])
+        #         if(self.player.client_ID == 0):
+        #             self.player.x = 10*TILE_SIZE
+        #             self.player.y = 11*TILE_SIZE
+        #             self.player.rect.x = self.player.x
+        #             self.player.rect.y = self.player.y
+        #         elif(self.player.client_ID == 1):
+        #             self.player.x = 22*TILE_SIZE
+        #             self.player.y = 11*TILE_SIZE
+        #             self.player.rect.x = self.player.x
+        #             self.player.rect.y = self.player.y
+        #     elif (data != None and type(data) == float):
+        #         print("TIMER -> " + str(data))
+        #     elif(data != None):
+        #         print("Data -> " + str(data))
 
     def main(self):
         self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, MULT_WIN_HEIGHT))
@@ -387,7 +386,6 @@ class Game:
         # game loop
         while self.playing:
         # if(self.playing):
-            # self.mouse.mouseMovement()
             self.events()
             self.update()
             self.draw()

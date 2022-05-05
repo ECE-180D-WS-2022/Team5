@@ -150,10 +150,9 @@ while True:
         # Send confirmation for synchronized start
         clients[0].send(pickle.dumps(ready1))
         clients[1].send(pickle.dumps(ready2))
-        print(player_names)
 
-        # clients[0].send(pickle.dumps("ClientID: 0"))
-        # clients[1].send(pickle.dumps("ClientID: 1"))
+        clients[0].send(pickle.dumps("ClientID: 0"))
+        clients[1].send(pickle.dumps("ClientID: 1"))
         
         start_time = time.time()
         
