@@ -11,9 +11,15 @@ from recipe import *
 import sys
 from color_mouse import *
 import os
-import math
+# import math
 # import speech_recognition as sr 
 import paho.mqtt.client as mqtt
+
+pygame.init()
+font = pygame.font.SysFont("comicsansms", 40)
+title_screen = pygame.image.load("../img/title_background.png")
+title_screen = pygame.transform.scale(title_screen, (WIN_WIDTH, WIN_HEIGHT))
+r = pygame.rect.Rect((0, WIN_HEIGHT-30, 70, 30))
 
 def on_connect(client,userdata,flags,rc):
     client.subscribe("overcooked_game", qos=1)
@@ -104,7 +110,7 @@ class Game:
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
         self.recipe_card = Spritesheet('../img/recipe_card.png')
 
-        self.mouse = ColorMouse()
+        # self.mouse = ColorMouse()
 
     def createTilemap(self,tilemap,layer):
         for i, row in enumerate(tilemap):
@@ -132,7 +138,7 @@ class Game:
                 elif column == '&':
                     Counter(self, self.kitchen_spritesheet,white_counter["&"][0],white_counter["&"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
                 elif column == 'B':
-                    Counter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters))
+                    Counter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters))
                 elif column == 'J':
                     Counter(self, self.kitchen_spritesheet,white_counter["J"][0],white_counter["J"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
                 elif column == 'G':
@@ -199,7 +205,7 @@ class Game:
         # initialize_camera()
 
         ProgressBar(self, self.progress_spritesheet, 0*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
-        self.mouse.setupMouse()
+        # self.mouse.setupMouse()
 
         # self.setup_audiofile()
         self.setup_mqtt()
@@ -294,11 +300,8 @@ class Game:
     def game_over(self):
         pass
 
-    def intro_screen(self):
-        pass
 
 g = Game()
-g.intro_screen()
 g.new()
 while g.running:
     g.main()

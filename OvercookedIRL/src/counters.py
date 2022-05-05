@@ -291,15 +291,19 @@ class SubmitStation(Counter):
                     if(item.ingredient_name == 'Meat'):
                         if(item.cut_state == recipe.ingredient_2.cut_state and item.cook_state == recipe.ingredient_2.cook_state):
                             score += item.score
-                if(len(recipe) == 2 and score == 40):
+                if(recipe.ingredient_3 == None and recipe.ingredient_4 == None and score == 40):
                     self.game.score.update_score(score)
                     del_index = index
                     break
-                if(len(recipe) == 3 and score == 60):
+                if(recipe.ingredient_3 != None and recipe.ingredient_4 == None and score == 60):
                     self.game.score.update_score(score)
                     del_index = index
                     break
-                if(len(recipe) == 4 and score == 80):
+                if(recipe.ingredient_3 == None and recipe.ingredient_4 != None and score == 60):
+                    self.game.score.update_score(score)
+                    del_index = index
+                    break
+                if(recipe.ingredient_3 != None and recipe.ingredient_4 != None and score == 80):
                     self.game.score.update_score(score)
                     del_index = index
                     break

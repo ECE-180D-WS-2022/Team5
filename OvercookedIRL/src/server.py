@@ -15,8 +15,11 @@ from playground_building_blocks import *
 
 # %% Server Configuration
 config = dict()
-# config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
-config["Host"] = "192.168.1.91"
+# <<<<<<< multiplayer_item_passing
+# # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
+# config["Host"] = "192.168.1.91"
+=======
+config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
 config["Port"] = 4900 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 config["Player_Num"] = 4 # Configure the number of players for the server
@@ -37,7 +40,7 @@ except socket.error as e:
 server.listen(config["Player_Num"] + 1)
 
 # Remove blocking synchronous servers in favor of realtime nonblocking logic
-server.setblocking(False)
+#server.setblocking(False)
 
 # %% Server Methods
 # Function : Threading function that checks for data updates in the background
@@ -121,11 +124,12 @@ def threaded_client(clients, ID, temp_game_data, startTime):
 
 # %% Control Loop
 clients = []
+player_names = []
 temporary_data = [None, None]
 
 while True:
     # Listen for client connections
-    client, address = get_accept(server)
+    client, address = server.accept()
     
     # Update the count of threaded processes
     config["Thread_Count"] += 1
@@ -135,12 +139,21 @@ while True:
     
     # Store each connection
     clients.append(client)
+    player_names.append(pickle.loads(client.recv(HEADER))[1])
     
     # Begin new threaded process for each player
-    if (len(clients) == 2):
+    if (config["Thread_Count"] == 2):
         # Send the true condition
         clients[0].send(pickle.dumps(True))
         clients[1].send(pickle.dumps(True))
+        
+        # Wait for ready signal from BOTH PLAYERS
+        ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
+        ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
+
+        # Send confirmation for synchronized start
+        clients[0].send(pickle.dumps(ready1))
+        clients[1].send(pickle.dumps(ready2))
 
         clients[0].send(pickle.dumps("ClientID: 0"))
         clients[1].send(pickle.dumps("ClientID: 1"))

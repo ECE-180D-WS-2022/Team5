@@ -1,5 +1,5 @@
 import pygame
-from config import * 
+from multiplayer_config import * 
 from ingredients import *
 from sprites import *
 from animations import *
@@ -666,7 +666,7 @@ class Player(pygame.sprite.Sprite):
         if(self.before):
             # send message to pub 
             if(self.message is not None or self.message is None):
-                self.game.client.publish('overcooked_mic', self.message, qos=1)
+                # self.game.client.publish('overcooked_mic', self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -822,14 +822,14 @@ class Player(pygame.sprite.Sprite):
     
     def send_message(self):
         # send message to pub 
-        if(self.location_sprite.ingredient == 'Tomato'):
-            self.game.client.publish('overcooked_mic', "t", qos=1)
-        elif(self.location_sprite.ingredient == 'Bun'):
-            self.game.client.publish('overcooked_mic', "b", qos=1)
-        elif(self.location_sprite.ingredient == 'Lettuce'):
-            self.game.client.publish('overcooked_mic', "l", qos=1)
-        elif(self.location_sprite.ingredient == 'Meat'):
-            self.game.client.publish('overcooked_mic', "m", qos=1)
+        # if(self.location_sprite.ingredient == 'Tomato'):
+        #     self.game.client.publish('overcooked_mic', "t", qos=1)
+        # elif(self.location_sprite.ingredient == 'Bun'):
+        #     self.game.client.publish('overcooked_mic', "b", qos=1)
+        # elif(self.location_sprite.ingredient == 'Lettuce'):
+        #     self.game.client.publish('overcooked_mic', "l", qos=1)
+        # elif(self.location_sprite.ingredient == 'Meat'):
+        #     self.game.client.publish('overcooked_mic', "m", qos=1)
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
         self.message = None

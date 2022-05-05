@@ -62,7 +62,6 @@ class Ingredient(pygame.sprite.Sprite):
             self.ingredient_layers = [TOMATO_LAYER]
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))
             self.score = 20
-            print('created tomato')
         elif(self.ingredient_name == "Lettuce"):
             self.spritesheet = self.game.lettuce_spritesheet
             self.cut_state = 0
