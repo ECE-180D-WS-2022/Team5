@@ -600,12 +600,12 @@ class Player(pygame.sprite.Sprite):
                 if(self.location == "Chopping Station"):
                     if(self.action is None):
                         self.action = "Gesture"
-                        self.message = "c"
+                        self.message = "cd"
                         self.before = True
                 if(self.location == "Cooking Station"):
                     if(self.action is None):
                         self.action = "Gesture"
-                        self.message = "s"
+                        self.message = "sd"
                         self.before = True
             if keys[pygame.K_q]:
                 if(self.location is not None):
@@ -771,6 +771,7 @@ class Player(pygame.sprite.Sprite):
                     if(self.before):
                         if(self.message is not None):
                             # self.game.client.publish('overcooked_IMU', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -797,6 +798,7 @@ class Player(pygame.sprite.Sprite):
                     if(self.before):
                         if(self.message is not None):
                             # self.game.client.publish('overcooked_IMU', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player

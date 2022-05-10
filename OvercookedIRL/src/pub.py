@@ -27,7 +27,7 @@ threadLock = threading.Lock()
 def on_message(client, userdata, message):
     msg = str(message.payload)[2:][:-1]
     
-    #print('Received message: ' + msg + " on topic " + message.topic + '" with QoS ' + str(message.qos))
+    print('Received message: ' + msg + " on topic " + message.topic + '" with QoS ' + str(message.qos))
     #print(message.payload)
     # if(str(message.payload) == "b'" + "start" + "'"):
         # client.publish("tomato")
@@ -44,6 +44,9 @@ def on_message(client, userdata, message):
         t = Thread(target=perform_speech,args=(num_threads,))
         t.start()
         t.join()
+
+    stir = False
+    chop = False
 
     if(msg == 'u'):
         client.publish('overcooked_game', "Pick Up", qos=1)
@@ -67,6 +70,56 @@ def on_message(client, userdata, message):
         client.publish('overcooked_game', "Plate", qos=1)
     else:
         client.publish('overcooked_game', "Mic Stop", qos=1)
+
+    
+    # '''
+    # time.sleep(5)
+
+    chop_count = 0
+    stir_count = 0
+    # if (not chop and not stir):
+    #     if(msg == 'u'):
+    #         client.publish('overcooked_game', "Pick Up", qos=1)
+    #     elif(msg == 'd'):
+    #         client.publish('overcooked_game', "Put Down", qos=1)
+    #     elif(msg == 'cd'):
+    #         # client.publish('overcooked_game', "Chop", qos=1)
+    #         chop = True
+    #     elif(msg == 'sd'):
+    #         # client.publish('overcooked_game', "Stir", qos=1)
+    #         stir = True
+    #     elif(msg == 't'):
+    #         client.publish('overcooked_game', "Tomato", qos=1)
+    #     elif(msg == 'b'):
+    #         client.publish('overcooked_game', "Bun", qos=1)
+    #     elif(msg == 'l'):
+    #         client.publish('overcooked_game', "Lettuce", qos=1)
+    #     elif(msg == 'm'):
+    #         client.publish('overcooked_game', "Meat", qos=1)
+    #     elif(msg == 'p'):
+    #         client.publish('overcooked_game', "Plate", qos=1)
+    #     else:
+    #         client.publish('overcooked_game', "other", qos=1)
+    if(chop):
+        while(chop_count < 3):
+            client.publish('overcooked_game', "Chop", qos=1)
+            print('send chop')
+            time.sleep(5)
+            chop_count += 1
+        chop_count = 0
+        chop = False
+    if(stir):
+        while(stir_count < 3):
+            client.publish('overcooked_game', "Stir", qos=1)
+            print('send stir')
+            time.sleep(5)
+            stir_count += 1
+        stir_count = 0
+        stir = False
+    # '''
+
+    print('sent message')
+
 
 def perform_speech(tid):
     # client.publish('overcooked_game', 'tomato', qos=1)
@@ -146,55 +199,6 @@ def perform_speech(tid):
         client.publish('overcooked_imu,', imu_msg, qos=1)
         client.publish('overcooked_game', game_msg, qos=1)
     threadLock.release()
-
-    '''
-    # time.sleep(5)
-    chop = False
-    chop_count = 0
-    stir = False
-    stir_count = 0
-    if (not chop and not stir):
-        if(msg == 'u'):
-            client.publish('overcooked_game', "Pick Up", qos=1)
-        elif(msg == 'd'):
-            client.publish('overcooked_game', "Put Down", qos=1)
-        elif(msg == 'cd'):
-            # client.publish('overcooked_game', "Chop", qos=1)
-            chop = True
-        elif(msg == 'sd'):
-            # client.publish('overcooked_game', "Stir", qos=1)
-            stir = True
-        elif(msg == 't'):
-            client.publish('overcooked_game', "Tomato", qos=1)
-        elif(msg == 'b'):
-            client.publish('overcooked_game', "Bun", qos=1)
-        elif(msg == 'l'):
-            client.publish('overcooked_game', "Lettuce", qos=1)
-        elif(msg == 'm'):
-            client.publish('overcooked_game', "Meat", qos=1)
-        elif(msg == 'p'):
-            client.publish('overcooked_game', "Plate", qos=1)
-        else:
-            client.publish('overcooked_game', "other", qos=1)
-    if(chop):
-        while(chop_count < 3):
-            client.publish('overcooked_game', "Chop", qos=1)
-            print('send chop')
-            time.sleep(5)
-            chop_count += 1
-        chop_count = 0
-        chop = False
-    if(stir):
-        while(stir_count < 3):
-            client.publish('overcooked_game', "Stir", qos=1)
-            print('send stir')
-            time.sleep(5)
-            stir_count += 1
-        stir_count = 0
-        stir = False
-    '''
-
-    print('sent message')
 
 i = 0
 while os.path.exists("speech%s.txt" % i):
