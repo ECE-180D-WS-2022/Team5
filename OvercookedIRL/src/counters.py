@@ -72,7 +72,8 @@ class Counter(pygame.sprite.Sprite):
             useful_attributes.append(self.y)
             item_attrs.append(useful_attributes)
         self.game.player.inventory.clear()
-        self.game.socket_client.send(pickle.dumps(item_attrs))
+        if(self in self.game.all_share_stations):
+            self.game.socket_client.send(pickle.dumps(item_attrs))
 
     def place_all_but_plate(self):
         # move everything from inventory to counter that isn't a plate
