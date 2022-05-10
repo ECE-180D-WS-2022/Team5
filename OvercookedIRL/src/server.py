@@ -16,7 +16,8 @@ from playground_building_blocks import *
 # %% Server Configuration
 config = dict()
 # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
-config["Host"] = "192.168.1.91"
+# config["Host"] = "192.168.1.91"
+config["Host"] = "192.168.56.1"
 config["Port"] = 4900 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 config["Player_Num"] = 4 # Configure the number of players for the server
