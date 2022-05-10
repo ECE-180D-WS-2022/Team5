@@ -4,6 +4,7 @@ Created on Mon Apr 18 15:27:07 2022
 @author: Kellen Cheng
 """
 
+from tkinter import FALSE
 import pygame
 from sprites import *
 from multiplayer_config import *
@@ -17,11 +18,73 @@ from recipe import *
 import sys
 from color_mouse import *
 import os
-import math
+from input_box import *
+import new_button
 # import speech_recognition as sr 
 import paho.mqtt.client as mqtt
 # from playground_building_blocks import *
 import threading
+
+pygame.init()
+font = pygame.font.SysFont("comicsansms", 40)
+r = pygame.rect.Rect((0, WIN_HEIGHT-30, 70, 30))
+black = (0, 0, 0)
+
+# loading all images and creating all buttons that will be used for UI
+# if the same button need to be changed depending on screen, manually change within function call
+title_screen = pygame.image.load("../img/title_background.png")
+title_screen = pygame.transform.scale(title_screen, (WIN_WIDTH, WIN_HEIGHT))
+start_button_img = pygame.image.load("Game_Texts/Start_the_game.png")
+start_button_alt_img = pygame.image.load('Game_Texts/Start_the_game_alt.png')
+tutorial_button_img = pygame.image.load('Game_Texts/tutorial.png')
+tutorial_button_alt_img = pygame.image.load('Game_Texts/tutorial_alt.png')
+title_img = pygame.image.load('Game_Texts/new_title.png')
+exit_img = pygame.image.load('Game_Texts/exit.png')
+exit_alt_img = pygame.image.load('Game_Texts/exit_alt.png')
+exit_button = new_button.Button(exit_img, exit_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, WIN_WIDTH - 80, WIN_HEIGHT-80)
+new_start_button = new_button.Button(start_button_img, start_button_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, -90)
+new_tutorial_button = new_button.Button(tutorial_button_img, tutorial_button_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, 10)
+new_title = new_button.Button(title_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+enter_name_img = pygame.image.load('Game_Texts/enter_name.png')
+enter_name = new_button.Button(enter_name_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+back_img = pygame.image.load('Game_Texts/back.png')
+back_alt_img = pygame.image.load('Game_Texts/back_alt.png')
+back_button = new_button.Button(back_img, back_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, WIN_WIDTH - 80, WIN_HEIGHT-80)
+welcome_2_tut_img = pygame.image.load('Game_Texts/welcome_2_tut.png')
+welcome_2_tut_button = new_button.Button(welcome_2_tut_img, None, 0.55, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+gesture_img = pygame.image.load('Game_Texts/gesture.png')
+gesture_alt_img = pygame.image.load('Game_Texts/gesture_alt.png')
+gesture_button = new_button.Button(gesture_img, gesture_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, 15, 400)
+controller_img = pygame.image.load('Game_Texts/controller.png')
+controller_alt_img = pygame.image.load('Game_Texts/controller_alt.png')
+controller_button = new_button.Button(controller_img, controller_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, 15, 160)
+speech_img = pygame.image.load('Game_Texts/speech.png')
+speech_alt_img = pygame.image.load('Game_Texts/speech_alt.png')
+speech_button = new_button.Button(speech_img, speech_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, 15, 240)
+movement_img = pygame.image.load('Game_Texts/movement.png')
+movement_alt_img = pygame.image.load('Game_Texts/movement_alt.png')
+movement_button = new_button.Button(movement_img, movement_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, 15, 320)
+how2play_img = pygame.image.load('Game_Texts/how2play.png')
+how2play_alt_img = pygame.image.load('Game_Texts/how2play_alt.png')
+how2play_button = new_button.Button(how2play_img, how2play_alt_img, 0.35, WIN_WIDTH, WIN_HEIGHT, False, True, 15, 80)
+wait_4_all_img = pygame.image.load('Game_Texts/wait_4_all.png')
+wait_4_all_button = new_button.Button(wait_4_all_img, None, 0.55, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+ready_img = pygame.image.load('Game_Texts/ready.png')
+ready_alt_img = pygame.image.load('Game_Texts/ready_alt.png')
+ready_button = new_button.Button(ready_img, ready_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, -90)
+ready_up_img = pygame.image.load('Game_Texts/ready_up.png')
+ready_up_button= new_button.Button(ready_up_img, None, 0.55, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+select_mode_img = pygame.image.load('Game_Texts/select_mode.png')
+select_mode_button = new_button.Button(select_mode_img, None, 0.55, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+singleplayer_img = pygame.image.load('Game_Texts/singleplayer.png')
+singleplayer_alt_img = pygame.image.load('Game_Texts/singleplayer_alt.png')
+multiplayer_img = pygame.image.load('Game_Texts/multiplayer.png')
+multiplayer_alt_img = pygame.image.load('Game_Texts/multiplayer_alt.png')
+singleplayer_button = new_button.Button(singleplayer_img, singleplayer_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, -90)
+multiplayer_button = new_button.Button(multiplayer_img, multiplayer_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, 10)
+no_srv_fnd_img = pygame.image.load('Game_Texts/no_srv_fnd.png')
+no_srv_fnd_button = new_button.Button(no_srv_fnd_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+
 
 def on_connect(client,userdata,flags,rc):
     client.subscribe("overcooked_game", qos=1)
@@ -79,14 +142,15 @@ def on_message(client, userdata, message):
 
 
 class Game:
-    def __init__(self, client_socket):
+    def __init__(self, client_socket, header):
         pygame.init()
-        print(WIN_WIDTH)
-        self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, WIN_HEIGHT))
+        self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        # self.game_screen = pygame.display.set_mode((MULT_WIN_WIDTH, WIN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
         self.socket_client = client_socket
-
+        self.clicked = False
+        self.header = header
         self.character_idle_spritesheet = Spritesheet('../img/chef1/chef1_idle_32.png')
         self.character_run_spritesheet = Spritesheet('../img/chef1/chef1_run_32.png')
         self.kitchen_spritesheet = Spritesheet('../img/12_Kitchen_32x32.png')
@@ -114,7 +178,7 @@ class Game:
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
         self.recipe_card = Spritesheet('../img/recipe_card.png')
 
-        self.mouse = ColorMouse()
+#         self.mouse = ColorMouse()
         
         self.all_share_stations = []
         
@@ -145,7 +209,6 @@ class Game:
         
         return None
     
-
     def createTilemap(self,tilemap,layer):
         for i, row in enumerate(tilemap):
             for j, column in enumerate(row):
@@ -225,8 +288,7 @@ class Game:
         self.left_counters = pygame.sprite.LayeredUpdates()
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
-        # self.player = None
-        self.player = Player(self,-10,-11)
+        self.player = Player(self,10,11)
         self.timer = Timer(self,17,0,780,FPS)
         self.score = Score(self,0,0)
         self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
@@ -244,7 +306,6 @@ class Game:
         # initialize_camera()
 
         ProgressBar(self, self.progress_spritesheet, 0*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
-        self.mouse.setupMouse()
 
         # self.setup_audiofile()
         self.setup_mqtt()
@@ -262,8 +323,8 @@ class Game:
                     # self.socket_client.send(pickle.dumps(temp_data))
 
                     if(self.player.action is not None):
-                        self.client.publish('overcooked_mic', "Stop", qos=1)
-                        self.client.publish('overcooked_imu', "Mic Stop", qos=1)
+                        self.socket_client.publish('overcooked_mic', "Stop", qos=1)
+                        self.socket_client.publish('overcooked_imu', "Mic Stop", qos=1)
                         self.player.stop_everything()
 
                     print('CLICK')
@@ -321,7 +382,32 @@ class Game:
         #         pass
         #         print("TIMER -> " + str(data))
 
+        # Print received data, if it exists
+        # while(True):
+        #     data = get_unblocked_data(self.socket_client)
+        #     if (data != None and type(data) == list):
+        #         prev_message = data
+        #         print("SERVER SENDS -> " + str(data))
+        #     elif(data != None and type(data)==str):
+        #         print('my client id: ' + data[10:])
+        #         self.player.client_ID = int(data[10:])
+        #         if(self.player.client_ID == 0):
+        #             self.player.x = 10*TILE_SIZE
+        #             self.player.y = 11*TILE_SIZE
+        #             self.player.rect.x = self.player.x
+        #             self.player.rect.y = self.player.y
+        #         elif(self.player.client_ID == 1):
+        #             self.player.x = 22*TILE_SIZE
+        #             self.player.y = 11*TILE_SIZE
+        #             self.player.rect.x = self.player.x
+        #             self.player.rect.y = self.player.y
+        #     elif (data != None and type(data) == float):
+        #         print("TIMER -> " + str(data))
+        #     elif(data != None):
+        #         print("Data -> " + str(data))
+
     def main(self):
+        self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, MULT_WIN_HEIGHT))
         input_thread = threading.Thread(target=self.check_server, 
                                     args=(self.socket_client, ), 
                                     daemon=True)
@@ -337,7 +423,6 @@ class Game:
         # game loop
         while self.playing:
         # if(self.playing):
-            # self.mouse.mouseMovement()
             self.events()
             self.update()
             self.draw()
@@ -356,17 +441,182 @@ class Game:
             #     done = True
             # else:
             #     timer -= dt
-        self.client.publish('overcooked_mic', "stop", qos=1)
-        self.client.loop_stop()
-        self.client.disconnect()
+        self.socket_client.publish('overcooked_mic', "stop", qos=1)
+        self.socket_client.loop_stop()
+        self.socket_client.disconnect()
         # self.speech_log.close()
         self.running = False
+
+    def intro_screen(self):
+            self.clicked = False
+            while True:
+                self.screen.blit(title_screen, (0,0))
+                new_title.draw(self.screen)
+                if new_start_button.draw(self.screen) and self.clicked is True:
+                    return self.gamemode_selection_screen()
+                if new_tutorial_button.draw(self.screen) and self.clicked is True:
+                    return self.tutorial_screen_intro()
+                if exit_button.draw(self.screen) and self.clicked is True:
+                    print("exit")
+                    pygame.quit()
+                    sys.exit()
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                self.clicked=True
+                pygame.display.update()
+                self.clock.tick(FPS)
+
+    def gamemode_selection_screen(self):
+            self.clicked = False
+            while True:
+                self.screen.blit(title_screen, (0,0))
+                select_mode_button.draw(self.screen)
+                if singleplayer_button.draw(self.screen) and self.clicked is True:
+                    self.clicked = False
+                    while True:
+                        self.screen.blit(title_screen, (0,0))
+                        ready_up_button.draw(self.screen)
+                        if ready_button.draw(self.screen) and self.clicked is True:
+                            exec(open("main.py").read())
+                            return None
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                        self.clicked = True
+                        pygame.display.update()
+                        self.clock.tick(FPS)
+                if multiplayer_button.draw(self.screen) and self.clicked is True:
+                    # Connect the client online
+                    try:
+                        client_socket.connect((config["Host"], config["Port"]))
+                        print("STATUS -> Client bound successfully!")
+                        return self.player_input_screen()
+                    except socket.error as e:
+                        print("ERROR ->", str(e))
+                        return self.no_server_found_screen()
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.intro_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                self.clicked=True
+                pygame.display.update()
+                self.clock.tick(FPS)
+    def no_server_found_screen(self):
+        self.clicked=False
+        while True:
+            self.screen.blit(title_screen, (0,0))
+            no_srv_fnd_button.draw(self.screen)
+            if back_button.draw(self.screen) and self.clicked is True:
+                return self.gamemode_selection_screen()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def player_input_screen(self):
+            self.clicked = False
+            player1_txt = font.render("Enter Your Name", True, black)
+            input_box1 = InputBox((WIN_WIDTH - player1_txt.get_width()) / 2, WIN_HEIGHT / 7 + 50, 140, 32)
+        
+            while True:
+                self.screen.blit(title_screen, (0,0))
+                enter_name.draw(self.screen)
+
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.gamemode_selection_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    name = input_box1.handle_event(event)
+                    if name != None:
+                        self.register(self.socket_client, name)
+                        return self.waiting_connection_screen() 
+                input_box1.update()
+                input_box1.draw(self.screen)                   
+                self.clicked=True
+                pygame.display.update()
+                self.clock.tick(FPS)
+
+    def tutorial_screen_intro(self):
+        self.clicked = False
+        while True:
+            if self.clicked:
+                self.screen.blit(title_screen, (0,0))
+                welcome_2_tut_button.draw(self.screen)
+                if gesture_button.draw(self.screen):
+                    print("gesture")
+                if controller_button.draw(self.screen):
+                    print("controller")
+                if speech_button.draw(self.screen):
+                    print("speech")
+                if movement_button.draw(self.screen):
+                    print("movement")
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.intro_screen()
+                if how2play_button.draw(self.screen):
+                    print("how2play")
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def waiting_connection_screen(self):
+        self.clicked = False
+        done = False
+        self.socket_client.setblocking(False)
+        while not done:
+            try: condition = pickle.loads(self.socket_client.recv(self.header))
+            except: condition = None
+            if (condition != True):
+                self.screen.blit(title_screen, (0,0))
+                wait_4_all_button.draw(self.screen)
+                pygame.draw.rect(self.screen, black, r)
+                r.move_ip(5, 0)
+            else:
+                self.socket_client.setblocking(True)
+                self.clicked = False
+                while not done:
+                    self.screen.blit(title_screen, (0,0))
+                    ready_up_button.draw(self.screen)
+                    if ready_button.draw(self.screen) and self.clicked is True:
+                        done = True
+                        self.socket_client.send(pickle.dumps([1])) # Send ready signal to game server
+                        ready_condition = pickle.loads(self.socket_client.recv(self.header)) # wait to recieve the ready signal from the server
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                    self.clicked = True
+                    pygame.display.update()
+                    self.clock.tick(FPS)
+            if not self.screen.get_rect().contains(r):
+                r.x = 0
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            pygame.display.update()
+            self.clock.tick(FPS)
 
     def game_over(self):
         pass
 
-    def intro_screen(self):
-        pass
+    def register(self,client_socket, name): # ACTION = 0
+        client_socket.send(pickle.dumps([0, name])) # Send information to be stored
+
 ##############################################################################
 import pickle
 import socket
@@ -374,9 +624,10 @@ from playground_building_blocks import *
 
 # %% Client Configuration
 config = dict()
-# config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
+# # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
 # config["Host"] = "192.168.1.91"
-config["Host"] = "192.168.56.1"
+# =======
+config["Host"] = socket.gethostbyname(socket.gethostname())
 config["Port"] = 4900 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 
@@ -385,27 +636,26 @@ config["HEADER"] = 4096 # Defines max number of byte transmission
 client_socket = socket.socket()
 
 # Connect the client online
-try:
-    client_socket.connect((config["Host"], config["Port"]))
-    print("STATUS -> Client bound successfully!")
+# try:
+#     client_socket.connect((config["Host"], config["Port"]))
+#     print("STATUS -> Client bound successfully!")
     
-except socket.error as e:
-    print("ERROR ->", str(e))
+# except socket.error as e:
+#     print("ERROR ->", str(e))
     
 # Remove blocking synchronous clients in favor of realtime nonblocking logic
-client_socket.setblocking(False)
+# client_socket.setblocking(False)
 
 
 # %% Control Loop
-condition = False
-while (condition != True):
-    try: condition = pickle.loads(client_socket.recv(HEADER))
-    except: condition = None
-    pass
-    
-g = Game(client_socket)
+# condition = False
+# while (condition != True):
+#     try: condition = pickle.loads(client_socket.recv(HEADER))
+#     except: condition = None
+#     pass
+
+g = Game(client_socket, config["HEADER"])
 g.intro_screen()
-print("Here!")
 g.new()
 while g.running:
     g.main()

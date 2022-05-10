@@ -73,6 +73,20 @@ class Counter(pygame.sprite.Sprite):
             item_attrs.append(useful_attributes)
         self.game.player.inventory.clear()
         self.game.socket_client.send(pickle.dumps(item_attrs))
+        
+        # DELTA: 
+        if (self.game.find_share_station(self.y, self.x) != None):
+            while self.items:
+                temp = self.items.pop()
+                temp.x = -100000
+                temp.y = -100000
+                # # temp.kill()
+                # del temp
+            # self.game.player.inventory.extend(self.items)
+            # self.items.clear()
+            
+            print(len(self.game.player.inventory))
+            pass
 
     def place_all_but_plate(self):
         # move everything from inventory to counter that isn't a plate
@@ -291,15 +305,19 @@ class SubmitStation(Counter):
                     if(item.ingredient_name == 'Meat'):
                         if(item.cut_state == recipe.ingredient_2.cut_state and item.cook_state == recipe.ingredient_2.cook_state):
                             score += item.score
-                if(len(recipe) == 2 and score == 40):
+                if(recipe.ingredient_3 == None and recipe.ingredient_4 == None and score == 40):
                     self.game.score.update_score(score)
                     del_index = index
                     break
-                if(len(recipe) == 3 and score == 60):
+                if(recipe.ingredient_3 != None and recipe.ingredient_4 == None and score == 60):
                     self.game.score.update_score(score)
                     del_index = index
                     break
-                if(len(recipe) == 4 and score == 80):
+                if(recipe.ingredient_3 == None and recipe.ingredient_4 != None and score == 60):
+                    self.game.score.update_score(score)
+                    del_index = index
+                    break
+                if(recipe.ingredient_3 != None and recipe.ingredient_4 != None and score == 80):
                     self.game.score.update_score(score)
                     del_index = index
                     break
