@@ -198,8 +198,8 @@ class ChopCounter(Counter):
         if (len(self.game.player.inventory) == 1):
             if(self.player_has_raw() or self.player_has_chopped()):
                 self.place_all_items()
-        elif(len(self.items.player.inventory) == 2):
-            if(self.player_has_chopped(self.items.player.inventory[:1]) or self.player_has_chopped(self.items.player.inventory[:-1])):
+        elif(len(self.game.player.inventory) == 2):
+            if(self.player_has_chopped(self.game.player.inventory[:1]) or self.player_has_chopped(self.game.player.inventory[:-1])):
                 self.place_all_but_plate()
 
     def chop(self):
@@ -258,7 +258,7 @@ class CookCounter(Counter):
 class SubmitStation(Counter):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw) 
-        self.frames = 150
+        self.frames = 120
 
     def place_item(self):
         if(len(self.items) == 0):
@@ -277,6 +277,74 @@ class SubmitStation(Counter):
             if(self.frames == 0):
                 # check if matches any recipecard
                 print('stop')
+
+                # list of 4 0's
+                submitted = [0] * 4
+                bun_i = 0
+                meat_i = 1
+                let_i = 2
+                tom_i = 3
+
+                score = 0
+
+                for item in self.items:
+                    print('item: ' + item.ingredient_name)
+                    if(item.ingredient_name == "Bun"):
+                        if(item.cut_state == 0 and item.cook_state >= STIR_TIMES):
+                            score += item.score
+                            submitted[bun_i] = 1
+                    if(item.ingredient_name == "Meat"):
+                        if(item.cut_state >= CHOP_TIMES and item.cook_state >= STIR_TIMES):
+                            score += item.score
+                            submitted[meat_i] = 1
+                    if(item.ingredient_name == "Lettuce"):
+                        if(item.cut_state >= CHOP_TIMES and item.cook_state == 0):
+                            score += item.score
+                            submitted[let_i] = 1
+                    if(item.ingredient_name == "Tomato"):
+                        if(item.cut_state >= CHOP_TIMES and item.cook_state == 0):
+                            score += item.score
+                            submitted[tom_i] = 1
+
+                if(submitted[bun_i] == 0 or submitted[meat_i] == 0):
+                    # every submission should have bun and meat
+                    pass
+                else:
+                    del_index = -1
+                    for i in range(len(self.game.recipes)):
+                        recipe = self.game.recipes[i]
+                        if(recipe.ingredient_3 == None and recipe.ingredient_4 == None):
+                            if(submitted[let_i] == 0 and submitted[tom_i] == 0):
+                                del_index = i
+                                break
+                        elif(recipe.ingredient_3 != None and recipe.ingredient_4 == None):
+                            if(submitted[let_i] == 1 and submitted[tom_i] == 0):
+                                del_index = i
+                                break
+                        elif(recipe.ingredient_3 == None and recipe.ingredient_4 != None):
+                            if(submitted[let_i] == 0 and submitted[tom_i] == 1):
+                                del_index = i
+                                break
+
+                    if(del_index > -1):
+                        self.game.score.update_score(score)
+                        print('del index' + str(del_index))
+                        del self.game.recipes[del_index]
+                        for i in range(len(self.game.recipes)):
+                            # if(i > del_index):
+                            self.game.recipes[i].x = 3*TILE_SIZE + ((i) * 2 * TILE_SIZE)
+
+                print(self.items)
+                # remove all items from counter regardless
+                for item in self.items:
+                    print('killing ' + item.ingredient_name)
+                    item.deep_kill()
+                self.items.clear()
+                print('complete')
+
+                self.frames = 120
+
+                '''
                 del_index = -1
                 index = -1
                 for recipe in self.game.recipes:
@@ -340,8 +408,7 @@ class SubmitStation(Counter):
                     item.deep_kill()
                 self.items.clear()
                 print('complete')
-
-                self.frames = 150
+                '''
 
 class IngredientsCounter(Counter):
     def __init__(self, ingredient, *args, **kw):
