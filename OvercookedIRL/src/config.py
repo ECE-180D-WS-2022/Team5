@@ -1,10 +1,12 @@
 WIN_HEIGHT = 608
 WIN_WIDTH = 640
+SING_WIN_HEIGHT = 608
+SING_WIN_WIDTH = 640
 TILE_SIZE = 32
 FPS = 60
 
-CHOP_TIMES = 1
-STIR_TIMES = 1
+CHOP_TIMES = 3
+STIR_TIMES = 3
 
 PLAYER_SPEED = 1
 
@@ -39,6 +41,8 @@ BLACK = (0,0,0)
 
 cover_height = 20
 
+IDLE_FRAMES = 6
+RUN_FRAMES = 6
 PICKUP_FRAMES = 12
 PUTDOWN_FRAMES = 10
 STIR_FRAMES = 6
@@ -131,7 +135,7 @@ counter_tilemap_2 = [
     '.....................',
     '...........BBBB.....',
     '....................',
-    '....................',
+    '....&...............',
     '....................',
     '....................',
     '....................',

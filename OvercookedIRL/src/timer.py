@@ -88,8 +88,9 @@ class Timer(pygame.sprite.Sprite):
         if(int(sec)<10):
             sec = '0'+str(sec)
 
-        if(self.count%1800 == 0):
-            self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0))
+        if(self.count%2700 == 0):
+            if(len(self.game.recipes) < 5):
+                self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0))
         
         self.txt = self.font.render(min+':'+sec, True, self.color)
 

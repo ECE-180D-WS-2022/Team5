@@ -102,6 +102,7 @@ def on_message(client, userdata, message):
     print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
     line = str(message.payload)[2:][:-1]
     print(line)
+    print("i am in multiplayer main")
     # userdata.speech_log.write(line + "\n")
     
     # if(str(message.payload) == "b\'" + "tomato" + "\'"):
@@ -114,7 +115,6 @@ def on_message(client, userdata, message):
     if (line == "Mic Start"):
         if(userdata.player.location is not None):
             if(userdata.player.action is None):
-                userdata.client.publish('overcooked_mic', 'Start', qos=1)
                 userdata.player.action = "Speak"
                 userdata.player.before = True
     elif (line == "Pick Up" or line == "Put Down"):

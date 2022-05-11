@@ -38,6 +38,10 @@ def on_message(client, userdata, message):
     line = str(message.payload)[2:][:-1]
     print(line)
     # userdata.speech_log.write(line + "\n")
+    print("i am in singleplayer main")
+
+    print(userdata.player.action)
+    print(userdata.player.location)
     
     # if(str(message.payload) == "b\'" + "tomato" + "\'"):
     #     # client.publish("tomato")
@@ -49,12 +53,16 @@ def on_message(client, userdata, message):
     if (line == "Mic Start"):
         if(userdata.player.location is not None):
             if(userdata.player.action is None):
-                userdata.client.publish('overcooked_mic', 'Start', qos=1)
                 userdata.player.action = "Speak"
                 userdata.player.before = True
+                userdata.client.publish('overcooked_mic', "Start", qos=1)
+        else:
+            userdata.player.stop_everything()
     elif (line == "Pick Up" or line == "Put Down"):
         if(userdata.player.action is not None):
             userdata.player.message = line
+        else:
+            userdata.player.stop_everything()
     elif(line == "Gesture"):
         if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action is None):
@@ -62,7 +70,11 @@ def on_message(client, userdata, message):
                 userdata.player.message = "Gesture"
                 userdata.player.before = True
     elif(line == "Chop" or line == "Stir"):
-        userdata.player.message = line
+        if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
+            if(userdata.player.action == "Gesture"):
+                userdata.player.message = line
+                if(userdata.player.during == True):
+                    userdata.client.publish('overcooked_mic', "During!", qos=1)
     elif(line == "Mic Stop"):
         userdata.player.stop_everything()
     elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
@@ -79,7 +91,7 @@ def on_message(client, userdata, message):
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        self.screen = pygame.display.set_mode((SING_WIN_WIDTH, SING_WIN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
 
@@ -135,8 +147,6 @@ class Game:
                     IngredientsCounter("Plate",self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.plate_stations))
                 elif column == '%':
                     CookCounter('pan',self, self.kitchen_spritesheet,white_counter["%"][0],white_counter["%"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.cooking_stations))
-                elif column == '&':
-                    Counter(self, self.kitchen_spritesheet,white_counter["&"][0],white_counter["&"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
                 elif column == 'B':
                     Counter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters))
                 elif column == 'J':
@@ -153,6 +163,8 @@ class Game:
                     Counter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
                 elif column == 'M':
                     SubmitStation(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters,self.submit_stations))
+                elif column == '&':
+                    BackgroundObject(self, self.kitchen_spritesheet,9*TILE_SIZE,1408, j, i, COUNTER_LAYER+1, (self.all_sprites))
                 elif column == 'Z':
                     BackgroundObject(self,self.kitchen_shadowless_spritesheet,front_items["Z"][0],front_items["Z"][1],j,i,layer,(self.all_sprites))   
                 elif column == 'U':
