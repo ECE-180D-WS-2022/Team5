@@ -116,9 +116,8 @@ def perform_speech():
     # listen_in_background spawns a background thread that repeatedly listens for phrases until stop_listening is called
     global global_stop_listening
     print("save stop listening in the next line")
-    print("/ Say something!")
     global_stop_listening = r.listen_in_background(source=m, callback=complete_speech_recognition,phrase_time_limit=3)
-
+    print("/ Say something!")
     # save stop_listening into a global variable that can be called anywhere
     # global global_stop_listening
     # global_stop_listening = stop_listening
