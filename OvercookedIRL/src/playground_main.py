@@ -195,17 +195,15 @@ class Game:
         print("This is the amount of share stations:", str(len(self.all_share_stations)))
         
         for station in self.all_share_stations:
-            print(str(station.x) + "," + str(station.y))
+            print(str(station.y) + "," + str(station.x))
             # Maybe something wrong with the way share stations are indexed?
-            if ((station.x == (column - 32) or station.x == (column - 32))
+            if ((station.x == (column - 32) or station.x == (column + 32))
                 and station.y == row):
+                print("Matching station at:", str(station.y), str(station.x))
                 return station
             
         if (len(self.all_share_stations) == 0):
             print("NO SHARE STATIONS!!!!!!")
-        else:
-            return self.all_share_stations[0]
-        
         
         return None
     
