@@ -72,10 +72,16 @@ class Counter(pygame.sprite.Sprite):
             useful_attributes.append(self.y)
             item_attrs.append(useful_attributes)
         self.game.player.inventory.clear()
-        self.game.socket_client.send(pickle.dumps(item_attrs))
+        print("Station coordinates below in row,column:")
+        print(str(self.y), str(self.x))
+        # self.game.socket_client.send(pickle.dumps(item_attrs))
         
-        # DELTA: 
+        # DELTA: if share station, remove item and send over
         if (self.game.find_share_station(self.y, self.x) != None):
+            print("SENDING DATA FROM PLAYER:", str(self.game.player.client_ID))
+            self.game.socket_client.send(pickle.dumps(item_attrs))
+            
+            # Delete the item, is this done correctly?
             while self.items:
                 temp = self.items.pop()
                 temp.x = -100000
