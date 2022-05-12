@@ -2,14 +2,13 @@ import pygame
 from sprites import *
 from config import *
 from ingredients import * 
-from sprites import *
 from player import *
 from counters import *
 from timer import *
 from score import *
 from recipe import *
 import sys
-from color_mouse import *
+import new_button
 import os
 # import math
 # import speech_recognition as sr 
@@ -17,9 +16,78 @@ import paho.mqtt.client as mqtt
 
 pygame.init()
 font = pygame.font.SysFont("comicsansms", 40)
-title_screen = pygame.image.load("../img/title_background.png")
-title_screen = pygame.transform.scale(title_screen, (WIN_WIDTH, WIN_HEIGHT))
 r = pygame.rect.Rect((0, WIN_HEIGHT-30, 70, 30))
+black = (0, 0, 0)
+
+# loading all images and creating all buttons that will be used for UI
+# if the same button need to be changed depending on screen, manually change within function call
+title_screen = pygame.image.load("../img/title_background.png")
+title_screen = pygame.transform.scale(title_screen, (SING_WIN_WIDTH, SING_WIN_HEIGHT))
+start_button_img = pygame.image.load("Game_Texts/Start_the_game.png")
+start_button_alt_img = pygame.image.load('Game_Texts/Start_the_game_alt.png')
+tutorial_button_img = pygame.image.load('Game_Texts/tutorial.png')
+tutorial_button_alt_img = pygame.image.load('Game_Texts/tutorial_alt.png')
+title_img = pygame.image.load('Game_Texts/new_title.png')
+exit_img = pygame.image.load('Game_Texts/exit.png')
+exit_alt_img = pygame.image.load('Game_Texts/exit_alt.png')
+exit_button = new_button.Button(exit_img, exit_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 80, SING_WIN_HEIGHT-80)
+new_start_button = new_button.Button(start_button_img, start_button_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -90)
+new_tutorial_button = new_button.Button(tutorial_button_img, tutorial_button_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 10)
+new_title = new_button.Button(title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+enter_name_img = pygame.image.load('Game_Texts/enter_name.png')
+enter_name = new_button.Button(enter_name_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+back_img = pygame.image.load('Game_Texts/back.png')
+back_alt_img = pygame.image.load('Game_Texts/back_alt.png')
+back_button = new_button.Button(back_img, back_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 80, SING_WIN_HEIGHT-80)
+welcome_2_tut_img = pygame.image.load('Game_Texts/welcome_2_tut.png')
+welcome_2_tut_button = new_button.Button(welcome_2_tut_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+gesture_img = pygame.image.load('Game_Texts/gesture.png')
+gesture_alt_img = pygame.image.load('Game_Texts/gesture_alt.png')
+gesture_button = new_button.Button(gesture_img, gesture_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 400)
+controller_img = pygame.image.load('Game_Texts/controller.png')
+controller_alt_img = pygame.image.load('Game_Texts/controller_alt.png')
+controller_button = new_button.Button(controller_img, controller_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 160)
+speech_img = pygame.image.load('Game_Texts/speech.png')
+speech_alt_img = pygame.image.load('Game_Texts/speech_alt.png')
+speech_button = new_button.Button(speech_img, speech_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 240)
+movement_img = pygame.image.load('Game_Texts/movement.png')
+movement_alt_img = pygame.image.load('Game_Texts/movement_alt.png')
+movement_button = new_button.Button(movement_img, movement_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 320)
+how2play_img = pygame.image.load('Game_Texts/how2play.png')
+how2play_alt_img = pygame.image.load('Game_Texts/how2play_alt.png')
+how2play_button = new_button.Button(how2play_img, how2play_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 80)
+wait_4_all_img = pygame.image.load('Game_Texts/wait_4_all.png')
+wait_4_all_button = new_button.Button(wait_4_all_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+ready_img = pygame.image.load('Game_Texts/ready.png')
+ready_alt_img = pygame.image.load('Game_Texts/ready_alt.png')
+ready_button = new_button.Button(ready_img, ready_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -90)
+ready_up_img = pygame.image.load('Game_Texts/ready_up.png')
+ready_up_button= new_button.Button(ready_up_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+select_mode_img = pygame.image.load('Game_Texts/select_mode.png')
+select_mode_button = new_button.Button(select_mode_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+singleplayer_img = pygame.image.load('Game_Texts/singleplayer.png')
+singleplayer_alt_img = pygame.image.load('Game_Texts/singleplayer_alt.png')
+multiplayer_img = pygame.image.load('Game_Texts/multiplayer.png')
+multiplayer_alt_img = pygame.image.load('Game_Texts/multiplayer_alt.png')
+singleplayer_button = new_button.Button(singleplayer_img, singleplayer_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -90)
+multiplayer_button = new_button.Button(multiplayer_img, multiplayer_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 10)
+no_srv_fnd_img = pygame.image.load('Game_Texts/no_srv_fnd.png')
+no_srv_fnd_button = new_button.Button(no_srv_fnd_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+game_over_img = pygame.image.load('Game_Texts/game_over.png')
+game_over_button = new_button.Button(game_over_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+score_img = pygame.image.load('Game_Texts/score.png')
+score_button = new_button.Button(score_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, -30, -90)
+settings_img = pygame.image.load('Game_Texts/settings.png')
+settings_button = new_button.Button(settings_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+fivemin_img = pygame.image.load('Game_Texts/5min.png')
+fivemin_alt_img = pygame.image.load('Game_Texts/5min_alt.png')
+fivemin_button = new_button.Button(fivemin_img, fivemin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 80)
+tenmin_img = pygame.image.load('Game_Texts/10min.png')
+tenmin_alt_img = pygame.image.load('Game_Texts/10min_alt.png')
+tenmin_button = new_button.Button(tenmin_img, tenmin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 160)
+fifteenmin_img = pygame.image.load('Game_Texts/15min.png')
+fifteenmin_alt_img = pygame.image.load('Game_Texts/15min_alt.png')
+fifteenmin_button = new_button.Button(fifteenmin_img, fifteenmin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 240)
 
 def on_connect(client,userdata,flags,rc):
     client.subscribe("overcooked_game", qos=1)
@@ -181,7 +249,7 @@ class Game:
                     # self.image = self.game.kitchen_spritesheet.get_sprite(white_counter[type][0],white_counter[type][1],0,0,self.width,self.height)
         # print('created tilemap')
 
-    def new(self):
+    def new(self, timer):
         # a new game starts
         self.playing = True
 
@@ -200,7 +268,7 @@ class Game:
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
         self.player = Player(self,10,11)
-        self.timer = Timer(self,17,0,780,FPS)
+        self.timer = Timer(self,17,0,timer,FPS)
         self.score = Score(self,0,0)
         self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
         # game, x, y
@@ -225,7 +293,7 @@ class Game:
     def events(self):
         # game loop events
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONUP and self.clicked is True:
                 pos = pygame.mouse.get_pos()
                 self.player.dest_x = ((round(pos[0]/32)-1) * 32)
                 self.player.dest_y = ((round(pos[1]/32)-1) * 32)
@@ -275,12 +343,13 @@ class Game:
         # self.client.publish('overcooked_mic', "t", qos=1)
 
     def main(self):
-        font = pygame.font.Font(None,40)
-        gray = pygame.Color('gray19')
-        blue = pygame.Color('dodgerblue')
-        timer = 120
-        clock = pygame.time.Clock()
-        dt = 0
+        # font = pygame.font.Font(None,40)
+        # gray = pygame.Color('gray19')
+        # blue = pygame.Color('dodgerblue')
+        # timer = 120
+        # clock = pygame.time.Clock()
+        # dt = 0
+        
         # game loop
         while self.playing:
         # if(self.playing):
@@ -303,21 +372,155 @@ class Game:
             #     done = True
             # else:
             #     timer -= dt
+            if self.timer.min == '0' and self.timer.sec == '00':
+                break
+            self.clicked = True
         self.client.publish('overcooked_mic', "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()
         # self.speech_log.close()
         self.running = False
+        return self.game_over()
+
+    def intro_screen(self):
+            self.clicked = False
+            while True:
+                self.screen.blit(title_screen, (0,0))
+                new_title.draw(self.screen)
+                if new_start_button.draw(self.screen) and self.clicked is True:
+                    return self.gamemode_selection_screen()
+                if new_tutorial_button.draw(self.screen) and self.clicked is True:
+                    return self.tutorial_screen_intro()
+                if exit_button.draw(self.screen) and self.clicked is True:
+                    print("exit")
+                    pygame.quit()
+                    sys.exit()
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                self.clicked=True
+                pygame.display.update()
+                self.clock.tick(FPS)
+
+    def gamemode_selection_screen(self):
+            self.clicked = False
+            while True:
+                self.screen.blit(title_screen, (0,0))
+                select_mode_button.draw(self.screen)
+                if singleplayer_button.draw(self.screen) and self.clicked is True:
+                    self.clicked = False
+                    return self.settings_screen()
+                if multiplayer_button.draw(self.screen) and self.clicked is True:
+                    # Connect the client online
+                    pass
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.intro_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                self.clicked=True
+                pygame.display.update()
+                self.clock.tick(FPS)
+
+    def settings_screen(self):
+        self.clicked = False
+        time_selected = False
+        timer = 0
+        while True:
+            if self.clicked:
+                
+                self.screen.blit(title_screen, (0,0))
+                settings_button.draw(self.screen)
+                if time_selected is False:
+                    if fivemin_button.draw(self.screen) and self.clicked is True:
+                        timer = 300
+                        time_selected = True
+                    if tenmin_button.draw(self.screen) and self.clicked is True:
+                        timer = 600
+                        time_selected = True
+                    if fifteenmin_button.draw(self.screen) and self.clicked is True:
+                        timer = 900
+                        time_selected = True
+                else:
+                    while True:
+                        self.screen.blit(title_screen, (0,0))
+                        ready_up_button.draw(self.screen)
+                        if ready_button.draw(self.screen) and self.clicked is True:
+                            self.new(timer)
+                            self.running = True
+                            self.clicked = False
+                            while self.running:
+                                self.main()
+                            return None
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                        pygame.display.update()
+                        self.clock.tick(FPS)           
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.gamemode_selection_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def tutorial_screen_intro(self):
+        self.clicked = False
+        while True:
+            if self.clicked:
+                self.screen.blit(title_screen, (0,0))
+                welcome_2_tut_button.draw(self.screen)
+                if gesture_button.draw(self.screen):
+                    print("gesture")
+                if controller_button.draw(self.screen):
+                    print("controller")
+                if speech_button.draw(self.screen):
+                    print("speech")
+                if movement_button.draw(self.screen):
+                    print("movement")
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.intro_screen()
+                if how2play_button.draw(self.screen):
+                    print("how2play")
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
 
     def game_over(self):
-        pass
+        self.clicked = False
+        myFont = pygame.font.SysFont("Comic Sans MS", 40)
+        scoreDisplay = myFont.render(str(self.score.score), 1, (255,255,255))
+        while True:
+            if self.clicked:
+                self.screen.blit(title_screen, (0,0))
+                game_over_button.draw(self.screen)
+                score_button.draw(self.screen)
+                self.screen.blit(scoreDisplay, (SING_WIN_WIDTH/2 + 35, SING_WIN_HEIGHT/2 - 70))
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.intro_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
 
 
 g = Game()
-g.new()
-while g.running:
-    g.main()
-    g.game_over()
+g.intro_screen()
+
 
 pygame.quit()
 sys.exit()

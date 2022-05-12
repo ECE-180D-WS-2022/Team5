@@ -16,7 +16,6 @@ from timer import *
 from score import *
 from recipe import *
 import sys
-from color_mouse import *
 import os
 from input_box import *
 import new_button
@@ -24,6 +23,7 @@ import new_button
 import paho.mqtt.client as mqtt
 # from playground_building_blocks import *
 import threading
+
 
 pygame.init()
 font = pygame.font.SysFont("comicsansms", 40)
@@ -84,7 +84,10 @@ singleplayer_button = new_button.Button(singleplayer_img, singleplayer_alt_img, 
 multiplayer_button = new_button.Button(multiplayer_img, multiplayer_alt_img, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, 10)
 no_srv_fnd_img = pygame.image.load('Game_Texts/no_srv_fnd.png')
 no_srv_fnd_button = new_button.Button(no_srv_fnd_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
-
+game_over_img = pygame.image.load('Game_Texts/game_over.png')
+game_over_button = new_button.Button(game_over_img, None, 0.6, WIN_WIDTH, WIN_HEIGHT, True, False, 0, -250)
+score_img = pygame.image.load('Game_Texts/score.png')
+score_button = new_button.Button(score_img, None, 0.45, WIN_WIDTH, WIN_HEIGHT, True, True, 0, -90)
 
 def on_connect(client,userdata,flags,rc):
     client.subscribe("overcooked_game", qos=1)
@@ -289,7 +292,7 @@ class Game:
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
         self.player = Player(self,10,11)
-        self.timer = Timer(self,17,0,780,FPS)
+        self.timer = Timer(self,17,0,60,FPS)
         self.score = Score(self,0,0)
         self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
         # game, x, y
@@ -314,7 +317,7 @@ class Game:
         # game loop events
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP:
-                if(self.player.client_ID != None):
+                if(self.player.client_ID != None): # need to get the client_ID
                     pos = pygame.mouse.get_pos()
                     self.player.dest_x = ((round(pos[0]/32)-1) * 32)
                     self.player.dest_y = ((round(pos[1]/32)-1) * 32)
@@ -480,7 +483,7 @@ class Game:
                         self.screen.blit(title_screen, (0,0))
                         ready_up_button.draw(self.screen)
                         if ready_button.draw(self.screen) and self.clicked is True:
-                            exec(open("main.py").read())
+                            # exec(open("main.py").read())
                             return None
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
@@ -594,7 +597,14 @@ class Game:
                     if ready_button.draw(self.screen) and self.clicked is True:
                         done = True
                         self.socket_client.send(pickle.dumps([1])) # Send ready signal to game server
+                        g.new()
                         ready_condition = pickle.loads(self.socket_client.recv(self.header)) # wait to recieve the ready signal from the server
+                        self.clicked = False
+                        while g.running:
+                            if self.clicked:
+                                g.main()
+                                g.game_over()
+                            self.clicked = True
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
@@ -612,7 +622,24 @@ class Game:
             self.clock.tick(FPS)
 
     def game_over(self):
-        pass
+        self.clicked = False
+        myFont = pygame.font.SysFont("Times New Roman", 18)
+        scoreDisplay = myFont.render(self.score.score, 1, black)
+        while True:
+            if self.clicked:
+                self.screen.blit(title_screen, (0,0))
+                game_over_button.draw(self.screen)
+                score_button.draw(self.screen)
+                self.screen.blit(scoreDisplay, (SING_WIN_WIDTH-30, SING_WIN_HEIGHT- 30))
+                if back_button.draw(self.screen) and self.clicked is True:
+                    return self.intro_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
 
     def register(self,client_socket, name): # ACTION = 0
         client_socket.send(pickle.dumps([0, name])) # Send information to be stored
@@ -655,7 +682,7 @@ client_socket = socket.socket()
 #     pass
 
 g = Game(client_socket, config["HEADER"])
-g.intro_screen()
+g.intro_screen() # this should technically loop forever until closed out of
 g.new()
 while g.running:
     g.main()
