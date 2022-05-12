@@ -418,6 +418,7 @@ class Player(pygame.sprite.Sprite):
             print(test_item)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             coords = (data[1][-2], data[1][-1])
+            print("Original coords:", str(coords[0]), str(coords[1]))
             station_test = self.game.find_share_station(coords[1], coords[0])
             
             # Code copied from counter.place_all_items()
