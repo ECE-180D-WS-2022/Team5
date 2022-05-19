@@ -103,7 +103,7 @@ class Timer(pygame.sprite.Sprite):
         W = self.txt.get_width()
         H = self.txt.get_height()
         if(self.min != min or self.sec != sec): 
-            self.image.fill((0,0,0))
+            self.image.fill((222,184,135))
             self.image.blit(self.txt, [self.width/2 - W/2, self.height/2 - H/2])
         
         self.min = min

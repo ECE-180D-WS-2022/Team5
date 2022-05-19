@@ -10,6 +10,7 @@ import speech_recognition as sr
 from pymouse import PyMouse
 import pickle
 from playground_building_blocks import *
+from pygame import mixer
 
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
 class Player(pygame.sprite.Sprite):
@@ -668,7 +669,7 @@ class Player(pygame.sprite.Sprite):
             # send message to pub 
             if(self.message is not None or self.message is None):
                 # uncomment for keyboard:
-                self.game.client.publish('overcooked_mic', self.message, qos=1)
+                # self.game.client.publish('overcooked_mic', self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -773,7 +774,7 @@ class Player(pygame.sprite.Sprite):
                     if(self.before):
                         if(self.message is not None):
                             # uncomment for keyboard:
-                            self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -801,7 +802,7 @@ class Player(pygame.sprite.Sprite):
                     if(self.before):
                         if(self.message is not None):
                             # uncomment for keyboard:
-                            self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -829,7 +830,7 @@ class Player(pygame.sprite.Sprite):
     def send_message(self):
         # send message to pub 
         # uncomment for keyboard:
-        # '''
+        '''
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic', "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun'):
@@ -838,7 +839,7 @@ class Player(pygame.sprite.Sprite):
             self.game.client.publish('overcooked_mic', "l", qos=1)
         elif(self.location_sprite.ingredient == 'Meat'):
             self.game.client.publish('overcooked_mic', "m", qos=1)
-        # '''
+        '''
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
         self.message = None

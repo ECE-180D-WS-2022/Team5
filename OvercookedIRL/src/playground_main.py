@@ -9,7 +9,6 @@ import pygame
 from sprites import *
 from multiplayer_config import *
 from ingredients import * 
-from sprites import *
 from player import *
 from counters import *
 from timer import *
@@ -483,7 +482,7 @@ class Game:
                         self.screen.blit(title_screen, (0,0))
                         ready_up_button.draw(self.screen)
                         if ready_button.draw(self.screen) and self.clicked is True:
-                            # exec(open("main.py").read())
+                            exec(open("main.py").read())
                             return None
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:

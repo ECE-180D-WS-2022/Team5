@@ -40,7 +40,7 @@ class Ingredient(pygame.sprite.Sprite):
         self.y = y
 
         self.image = pygame.Surface([TILE_SIZE,TILE_SIZE])
-        self.image.fill(BLACK)
+        self.image.fill((222,184,135))
         self.image.set_alpha(0) 
 
 

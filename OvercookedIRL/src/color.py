@@ -6,6 +6,8 @@ import keyboard
 import pyautogui
 
 
+
+
 font = cv2.FONT_HERSHEY_DUPLEX
 width, height = pyautogui.size()
 
@@ -154,6 +156,7 @@ while True:
 
         cv2.imshow('Mouse Movement',frame)
         cv2.moveWindow('Mouse Movement', width - (650), 0)
+        cv2.setWindowProperty('Mouse Movement', cv2.WND_PROP_TOPMOST, 1)
 
         k = cv2.waitKey(30) & 0xff
         if k == 27:

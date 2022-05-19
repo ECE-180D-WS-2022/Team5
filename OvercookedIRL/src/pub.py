@@ -116,7 +116,7 @@ def perform_speech():
     # listen_in_background spawns a background thread that repeatedly listens for phrases until stop_listening is called
     global global_stop_listening
     print("save stop listening in the next line")
-    global_stop_listening = r.listen_in_background(source=m, callback=complete_speech_recognition,phrase_time_limit=3)
+    global_stop_listening = r.listen_in_background(source=m, callback=complete_speech_recognition,phrase_time_limit=1.5)
     print("/ Say something!")
     # save stop_listening into a global variable that can be called anywhere
     # global global_stop_listening
@@ -136,7 +136,7 @@ def complete_speech_recognition(recognizer, audio):
         # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
         # instead of `r.recognize_google(audio)`
         line = recognizer.recognize_google(audio)
-        line.lower()
+        #line.lower()
         print("Google Speech Recognition thinks you said " + line)
         speech_log.write(line + "/n")
         pronounce = pr.phones_for_word(line)[0].split()
@@ -145,7 +145,7 @@ def complete_speech_recognition(recognizer, audio):
             first2phones = pronounce[0]+pronounce[1]
         else:
             first2phones = pronounce[0]
-        if(line == 'up' or line in rhyme_dict['up'] or first2phones == first_phones['up']):
+        if(line == 'pickup' or line in rhyme_dict['up'] or first2phones == first_phones['up']):
             game_msg = "Pick Up"
             imu_msg = "Mic Stop"
         elif(line == 'down' or line in rhyme_dict['down'] or first2phones == first_phones['down'] or line == 'stone' or line in rhyme_dict['stone'] or first2phones == first_phones['stone']):
@@ -165,6 +165,9 @@ def complete_speech_recognition(recognizer, audio):
             imu_msg = "Mic Stop"
         elif(line == 'plate' or line in rhyme_dict['plate'] or first2phones == first_phones['plate']):
             game_msg = "Plate"
+            imu_msg = "Mic Stop"
+        elif(line == 'trash'): # need to implement later
+            game_msg = "Trash"
             imu_msg = "Mic Stop"
         else:
             game_msg = "Mic Stop"
