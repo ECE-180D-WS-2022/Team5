@@ -406,12 +406,12 @@ class Player(pygame.sprite.Sprite):
         self.x_change = 0
 
         temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
-        # self.game.socket_client.send(pickle.dumps(temp_data))
+        self.game.socket_client.send(pickle.dumps(temp_data))
 
         self.frame += 1
 
-        # data = get_unblocked_data(self.game.socket_client)
-        data = None
+        data = get_unblocked_data(self.game.socket_client)
+        # data = None
         if (data != None and type(data) == list and data[0] == 99):
             test_item = data[1] # list of item's attributes
             print("This is test item:")
@@ -429,7 +429,7 @@ class Player(pygame.sprite.Sprite):
             prev_message = data
             #print("SERVER SENDS -> " + str(data))
         elif(data != None and type(data)==str):
-            # print('my client id: ' + data[10:])
+            print('my client id: ' + data[10:])
             self.client_ID = int(data[10:])
             if(self.client_ID == 0):
                 self.x = 10*TILE_SIZE
@@ -441,6 +441,7 @@ class Player(pygame.sprite.Sprite):
                 self.y = 11*TILE_SIZE
                 self.rect.x = self.x
                 self.rect.y = self.y
+            # self.game.socket_client.setblocking(False)
         elif (data != None and type(data) == float):
             pass
             # print("TIMER -> " + str(data))

@@ -595,6 +595,7 @@ class Game:
                         done = True
                         self.socket_client.send(pickle.dumps([1])) # Send ready signal to game server
                         ready_condition = pickle.loads(self.socket_client.recv(self.header)) # wait to recieve the ready signal from the server
+                        self.socket_client.setblocking(False)
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()

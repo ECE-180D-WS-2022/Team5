@@ -151,13 +151,18 @@ while True:
         ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
         ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
 
+        print("ready received from server")
+
         # Send confirmation for synchronized start
         clients[0].send(pickle.dumps(ready1))
         clients[1].send(pickle.dumps(ready2))
 
+        print("sent ready signal")
+
         clients[0].send(pickle.dumps("ClientID: 0"))
         clients[1].send(pickle.dumps("ClientID: 1"))
         
+        print("sent client id")
         start_time = time.time()
         
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
