@@ -105,10 +105,16 @@ def threaded_client(clients, ID, temp_game_data, startTime):
                 prev_Time += 1
                 clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
             continue
-        else:
-            if (type(data) == list and data[0] == 99):
-                clients[not ID].send(pickle.dumps(data))
-                print(data)
+        elif (type(data) == list and len(data) != 0 and data[0] == 99):
+            clients[not ID].send(pickle.dumps(data))
+            print(data)
+        elif (type(data) == list and len(data) != 0 and data[0] == 88):
+            # Code for updating scores!
+            game_scores[ID] = data[1]
+            
+            # Send the score to all other players
+            clients[not ID].send(pickle.dumps(data))
+            pass
         temp_game_data[ID] = data
         # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
         
@@ -125,7 +131,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
 clients = []
 player_names = []
 temporary_data = [None, None]
-
+game_scores = [0, 0, 0, 0]
 while True:
     # Listen for client connections
     client, address = server.accept()
