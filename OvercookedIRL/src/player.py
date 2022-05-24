@@ -424,6 +424,11 @@ class Player(pygame.sprite.Sprite):
             # Code copied from counter.place_all_items()
             station_test.manually_place_one_item(test_item)
             
+        if (data != None and type(data) == list and data[0] == 88):
+            # This means we are retrieving updated scores from other players!
+            updated_scores_ = data[1]
+            # Don't know what to do with it though?
+            
             
         # Print received data, if it exists
         if (data != None and type(data) == list and data[0] != 99):
