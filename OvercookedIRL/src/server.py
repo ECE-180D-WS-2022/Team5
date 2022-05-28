@@ -9,6 +9,7 @@ import sys
 import time
 import pickle
 import socket
+import datetime
 import threading
 from _thread import *
 from playground_building_blocks import *
@@ -97,10 +98,14 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     while True:
         data = get_unblocked_data(clients[ID])
         if data == None: 
-            # print('data is none')
-            if (round((time.time() - startTime), 2) > prev_Time + 1):
-                prev_Time += 1
-                clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
+            tick = time.perf_counter()
+            time_left = startTime - datetime.timedelta(seconds=tick-start)
+            clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
+            
+            
+            # if (round((time.time() - startTime), 2) > prev_Time + 1):
+            #     prev_Time += 1
+            #     clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
             continue
         elif (type(data) == list and len(data) != 0 and data[0] == 99):
             clients[not ID].send(pickle.dumps(data))
@@ -110,7 +115,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             game_scores[ID] = data[1]
             
             # Send the score to all other players
-            clients[not ID].send(pickle.dumps(data))
+            clients[not ID].send(pickle.dumps(game_scores))
             pass
         temp_game_data[ID] = data
         # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
@@ -128,7 +133,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
 clients = []
 player_names = []
 temporary_data = [None, None]
-game_scores = [0, 0, 0, 0]
+game_scores = [0, 0]
 while True:
     # Listen for client connections
     client, address = server.accept()
@@ -160,7 +165,7 @@ while True:
         clients[0].send(pickle.dumps("ClientID: 0"))
         clients[1].send(pickle.dumps("ClientID: 1"))
         
-        start_time = time.time()
+        start_time = datetime.timedelta(minutes=10.0)
         
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
         start_new_thread(threaded_client, (clients, 1, temporary_data, start_time))

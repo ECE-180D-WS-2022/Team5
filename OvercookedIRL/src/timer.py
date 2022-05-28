@@ -48,6 +48,7 @@ import pygame
 import math
 from config import *
 from recipe import RecipeCard 
+from playground_building_blocks import *
 
 class Timer(pygame.sprite.Sprite):
     def __init__(self, game, x, y, timer, fps):
@@ -82,6 +83,11 @@ class Timer(pygame.sprite.Sprite):
         # print('background object created')
 
     def update(self):
+        #### DELTA ####
+        server_time = get_unblocked_data(self.game.socket_client)
+        #### END DELTA ####
+        
+        
         round_timer = int(math.ceil(self.timer))
         min = str(int(round_timer/60))
         sec = str(int(round_timer%60))
