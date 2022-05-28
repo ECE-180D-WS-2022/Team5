@@ -40,7 +40,7 @@ class Ingredient(pygame.sprite.Sprite):
         self.y = y
 
         self.image = pygame.Surface([TILE_SIZE,TILE_SIZE])
-        self.image.fill(BLACK)
+        self.image.fill((222,184,135))
         self.image.set_alpha(0) 
 
 
@@ -51,6 +51,8 @@ class Ingredient(pygame.sprite.Sprite):
         self.width = TILE_SIZE
         self.height = TILE_SIZE
         self.image_sprites = []
+
+        self.done = False
 
         # print(self.ingredient_name)
 
@@ -112,7 +114,12 @@ class Ingredient(pygame.sprite.Sprite):
                 self.image_sprites[0].image = self.spritesheet.get_sprite(state*self.width,0,0,0,self.width,self.height)
    
     def update(self):
-        self.animate()
+        if(self.done):
+            for img in self.image_sprites:
+                img.kill()
+            self.kill()
+        else:
+            self.animate()
 
     def animate(self):
         # print('animate ingredeint')
@@ -124,6 +131,9 @@ class Ingredient(pygame.sprite.Sprite):
             self.game.all_sprites.change_layer(self.image_sprites[i],self.image_sprites[i]._layer)
         if(len(self.image_sprites) == 1):
             self.update_image()
+
+    def deep_kill(self):
+        self.done = True
         
         
 

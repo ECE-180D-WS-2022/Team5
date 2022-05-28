@@ -15,9 +15,6 @@ from playground_building_blocks import *
 
 # %% Server Configuration
 config = dict()
-# <<<<<<< multiplayer_item_passing
-# # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
-# config["Host"] = "192.168.1.91"
 config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
 config["Port"] = 4900 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
@@ -39,7 +36,7 @@ except socket.error as e:
 server.listen(config["Player_Num"] + 1)
 
 # Remove blocking synchronous servers in favor of realtime nonblocking logic
-#server.setblocking(False)
+server.setblocking(False)
 
 # %% Server Methods
 # Function : Threading function that checks for data updates in the background
@@ -90,7 +87,8 @@ def update_state(clients, startTime):
 # Function : threaded function to take care of each client's actions
 def threaded_client(clients, ID, temp_game_data, startTime):
     # Set a dedicated thread for checking for updates to the game state
-    input_thread = threading.Thread(target=update_state, 
+    input_thread = threading.Thread(target=up
+                                    date_state, 
                                     args=(clients, startTime, ), 
                                     daemon=True)
     input_thread.start()

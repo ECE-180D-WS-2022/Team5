@@ -20,8 +20,10 @@ def on_disconnect(client, userdata, rc):
     else:
         print('Exepcted Disconnect')
 
-num_threads = 0
-threadLock = threading.Lock()
+r = sr.Recognizer()
+
+# a global variable that holds the function that can be used to stop the microphone
+global_stop_listening = None
 
 # the default message callback
 # wont be used if only publishing, but can still exist
@@ -40,11 +42,13 @@ def on_message(client, userdata, message):
         return
 
     if(msg == "Start"):
-        global num_threads
-        num_threads += 1
-        t = Thread(target=perform_speech,args=(num_threads,))
-        t.start()
-        t.join()
+        perform_speech()
+    elif(msg == "Mic Stop"):
+        # user wants to stop speech recognition in the middle of it
+        global global_stop_listening
+        if(global_stop_listening is not None):
+            print('Stop listening- user cancel')
+            global_stop_listening(wait_for_stop=False)
 
     stir = False
     chop = False
@@ -54,11 +58,11 @@ def on_message(client, userdata, message):
     elif(msg == 'd'):
         client.publish('overcooked_game', "Put Down", qos=1)
     elif(msg == 'cd'):
-        # client.publish('overcooked_game', "Chop", qos=1)
-        chop = True
+        client.publish('overcooked_game', "Chop", qos=1)
+        # chop = True
     elif(msg == 'sd'):
-        # client.publish('overcooked_game', "Stir", qos=1)
-        stir = True
+        client.publish('overcooked_game', "Stir", qos=1)
+        # stir = True
     elif(msg == 't'):
         client.publish('overcooked_game', "Tomato", qos=1)
     elif(msg == 'b'):
@@ -69,151 +73,129 @@ def on_message(client, userdata, message):
         client.publish('overcooked_game', "Meat", qos=1)
     elif(msg == 'p'):
         client.publish('overcooked_game', "Plate", qos=1)
-    else:
-        client.publish('overcooked_game', "Mic Stop", qos=1)
-
-    
-    # '''
-    # time.sleep(5)
+    # else:
+    #     client.publish('overcooked_game', "Mic Stop", qos=1)
 
     chop_count = 0
     stir_count = 0
-    # if (not chop and not stir):
-    #     if(msg == 'u'):
-    #         client.publish('overcooked_game', "Pick Up", qos=1)
-    #     elif(msg == 'd'):
-    #         client.publish('overcooked_game', "Put Down", qos=1)
-    #     elif(msg == 'cd'):
-    #         # client.publish('overcooked_game', "Chop", qos=1)
-    #         chop = True
-    #     elif(msg == 'sd'):
-    #         # client.publish('overcooked_game', "Stir", qos=1)
-    #         stir = True
-    #     elif(msg == 't'):
-    #         client.publish('overcooked_game', "Tomato", qos=1)
-    #     elif(msg == 'b'):
-    #         client.publish('overcooked_game', "Bun", qos=1)
-    #     elif(msg == 'l'):
-    #         client.publish('overcooked_game', "Lettuce", qos=1)
-    #     elif(msg == 'm'):
-    #         client.publish('overcooked_game', "Meat", qos=1)
-    #     elif(msg == 'p'):
-    #         client.publish('overcooked_game', "Plate", qos=1)
-    #     else:
-    #         client.publish('overcooked_game', "other", qos=1)
+
     if(chop):
         while(chop_count < 3):
             client.publish('overcooked_game', "Chop", qos=1)
             print('send chop')
             time.sleep(5)
             chop_count += 1
-        chop_count = 0
-        chop = False
     if(stir):
         while(stir_count < 3):
             client.publish('overcooked_game', "Stir", qos=1)
             print('send stir')
             time.sleep(5)
             stir_count += 1
-        stir_count = 0
-        stir = False
-    # '''
+
+rhyme_dict = {}
+first_phones = {}
+commands = ['up', 'down', 'tomato', 'bread', 'lettuce', 'meat', 'plate', 'stone']
+for cmd in commands: 
+    rhyme_dict[cmd] = pr.rhymes(cmd)
+    pronounce = pr.phones_for_word(cmd)[0].split()
+    if len(pronounce) >= 2: # if the word takes 2(+) phones, consider first two phones
+        first_phones[cmd] = pronounce[0]+pronounce[1]
+    else: # if the word only is 1 phone, consider only the first phone
+        first_phones[cmd] = pronounce[0]
+
+print(first_phones)
+# input('lol')
+
+def perform_speech():
+    m = sr.Microphone()    
+    # with m as source:
+    #     r.adjust_for_ambient_noise(source)
+
+    # stop_listening is a function that is returned by listen_in_background
+    # when called, it will stop the background listening process
+    # listen_in_background spawns a background thread that repeatedly listens for phrases until stop_listening is called
+    global global_stop_listening
+    print("save stop listening in the next line")
+    global_stop_listening = r.listen_in_background(source=m, callback=complete_speech_recognition,phrase_time_limit=1.5)
+    print("/ Say something!")
+    # save stop_listening into a global variable that can be called anywhere
+    # global global_stop_listening
+    # global_stop_listening = stop_listening
+
+def complete_speech_recognition(recognizer, audio):
+    print('stop listening- phrase found')
+    global global_stop_listening
+    global_stop_listening(wait_for_stop=False)
+    global_stop_listening = None
+    print('num threads')
+    print(threading.active_count())
+    game_msg = ""
+    imu_msg = ""
+    try:
+        # for testing purposes, we're just using the default API key
+        # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+        # instead of `r.recognize_google(audio)`
+        line = recognizer.recognize_google(audio)
+        #line.lower()
+        print("Google Speech Recognition thinks you said " + line)
+        speech_log.write(line + "/n")
+        pronounce = pr.phones_for_word(line)[0].split()
+        first2phones = ''
+        if len(pronounce) >= 2:
+            first2phones = pronounce[0]+pronounce[1]
+        else:
+            first2phones = pronounce[0]
+        if(line == 'pickup' or line in rhyme_dict['up'] or first2phones == first_phones['up']):
+            game_msg = "Pick Up"
+            imu_msg = "Mic Stop"
+        elif(line == 'down' or line in rhyme_dict['down'] or first2phones == first_phones['down'] or line == 'stone' or line in rhyme_dict['stone'] or first2phones == first_phones['stone']):
+            game_msg = "Put Down"
+            imu_msg = "Mic Stop"
+        elif(line == 'tomato' or line in rhyme_dict['tomato'] or first2phones == first_phones['tomato']):
+            game_msg = "Tomato"
+            imu_msg = "Mic Stop"
+        elif(line == 'bread' or line in rhyme_dict['bread'] or first2phones == first_phones['bread']):
+            game_msg = "Bun"
+            imu_msg = "Mic Stop"
+        elif(line == 'lettuce' or line in rhyme_dict['lettuce'] or first2phones == first_phones['lettuce']):
+            game_msg = "Lettuce"
+            imu_msg = "Mic Stop"
+        elif(line == 'meat' or line in rhyme_dict['meat'] or first2phones == first_phones['meat']):
+            game_msg = "Meat"
+            imu_msg = "Mic Stop"
+        elif(line == 'plate' or line in rhyme_dict['plate'] or first2phones == first_phones['plate']):
+            game_msg = "Plate"
+            imu_msg = "Mic Stop"
+        elif(line == 'trash'): # need to implement later
+            game_msg = "Trash"
+            imu_msg = "Mic Stop"
+        else:
+            game_msg = "Mic Stop"
+            imu_msg = "Mic Stop"
+    except sr.UnknownValueError:
+        line = "count not understand audio"
+        print("Google Speech Recognition could not understand audio")
+        speech_log.write(line + "/n")
+        game_msg = "Mic Stop"
+        imu_msg = "Mic Stop"
+    except sr.RequestError as e:
+        line = "could not request results"
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
+        speech_log.write(line + "/n")
+        game_msg = "Mic Stop"
+        imu_msg = "Mic Stop"
+
+    client.publish('overcooked_imu', imu_msg, qos=1)
+    client.publish('overcooked_game', game_msg, qos=1)
 
     print('sent message')
 
-
-def perform_speech(tid):
-    # client.publish('overcooked_game', 'tomato', qos=1)
-    with sr.Microphone() as source:
-        print(str(tid) + "/ Say something!")
-        audio = r.listen(source, phrase_time_limit=3)
-        game_msg = ""
-        imu_msg = ""
-        try:
-            # for testing purposes, we're just using the default API key
-            # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
-            # instead of `r.recognize_google(audio)`
-            line = r.recognize_google(audio)
-            print("Google Speech Recognition thinks you said " + line)
-            speech_log.write(line + "/n")
-            pronounce = pr.phones_for_word(line)[0].split()
-            first2phones = ''
-            if len(pronounce) >= 2:
-                first2phones = pronounce[0]+pronounce[1]
-            else:
-                first2phones = pronounce[0]
-            if(line == 'up' or line in rhyme_dict['up'] or first2phones == first_phones['up']):
-                # client.publish('overcooked_game', "Pick Up", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Pick Up"
-                imu_msg = "Mic Stop"
-            elif(line == 'down' or line in rhyme_dict['down'] or first2phones == first_phones['down']):
-                # client.publish('overcooked_game', "Put Down", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Put Down"
-                imu_msg = "Mic Stop"
-            elif(line == 'tomato' or line in rhyme_dict['tomato'] or first2phones == first_phones['tomato']):
-                # client.publish('overcooked_game', "Tomato", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Tomato"
-                imu_msg = "Mic Stop"
-            elif(line == 'bread' or line in rhyme_dict['bread'] or first2phones == first_phones['bread']):
-                # client.publish('overcooked_game', "Bun", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Bun"
-                imu_msg = "Mic Stop"
-            elif(line == 'lettuce' or line in rhyme_dict['lettuce'] or first2phones == first_phones['lettuce']):
-                # client.publish('overcooked_game', "Lettuce", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Lettuce"
-                imu_msg = "Mic Stop"
-            elif(line == 'meat' or line in rhyme_dict['meat'] or first2phones == first_phones['meat']):
-                # client.publish('overcooked_game', "Meat", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Meat"
-                imu_msg = "Mic Stop"
-            elif(line == 'plate' or line in rhyme_dict['plate'] or first2phones == first_phones['plate']):
-                # client.publish('overcooked_game', "Plate", qos=1)
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                game_msg = "Plate"
-                imu_msg = "Mic Stop"
-            else:
-                # client.publish('overcooked_imu', "Mic Stop", qos=1)
-                # client.publish('overcooked_game', "Mic Stop", qos=1)
-                game_msg = "Mic Stop"
-                imu_msg = "Mic Stop"
-        except sr.UnknownValueError:
-            line = "count not understand audio"
-            print("Google Speech Recognition could not understand audio")
-            speech_log.write(line + "/n")
-            # client.publish('overcooked_imu', "Mic Stop", qos=1)
-            # client.publish('overcooked_game', "Mic Stop", qos=1)
-            game_msg = "Mic Stop"
-            imu_msg = "Mic Stop"
-        except sr.RequestError as e:
-            line = "could not request results"
-            print("Could not request results from Google Speech Recognition service; {0}".format(e))
-            speech_log.write(line + "/n")
-            # client.publish('overcooked_imu', "Mic Stop", qos=1)
-            # client.publish('overcooked_game', "Mic Stop", qos=1)
-            game_msg = "Mic Stop"
-            imu_msg = "Mic Stop"
-
-    threadLock.acquire(True)
-    global num_threads
-    num_threads -= 1
-    if(num_threads == 0):
-        client.publish('overcooked_imu,', imu_msg, qos=1)
-        client.publish('overcooked_game', game_msg, qos=1)
-    threadLock.release()
 
 i = 0
 while os.path.exists("speech%s.txt" % i):
     i += 1
 speech_log = open("speech" + str(i) + ".txt", "a")
-# self.r = sr.Recognizer()
     
-r = sr.Recognizer()
 # 1. create a client instance
 client = mqtt.Client()
 
