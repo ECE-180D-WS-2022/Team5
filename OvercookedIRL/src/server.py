@@ -37,7 +37,7 @@ except socket.error as e:
 server.listen(3)
 
 # Remove blocking synchronous servers in favor of realtime nonblocking logic
-#server.setblocking(False)
+server.setblocking(False)
 
 # %% Server Methods
 # Function : Threading function that checks for data updates in the background
@@ -95,11 +95,15 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     
     # Check for game data
     prev_Time = 0
+    interval = datetime.timedelta(minutes=10.0)
     while True:
         data = get_unblocked_data(clients[ID])
         if data == None: 
             tick = time.perf_counter()
-            time_left = startTime - datetime.timedelta(seconds=tick-start)
+            print(type(tick))
+            print(type(startTime))
+            print(type(interval))
+            time_left = interval - datetime.timedelta(seconds=tick-startTime)
             clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
             
             
@@ -136,7 +140,7 @@ temporary_data = [None, None]
 game_scores = [0, 0]
 while True:
     # Listen for client connections
-    client, address = server.accept()
+    client, address = get_accept(server)
     
     # Update the count of threaded processes
     config["Thread_Count"] += 1
@@ -146,7 +150,7 @@ while True:
     
     # Store each connection
     clients.append(client)
-    player_names.append(pickle.loads(client.recv(HEADER))[1])
+    # player_names.append(pickle.loads(client.recv(HEADER))[1])
     
     # Begin new threaded process for each player
     if (config["Thread_Count"] == 2):
@@ -155,8 +159,11 @@ while True:
         clients[1].send(pickle.dumps(True))
         
         # Wait for ready signal from BOTH PLAYERS
-        ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
-        ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
+        ready1 = get_data(clients[0])
+        ready2 = get_data(clients[1])
+        
+        #ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
+        #ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
 
         # Send confirmation for synchronized start
         clients[0].send(pickle.dumps(ready1))
@@ -165,7 +172,7 @@ while True:
         clients[0].send(pickle.dumps("ClientID: 0"))
         clients[1].send(pickle.dumps("ClientID: 1"))
         
-        start_time = datetime.timedelta(minutes=10.0)
+        start_time = time.perf_counter()
         
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
         start_new_thread(threaded_client, (clients, 1, temporary_data, start_time))
