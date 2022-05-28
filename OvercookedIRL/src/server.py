@@ -9,6 +9,7 @@ import sys
 import time
 import pickle
 import socket
+import datetime
 import threading
 from _thread import *
 from playground_building_blocks import *
@@ -94,24 +95,32 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     
     # Check for game data
     prev_Time = 0
+    interval = datetime.timedelta(minutes=10.0)
+    
     while True:
         data = get_unblocked_data(clients[ID])
-        if data == None: 
-            # print('data is none')
-            if (round((time.time() - startTime), 2) > prev_Time + 1):
-                prev_Time += 1
-                clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
-            continue
-        elif (type(data) == list and len(data) != 0 and data[0] == 99):
+        if (type(data) == list and len(data) != 0 and data[0] == 99):
+            # Sending item to the other player!
             clients[not ID].send(pickle.dumps(data))
             print(data)
         elif (type(data) == list and len(data) != 0 and data[0] == 88):
+            # We need to update scores!
             # Code for updating scores!
             game_scores[ID] = data[1]
             
             # Send the score to all other players
             clients[not ID].send(pickle.dumps(data))
             pass
+        else: 
+            tick = time.perf_counter()
+            time_left = interval - datetime.timedelta(seconds=tick-startTime)
+            clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
+            if (ID == 1):
+                print(format_timedelta(time_left))
+            # if (round((time.time() - startTime), 2) > prev_Time + 1):
+            #     prev_Time += 1
+            #     clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
+            continue
         temp_game_data[ID] = data
         # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
         
@@ -164,7 +173,7 @@ while True:
 
         print('sent both')
         
-        start_time = time.time()
+        start_time = time.perf_counter()
         
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
         start_new_thread(threaded_client, (clients, 1, temporary_data, start_time))

@@ -323,8 +323,10 @@ class Game:
                     # self.socket_client.send(pickle.dumps(temp_data))
 
                     if(self.player.action is not None):
-                        self.socket_client.publish('overcooked_mic', "Stop", qos=1)
-                        self.socket_client.publish('overcooked_imu', "Mic Stop", qos=1)
+                        # self.socket_client.publish('overcooked_mic', "Stop", qos=1)
+                        # self.socket_client.publish('overcooked_imu', "Mic Stop", qos=1)
+                        self.client.publish("overcooked_mic", "Stop", qos=1)
+                        self.client.publish("overcooked_imu", "Mic Stop", qos=1)
                         self.player.stop_everything()
 
                     print('CLICK')
@@ -367,53 +369,9 @@ class Game:
         self.client.loop_start()
         # self.client.publish('overcooked_mic', "t", qos=1)
         
-    def check_server(self, client):
-        prev_message = None
-        
-        # # Continuously check for received data
-        # while True:
-        #     data = get_unblocked_data(client)
-            
-        #     # Print received data, if it exists
-        #     if (data != None and type(data) == list and data[0] == 99):
-        #         prev_message = data
-        #         print("SERVER SENDS -> " + str(prev_message))
-        #     elif (data != None and type(data) == float):
-        #         pass
-        #         print("TIMER -> " + str(data))
-
-        # Print received data, if it exists
-        # while(True):
-        #     data = get_unblocked_data(self.socket_client)
-        #     if (data != None and type(data) == list):
-        #         prev_message = data
-        #         print("SERVER SENDS -> " + str(data))
-        #     elif(data != None and type(data)==str):
-        #         print('my client id: ' + data[10:])
-        #         self.player.client_ID = int(data[10:])
-        #         if(self.player.client_ID == 0):
-        #             self.player.x = 10*TILE_SIZE
-        #             self.player.y = 11*TILE_SIZE
-        #             self.player.rect.x = self.player.x
-        #             self.player.rect.y = self.player.y
-        #         elif(self.player.client_ID == 1):
-        #             self.player.x = 22*TILE_SIZE
-        #             self.player.y = 11*TILE_SIZE
-        #             self.player.rect.x = self.player.x
-        #             self.player.rect.y = self.player.y
-        #     elif (data != None and type(data) == float):
-        #         print("TIMER -> " + str(data))
-        #     elif(data != None):
-        #         print("Data -> " + str(data))
-
     def main(self):
         self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, MULT_WIN_HEIGHT))
-        input_thread = threading.Thread(target=self.check_server, 
-                                    args=(self.socket_client, ), 
-                                    daemon=True)
-        input_thread.start()
 
-        
         font = pygame.font.Font(None,40)
         gray = pygame.Color('gray19')
         blue = pygame.Color('dodgerblue')

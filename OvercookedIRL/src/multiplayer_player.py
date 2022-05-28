@@ -430,6 +430,11 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             updated_scores_ = data[1]
             # Don't know what to do with it though?
             
+        if (data != None and type(data) == list and data[0] == 77):
+            # We need to update the timer!
+            self.game.timer.set_time(data[1])
+            pass
+            
             
         # Print received data, if it exists
         if (data != None and type(data) == list and data[0] != 99):
