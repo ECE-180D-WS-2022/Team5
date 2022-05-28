@@ -411,8 +411,13 @@ class Player(pygame.sprite.Sprite):
 
         self.frame += 1
 
-        # data = get_unblocked_data(self.game.socket_client)
-        data = None
+        data = get_unblocked_data(self.game.socket_client) # DELTA
+        
+        
+        # if (type(data) != type(None) and )
+        # print("This is our data in player_update:", str(data))
+        
+        # data = None
         if (data != None and type(data) == list and data[0] == 99):
             test_item = data[1] # list of item's attributes
             print("This is test item:")

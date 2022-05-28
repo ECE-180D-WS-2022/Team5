@@ -9,6 +9,7 @@ import sys
 import time
 import pickle
 import socket
+import datetime
 import threading
 from _thread import *
 from playground_building_blocks import *
@@ -94,13 +95,21 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     
     # Check for game data
     prev_Time = 0
+    interval = datetime.timedelta(minutes=10.0)
     while True:
         data = get_unblocked_data(clients[ID])
         if data == None: 
-            # print('data is none')
-            if (round((time.time() - startTime), 2) > prev_Time + 1):
-                prev_Time += 1
-                clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
+            tick = time.perf_counter()
+            print(type(tick))
+            print(type(startTime))
+            print(type(interval))
+            time_left = interval - datetime.timedelta(seconds=tick-startTime)
+            clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
+            
+            
+            # if (round((time.time() - startTime), 2) > prev_Time + 1):
+            #     prev_Time += 1
+            #     clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
             continue
         elif (type(data) == list and len(data) != 0 and data[0] == 99):
             clients[not ID].send(pickle.dumps(data))
@@ -110,7 +119,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             game_scores[ID] = data[1]
             
             # Send the score to all other players
-            clients[not ID].send(pickle.dumps(data))
+            clients[not ID].send(pickle.dumps(game_scores))
             pass
         temp_game_data[ID] = data
         # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
@@ -128,10 +137,10 @@ def threaded_client(clients, ID, temp_game_data, startTime):
 clients = []
 player_names = []
 temporary_data = [None, None]
-game_scores = [0, 0, 0, 0]
+game_scores = [0, 0]
 while True:
     # Listen for client connections
-    client, address = server.accept()
+    client, address = get_accept(server)
     
     # Update the count of threaded processes
     config["Thread_Count"] += 1
@@ -141,7 +150,7 @@ while True:
     
     # Store each connection
     clients.append(client)
-    player_names.append(pickle.loads(client.recv(HEADER))[1])
+    # player_names.append(pickle.loads(client.recv(HEADER))[1])
     
     # Begin new threaded process for each player
     if (config["Thread_Count"] == 2):
@@ -150,12 +159,16 @@ while True:
         clients[1].send(pickle.dumps(True))
         
         # Wait for ready signal from BOTH PLAYERS
-        ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
-        ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
+        ready1 = get_data(clients[0])
+        ready2 = get_data(clients[1])
+        
+        #ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
+        #ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
 
         # server.setblocking(False)
         time.sleep(1)
         # Send confirmation for synchronized start
+        time.sleep(1)
         clients[0].send(pickle.dumps(ready1))
         clients[1].send(pickle.dumps(ready2))
 
@@ -164,7 +177,7 @@ while True:
 
         print('sent both')
         
-        start_time = time.time()
+        start_time = time.perf_counter()
         
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
         start_new_thread(threaded_client, (clients, 1, temporary_data, start_time))
