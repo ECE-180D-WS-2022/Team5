@@ -37,7 +37,7 @@ except socket.error as e:
 server.listen(3)
 
 # Remove blocking synchronous servers in favor of realtime nonblocking logic
-server.setblocking(False)
+# server.setblocking(False)
 
 # %% Server Methods
 # Function : Threading function that checks for data updates in the background
@@ -165,6 +165,8 @@ while True:
         #ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
         #ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
 
+        # server.setblocking(False)
+        time.sleep(1)
         # Send confirmation for synchronized start
         time.sleep(1)
         clients[0].send(pickle.dumps(ready1))
@@ -172,6 +174,8 @@ while True:
 
         clients[0].send(pickle.dumps("ClientID: 0"))
         clients[1].send(pickle.dumps("ClientID: 1"))
+
+        print('sent both')
         
         start_time = time.perf_counter()
         
