@@ -33,10 +33,10 @@ except socket.error as e:
     print("ERROR ->", str(e))
     
 # Limit the server to 5 connections (with one connection as leeway in case)
-server.listen(config["Player_Num"] + 1)
+server.listen(3)
 
 # Remove blocking synchronous servers in favor of realtime nonblocking logic
-server.setblocking(False)
+#server.setblocking(False)
 
 # %% Server Methods
 # Function : Threading function that checks for data updates in the background
@@ -87,8 +87,7 @@ def update_state(clients, startTime):
 # Function : threaded function to take care of each client's actions
 def threaded_client(clients, ID, temp_game_data, startTime):
     # Set a dedicated thread for checking for updates to the game state
-    input_thread = threading.Thread(target=up
-                                    date_state, 
+    input_thread = threading.Thread(target=update_state, 
                                     args=(clients, startTime, ), 
                                     daemon=True)
     input_thread.start()

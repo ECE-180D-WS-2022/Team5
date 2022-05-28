@@ -85,8 +85,9 @@ class Counter(pygame.sprite.Sprite):
             # Delete the item, is this done correctly?
             while self.items:
                 temp = self.items.pop()
-                temp.x = -100000
-                temp.y = -100000
+                # temp.x = -100000
+                # temp.y = -100000
+                temp.deep_kill()
                 # # temp.kill()
                 # del temp
             # self.game.player.inventory.extend(self.items)
