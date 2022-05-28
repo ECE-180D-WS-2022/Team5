@@ -596,6 +596,7 @@ class Game:
                         self.socket_client.send(pickle.dumps([1])) # Send ready signal to game server
                         g.new()
                         ready_condition = pickle.loads(self.socket_client.recv(self.header)) # wait to recieve the ready signal from the server
+                        self.socket_client.setblocking(False)
                         self.clicked = False
                         while g.running:
                             if self.clicked:

@@ -105,7 +105,7 @@ def get_data(client_socket, condition=None, count=0):
 def get_unblocked_data(client_socket, condition=None):
     try: 
         condition = pickle.loads(client_socket.recv(HEADER))
-        print(condition)
+        # print(condition)
         #print('in a pickle!!!')
     except: condition = None
     return condition

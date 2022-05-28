@@ -166,6 +166,7 @@ while True:
         #ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
 
         # Send confirmation for synchronized start
+        time.sleep(1)
         clients[0].send(pickle.dumps(ready1))
         clients[1].send(pickle.dumps(ready2))
 

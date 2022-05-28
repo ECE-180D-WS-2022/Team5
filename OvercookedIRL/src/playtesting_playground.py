@@ -27,3 +27,9 @@ while(True):
     time_left = interval-temp
     
     print(format_timedelta(time_left))
+    
+# %%
+t1 = format_timedelta(time_left)
+t11 = datetime.datetime.strptime(t1, "%M:%S")
+if datetime.timedelta(minutes=t11.minute, seconds=t11.second) > interval - datetime.timedelta(seconds=30.0):
+    print("Here!")
