@@ -15,10 +15,6 @@ from playground_building_blocks import *
 
 # %% Server Configuration
 config = dict()
-# <<<<<<< multiplayer_item_passing
-# # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
-# config["Host"] = "192.168.1.91"
-# =======
 config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
 config["Port"] = 4900 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
@@ -40,7 +36,7 @@ except socket.error as e:
 server.listen(config["Player_Num"] + 1)
 
 # Remove blocking synchronous servers in favor of realtime nonblocking logic
-#server.setblocking(False)
+server.setblocking(False)
 
 # %% Server Methods
 # Function : Threading function that checks for data updates in the background
@@ -91,7 +87,8 @@ def update_state(clients, startTime):
 # Function : threaded function to take care of each client's actions
 def threaded_client(clients, ID, temp_game_data, startTime):
     # Set a dedicated thread for checking for updates to the game state
-    input_thread = threading.Thread(target=update_state, 
+    input_thread = threading.Thread(target=up
+                                    date_state, 
                                     args=(clients, startTime, ), 
                                     daemon=True)
     input_thread.start()
@@ -106,10 +103,16 @@ def threaded_client(clients, ID, temp_game_data, startTime):
                 prev_Time += 1
                 clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
             continue
-        else:
-            if (type(data) == list and data[0] == 99):
-                clients[not ID].send(pickle.dumps(data))
-                print(data)
+        elif (type(data) == list and len(data) != 0 and data[0] == 99):
+            clients[not ID].send(pickle.dumps(data))
+            print(data)
+        elif (type(data) == list and len(data) != 0 and data[0] == 88):
+            # Code for updating scores!
+            game_scores[ID] = data[1]
+            
+            # Send the score to all other players
+            clients[not ID].send(pickle.dumps(data))
+            pass
         temp_game_data[ID] = data
         # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
         
@@ -126,7 +129,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
 clients = []
 player_names = []
 temporary_data = [None, None]
-
+game_scores = [0, 0, 0, 0]
 while True:
     # Listen for client connections
     client, address = server.accept()

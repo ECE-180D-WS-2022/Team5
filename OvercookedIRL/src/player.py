@@ -419,10 +419,16 @@ class Player(pygame.sprite.Sprite):
             print(test_item)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             coords = (data[1][-2], data[1][-1])
+            print("Original coords:", str(coords[0]), str(coords[1]))
             station_test = self.game.find_share_station(coords[1], coords[0])
             
             # Code copied from counter.place_all_items()
             station_test.manually_place_one_item(test_item)
+            
+        if (data != None and type(data) == list and data[0] == 88):
+            # This means we are retrieving updated scores from other players!
+            updated_scores_ = data[1]
+            # Don't know what to do with it though?
             
             
         # Print received data, if it exists
@@ -773,8 +779,13 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
+
+                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
+                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
+
                             # uncomment for keyboard:
                             # self.game.client.publish('overcooked_mic', self.message, qos=1)
+
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -801,8 +812,13 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
+
+                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
+                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
+
                             # uncomment for keyboard:
                             # self.game.client.publish('overcooked_mic', self.message, qos=1)
+
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
