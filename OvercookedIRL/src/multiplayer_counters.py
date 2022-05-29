@@ -51,6 +51,8 @@ class MultiplayerCounter(pygame.sprite.Sprite):
         
         item._layer = self._layer + 3
         item.x = self.x
+        item.cut_state = attributes[4]
+        item.cook_state = attributes[5]
         if(not self.game.top_perspective_counters in self.groups):
             item.y = self.y + TILE_SIZE
         else:

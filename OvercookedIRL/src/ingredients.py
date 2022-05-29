@@ -105,7 +105,7 @@ class Ingredient(pygame.sprite.Sprite):
 
     def get_characteristic_attributes(self):
         attributes = [self.ingredient_name, self.x, self.y, 
-                      self._layer, self.cut_state, self.cook_state, self.states]
+                      self._layer, self.cut_state, self.cook_state]
         return attributes
     
     def update_image(self):

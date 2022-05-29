@@ -113,14 +113,26 @@ def on_message(client, userdata, message):
 
     # if(userdata.player.action is not None):
     #     userdata.player.message = line
+    # if(str(message.payload) == "b\'" + "tomato" + "\'"):
+    #     # client.publish("tomato")
+    #     # client.publish('overcooked_mic', 'tomato', qos=1)
+    #     print("recieved tomato")
+
+    # if(userdata.player.action is not None):
+    #     userdata.player.message = line
     if (line == "Mic Start"):
         if(userdata.player.location is not None):
             if(userdata.player.action is None):
                 userdata.player.action = "Speak"
                 userdata.player.before = True
+                userdata.client.publish('overcooked_mic', "Start", qos=1)
+        else:
+            userdata.player.stop_everything()
     elif (line == "Pick Up" or line == "Put Down"):
         if(userdata.player.action is not None):
             userdata.player.message = line
+        else:
+            userdata.player.stop_everything()
     elif(line == "Gesture"):
         if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action is None):
@@ -128,7 +140,11 @@ def on_message(client, userdata, message):
                 userdata.player.message = "Gesture"
                 userdata.player.before = True
     elif(line == "Chop" or line == "Stir"):
-        userdata.player.message = line
+        if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
+            if(userdata.player.action == "Gesture"):
+                userdata.player.message = line
+                if(userdata.player.during == True):
+                    userdata.client.publish('overcooked_mic', "During!", qos=1)
     elif(line == "Mic Stop"):
         userdata.player.stop_everything()
     elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
@@ -216,13 +232,13 @@ class Game:
                 if column == '0':
                     BackgroundObject(self, self.plates_stack, 0, 0, j, i, layer, (self.all_sprites))
                 elif column == '!':
-                    IngredientsCounter("Tomato",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Tomato",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
                 elif column == '^':
-                    IngredientsCounter("Lettuce",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Lettuce",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
                 elif column == '(':
-                    IngredientsCounter("Meat",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Meat",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
                 elif column == ')':
-                    IngredientsCounter("Bun",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
+                    IngredientsCounter("Bun",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
                 elif column == 'E':
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["E"][0],white_counter["E"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == '$':
@@ -236,13 +252,9 @@ class Game:
                 elif column == 'B':
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters))
                 elif column == 'J':
-                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["J"][0],white_counter["J"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["J"][0],white_counter["J"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == 'G':
                     temp = MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters))
-                    if (self.check_if_share(i, j)):
-                        self.all_share_stations.append(temp)
-                elif column == 'H':
-                    temp = MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
                     if (self.check_if_share(i, j)):
                         self.all_share_stations.append(temp)
                 elif column == 'H':
@@ -252,7 +264,7 @@ class Game:
                 elif column == 'V':
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,layer,(self.all_sprites))             
                 elif column == 'S':
-                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == 'Z':
                     BackgroundObject(self,self.kitchen_shadowless_spritesheet,front_items["Z"][0],front_items["Z"][1],j,i,layer,(self.all_sprites))   
                 elif column == 'U':
