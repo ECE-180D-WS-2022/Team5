@@ -28,6 +28,7 @@ from sprites import *
 
 class Ingredient(pygame.sprite.Sprite):
     def __init__(self, game, name, x, y, layer):
+        self.name = 'ingredient'
         self.game = game
         self._layer = layer
         # add player to all_sprites group of game object
@@ -141,6 +142,7 @@ class Ingredient(pygame.sprite.Sprite):
 class Plate:
     # def __init__(self, ID_number):
     def __init__(self, game, name, cut_state, cook_state, x, y, layer, states, spritesheet):
+        self.name = 'plate'
         self.game = game
         self._layer = layer
         # add player to all_sprites group of game object

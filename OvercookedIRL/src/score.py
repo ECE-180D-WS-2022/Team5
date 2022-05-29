@@ -24,7 +24,7 @@ class Score(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
-
+        self.image.fill((222,184,135))
         self.score = 0
 
         # print('background object created')

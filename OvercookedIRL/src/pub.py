@@ -191,9 +191,9 @@ def complete_speech_recognition(recognizer, audio):
     print('sent message')
 
 i = 0
-while os.path.exists("speech%s.txt" % i):
-    i += 1
-speech_log = open("speech" + str(i) + ".txt", "a")
+# while os.path.exists("speech%s.txt" % i):
+#     i += 1
+# speech_log = open("speech" + str(i) + ".txt", "a")
     
 # 1. create a client instance
 client = mqtt.Client()
