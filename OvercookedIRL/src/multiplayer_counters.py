@@ -5,12 +5,8 @@ from sprites import *
 from animations import *
 from player import *
 import pickle
-from pygame import mixer
 
-mixer.init()
-bell_ding = mixer.Sound("Sounds/bell_ding.wav")
-
-class Counter(pygame.sprite.Sprite):
+class MultiplayerCounter(pygame.sprite.Sprite):
     def __init__(self, game, sprite_sheet, s_x, s_y, x, y, layer, groups):
 
     # (self, game, sprite_sheet, s_x, s_y, x, y, layer, groups)
@@ -77,28 +73,28 @@ class Counter(pygame.sprite.Sprite):
             item_attrs.append(useful_attributes)
         self.game.player.inventory.clear()
 
-        # print("Station coordinates below in row,column:")
-        # print(str(self.y), str(self.x))
+        print("Station coordinates below in row,column:")
+        print(str(self.y), str(self.x))
         # self.game.socket_client.send(pickle.dumps(item_attrs))
         
         # DELTA: if share station, remove item and send over
-        # if (self.game.find_share_station(self.y, self.x) != None):
-        #     print("SENDING DATA FROM PLAYER:", str(self.game.player.client_ID))
-        #     self.game.socket_client.send(pickle.dumps(item_attrs))
+        if (self.game.find_share_station(self.y, self.x) != None):
+            print("SENDING DATA FROM PLAYER:", str(self.game.player.client_ID))
+            self.game.socket_client.send(pickle.dumps(item_attrs))
             
-        #     # Delete the item, is this done correctly?
-        #     while self.items:
-        #         temp = self.items.pop()
-        #         # temp.x = -100000
-        #         # temp.y = -100000
-        #         temp.deep_kill()
-        #         # # temp.kill()
-        #         # del temp
-        #     # self.game.player.inventory.extend(self.items)
-        #     # self.items.clear()
+            # Delete the item, is this done correctly?
+            while self.items:
+                temp = self.items.pop()
+                # temp.x = -100000
+                # temp.y = -100000
+                temp.deep_kill()
+                # # temp.kill()
+                # del temp
+            # self.game.player.inventory.extend(self.items)
+            # self.items.clear()
             
-        #     print(len(self.game.player.inventory))
-        #     pass
+            print(len(self.game.player.inventory))
+            pass
 
         # self.game.socket_client.send(pickle.dumps(item_attrs))
 
@@ -205,7 +201,7 @@ class Counter(pygame.sprite.Sprite):
             else:
                 if(self.counter_has_plate()):
                     self.pick_up_all()
-class IngredientsCounter(Counter):
+class IngredientsCounter(MultiplayerCounter):
     def __init__(self, ingredient, *args, **kw):
         super().__init__(*args, **kw) 
         self.ingredient = ingredient
@@ -218,7 +214,7 @@ class IngredientsCounter(Counter):
             if(len(self.game.player.inventory) == 0):
                 self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
 
-class ChopCounter(Counter):
+class ChopCounter(MultiplayerCounter):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw) 
 
@@ -243,7 +239,7 @@ class ChopCounter(Counter):
         else:
             return False
 
-class CookCounter(Counter):
+class CookCounter(MultiplayerCounter):
     def __init__(self, type, *args, **kw):
         super().__init__(*args, **kw) 
         self.type = type
@@ -283,7 +279,7 @@ class CookCounter(Counter):
         else:
             return False
 
-class SubmitStation(Counter):
+class SubmitStation(MultiplayerCounter):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw) 
         self.frames = 120
@@ -368,7 +364,6 @@ class SubmitStation(Counter):
                     print('killing ' + item.ingredient_name)
                     item.deep_kill()
                 self.items.clear()
-                bell_ding.play()
                 print('complete')
 
                 self.frames = 120
@@ -439,7 +434,7 @@ class SubmitStation(Counter):
                 print('complete')
                 '''
 
-class IngredientsCounter(Counter):
+class IngredientsCounter(MultiplayerCounter):
     def __init__(self, ingredient, *args, **kw):
         super().__init__(*args, **kw) 
         self.ingredient = ingredient

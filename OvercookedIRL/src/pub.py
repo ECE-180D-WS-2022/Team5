@@ -50,8 +50,8 @@ def on_message(client, userdata, message):
             print('Stop listening- user cancel')
             global_stop_listening(wait_for_stop=False)
 
-    chop = False
     stir = False
+    chop = False
 
     if(msg == 'u'):
         client.publish('overcooked_game', "Pick Up", qos=1)
@@ -189,6 +189,7 @@ def complete_speech_recognition(recognizer, audio):
     client.publish('overcooked_game', game_msg, qos=1)
 
     print('sent message')
+
 
 i = 0
 # while os.path.exists("speech%s.txt" % i):

@@ -9,8 +9,8 @@ import pygame
 from sprites import *
 from multiplayer_config import *
 from ingredients import * 
-from player import *
-from counters import *
+from multiplayer_player import *
+from multiplayer_counters import *
 from timer import *
 from score import *
 from recipe import *
@@ -197,17 +197,15 @@ class Game:
         print("This is the amount of share stations:", str(len(self.all_share_stations)))
         
         for station in self.all_share_stations:
-            print(str(station.x) + "," + str(station.y))
+            print(str(station.y) + "," + str(station.x))
             # Maybe something wrong with the way share stations are indexed?
-            if ((station.x == (column - 32) or station.x == (column - 32))
+            if ((station.x == (column - 32) or station.x == (column + 32))
                 and station.y == row):
+                print("Matching station at:", str(station.y), str(station.x))
                 return station
             
         if (len(self.all_share_stations) == 0):
             print("NO SHARE STATIONS!!!!!!")
-        else:
-            return self.all_share_stations[0]
-        
         
         return None
     
@@ -227,7 +225,7 @@ class Game:
                 elif column == ')':
                     IngredientsCounter("Bun",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.bottom_perspective_counters,self.ingredients_stands))
                 elif column == 'E':
-                    Counter(self, self.kitchen_spritesheet,white_counter["E"][0],white_counter["E"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["E"][0],white_counter["E"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == '$':
                     ChopCounter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.chopping_stations))
                 elif column == '*':
@@ -235,27 +233,27 @@ class Game:
                 elif column == '%':
                     CookCounter('pan',self, self.kitchen_spritesheet,white_counter["%"][0],white_counter["%"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.cooking_stations))
                 elif column == '&':
-                    Counter(self, self.kitchen_spritesheet,white_counter["&"][0],white_counter["&"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["&"][0],white_counter["&"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
                 elif column == 'B':
-                    Counter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters))
                 elif column == 'J':
-                    Counter(self, self.kitchen_spritesheet,white_counter["J"][0],white_counter["J"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["J"][0],white_counter["J"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
                 elif column == 'G':
-                    temp = Counter(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters))
+                    temp = MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters))
                     if (self.check_if_share(i, j)):
                         self.all_share_stations.append(temp)
                 elif column == 'H':
-                    temp = Counter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
+                    temp = MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
                     if (self.check_if_share(i, j)):
                         self.all_share_stations.append(temp)
                 elif column == 'H':
-                    temp = Counter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
+                    temp = MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.right_counters))
                     if (self.check_if_share(i, j)):
                         self.all_share_stations.append(temp)
                 elif column == 'V':
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,layer,(self.all_sprites))             
                 elif column == 'S':
-                    Counter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.bottom_perspective_counters))
                 elif column == 'Z':
                     BackgroundObject(self,self.kitchen_shadowless_spritesheet,front_items["Z"][0],front_items["Z"][1],j,i,layer,(self.all_sprites))   
                 elif column == 'U':
@@ -268,7 +266,7 @@ class Game:
                     BackgroundObject(self,self.kitchen_shadowless_spritesheet,back_items["X"][0],back_items["X"][1],j,i,layer,(self.all_sprites))   
                 elif column != "." and column != "P":
                     # self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,(self.all_sprites,self.counters,self.block_counters,self.ingredients_stands)
-                    Counter(self, self.kitchen_spritesheet,white_counter[column][0],white_counter[column][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters))
+                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter[column][0],white_counter[column][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters))
                     # self.image = self.game.kitchen_spritesheet.get_sprite(white_counter[type][0],white_counter[type][1],0,0,self.width,self.height)
         # print('created tilemap')
 
@@ -290,7 +288,7 @@ class Game:
         self.left_counters = pygame.sprite.LayeredUpdates()
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
-        self.player = Player(self,10,11)
+        self.player = MultiplayerPlayer(self,10,11)
         self.timer = Timer(self,17,0,60,FPS)
         self.score = Score(self,0,0)
         self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
@@ -443,9 +441,9 @@ class Game:
             #     done = True
             # else:
             #     timer -= dt
-        self.socket_client.publish('overcooked_mic', "stop", qos=1)
-        self.socket_client.loop_stop()
-        self.socket_client.disconnect()
+        self.client.publish('overcooked_mic', "stop", qos=1)
+        self.client.loop_stop()
+        self.client.disconnect()
         # self.speech_log.close()
         self.running = False
 
@@ -598,6 +596,7 @@ class Game:
                         self.socket_client.send(pickle.dumps([1])) # Send ready signal to game server
                         g.new()
                         ready_condition = pickle.loads(self.socket_client.recv(self.header)) # wait to recieve the ready signal from the server
+                        self.socket_client.setblocking(False)
                         self.clicked = False
                         while g.running:
                             if self.clicked:

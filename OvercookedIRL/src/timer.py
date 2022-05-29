@@ -46,8 +46,10 @@ if __name__ == '__main__':
 '''
 import pygame
 import math
+import datetime
 from config import *
 from recipe import RecipeCard 
+from playground_building_blocks import *
 
 class Timer(pygame.sprite.Sprite):
     def __init__(self, game, x, y, timer, fps):
@@ -78,10 +80,37 @@ class Timer(pygame.sprite.Sprite):
         self.sec = self.timer%60
         self.fps = fps
         self.count = 1
+        
+        self.temp_time = datetime.timedelta(minutes=10.0)
 
         # print('background object created')
 
     def update(self):
+        #### DELTA ####
+        server_time = get_unblocked_data(self.game.socket_client)
+        if (server_time != None and server_time[0] == 77):
+            temp_time = server_time[1]
+            
+            t1 = datetime.datetime.strptime(temp_time, "%M:%S")
+            t1 = datetime.timedelta(minutes=t1.minute, seconds=t1.second)
+            
+            if (len(self.game.recipes) < 3 and 
+                t1 < self.temp_time - datetime.timedelta(seconds=30.0)):
+                self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0))
+        
+            self.txt = self.font.render(temp_time, True, self.color)
+            W = self.txt.get_width()
+            H = self.txt.get_height()
+            if (self.min != temp_time[0:2] or self.sec != temp_time[-2:]):
+                self.image.fill((222,184,135))
+                self.image.blit(self.txt, [self.width/2 - W/2, self.height/2 - H/2])
+            
+            self.min = temp_time[0:2]
+            self.sec = temp_time[-2:]
+            return
+        #### END DELTA ####
+        
+        
         round_timer = int(math.ceil(self.timer))
         min = str(int(round_timer/60))
         sec = str(int(round_timer%60))

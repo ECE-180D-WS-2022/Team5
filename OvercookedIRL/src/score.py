@@ -32,6 +32,9 @@ class Score(pygame.sprite.Sprite):
     def update_score(self, num):
         self.score += num
         self.txt = self.font.render(str(self.score), True, self.color)
+        
+        # Edits! 88 -> code for updating score!
+        self.game.socket_client.send(pickle.dumps([88, self.score]))
 
         W = self.txt.get_width()
         H = self.txt.get_height()

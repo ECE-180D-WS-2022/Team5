@@ -12,17 +12,9 @@ import pickle
 from playground_building_blocks import *
 from pygame import mixer
 
-
-stir_sound = pygame.mixer.Sound("Sounds/stirring.wav")
-cut_sound = pygame.mixer.Sound("Sounds/cutting.wav")
-walk_sound = pygame.mixer.Sound("Sounds/fast_walking.wav")
-fridge_close_sound = pygame.mixer.Sound("Sounds/fridge_close.wav")
-fridge_open_sound = pygame.mixer.Sound("Sounds/fridge_open.wav")
-
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
-class Player(pygame.sprite.Sprite):
+class MultiplayerPlayer(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
-        self.game_on = True
         self.game = game
         self._layer = PLAYER_LAYER
         # add player to all_sprites group of game object
@@ -223,10 +215,6 @@ class Player(pygame.sprite.Sprite):
         self.after = False
         self.client_ID = None
         self.frame = 0
-        self.walking = False
-        self.chopping = False
-        self.stirring = False
-        self.busy = False
 
     def check_set_location(self, hit):
         # if(self.game.bottom_perspective_counters in hit.groups):
@@ -419,16 +407,11 @@ class Player(pygame.sprite.Sprite):
         self.x_change = 0
 
         temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
-        # self.game.socket_client.send(pickle.dumps(temp_data))
+        self.game.socket_client.send(pickle.dumps(temp_data))
 
         self.frame += 1
 
-        data = get_unblocked_data(self.game.socket_client) # DELTA
-        
-        
-        # if (type(data) != type(None) and )
-        # print("This is our data in player_update:", str(data))
-        
+        data = get_unblocked_data(self.game.socket_client)
         # data = None
         if (data != None and type(data) == list and data[0] == 99):
             test_item = data[1] # list of item's attributes
@@ -453,7 +436,7 @@ class Player(pygame.sprite.Sprite):
             prev_message = data
             #print("SERVER SENDS -> " + str(data))
         elif(data != None and type(data)==str):
-            # print('my client id: ' + data[10:])
+            print('my client id: ' + data[10:])
             self.client_ID = int(data[10:])
             if(self.client_ID == 0):
                 self.x = 10*TILE_SIZE
@@ -645,76 +628,44 @@ class Player(pygame.sprite.Sprite):
         if self.facing == "right":
             if self.x_change == 0:
                 self.image = self.right_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
-                self.walking = False
-                if not self.walking and self.busy:
-                    walk_sound.stop()
-                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.right_run[math.floor(self.animation_loop)%RUN_FRAMES]
-                self.walking = True
-                if self.walking and not self.busy:
-                    walk_sound.play(-1)
-                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "up":
             if self.y_change == 0:
                 self.image = self.up_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
-                self.walking=False
-                if not self.walking and self.busy:
-                    walk_sound.stop()
-                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.up_run[math.floor(self.animation_loop)%RUN_FRAMES]
-                self.walking = True
-                if self.walking and not self.busy:
-                    walk_sound.play(-1)
-                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "left":
             if self.x_change == 0:
                 self.image = self.left_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
-                self.walking=False
-                if not self.walking and self.busy:
-                    walk_sound.stop()
-                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.left_run[math.floor(self.animation_loop)%RUN_FRAMES]
-                self.walking = True
-                if self.walking and not self.busy:
-                    walk_sound.play(-1)
-                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "down":
             if self.y_change == 0:
                 self.image = self.down_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
-                self.walking=False
-                if not self.walking and self.busy:
-                    walk_sound.stop()
-                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.down_run[math.floor(self.animation_loop)%RUN_FRAMES]
-                self.walking = True
-                if self.walking and not self.busy:
-                    walk_sound.play(-1)
-                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
@@ -724,7 +675,7 @@ class Player(pygame.sprite.Sprite):
             # send message to pub 
             if(self.message is not None or self.message is None):
                 # uncomment for keyboard:
-                self.game.client.publish('overcooked_mic', self.message, qos=1)
+                # self.game.client.publish('overcooked_mic', self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -782,7 +733,6 @@ class Player(pygame.sprite.Sprite):
                     self.after = False
         
     def animate(self):
-        print(self.action)
         # print("action: ")
         # print(self.action)
         # print("----------------")
@@ -790,8 +740,6 @@ class Player(pygame.sprite.Sprite):
         # print(self.location)
         # print("----------------")
         if (self.action is None):
-            stir_sound.stop()
-            cut_sound.stop()
             self.stand_or_walk()
         elif(self.action == "Speak" or self.action == "Pick Up" or self.action == "Put Down"):
             if (self.location[-7:] == "Counter"):
@@ -803,7 +751,6 @@ class Player(pygame.sprite.Sprite):
                     # play open fridge animation, pass mic callback
                     # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, player, play, play_next,call_back):
                     self.before = False
-                    fridge_open_sound.play()
                     AnimateOnce(self.game,self.game.fridge_open_animation,self.location_sprite.x,(self.location_sprite.y-TILE_SIZE),COUNTER_LAYER+1,(self.game.all_sprites),0.1,FRIDGE_OPEN_FRAMES,TILE_SIZE*2,TILE_SIZE*3,self,None,self.send_message)
                 elif(self.during):
                     if(self.message == "Tomato" or self.message == "Bun" or self.message == "Lettuce" or self.message == "Meat"):
@@ -812,7 +759,6 @@ class Player(pygame.sprite.Sprite):
                         self.animation_loop = 1 # set animation loop to beginning frame
                         self.message = None
                         # play close firdge animation 
-                        fridge_close_sound.play()
                         AnimateOnce(self.game,self.game.fridge_close_animation,self.location_sprite.x,(self.location_sprite.y-TILE_SIZE),COUNTER_LAYER+1,(self.game.all_sprites),0.1,FRIDGE_CLOSE_FRAMES,TILE_SIZE*2,TILE_SIZE*3,self,None,None)
                         self.during = False
                         self.after = True
@@ -844,11 +790,6 @@ class Player(pygame.sprite.Sprite):
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
                             Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self)
-                            Effects(self.game,self.game.chopping_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
-                            self.chopping = True
-                            if self.chopping and not self.busy:
-                                cut_sound.play(-1)
-                            self.busy = True
                     elif(self.during):
                         self.image = self.chop[math.floor(self.animation_loop)%CHOP_FRAMES]
                         self.animation_loop += 0.1
@@ -864,11 +805,8 @@ class Player(pygame.sprite.Sprite):
 
                         if(self.location_sprite.chopped()):
                             self.game.client.publish('overcooked_imu', "Gesture Complete", qos=1)
-                            cut_sound.stop()
-                            self.busy = False
                             self.during = False
                             self.action = None
-                    
 
             elif(self.location == "Cooking Station"):
                 if(self.action == "Gesture"):
@@ -883,11 +821,6 @@ class Player(pygame.sprite.Sprite):
 
                             self.before = False
                             self.during = True
-                            Effects(self.game,self.game.stirring_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
-                            self.stirring = True
-                            if self.stirring and not self.busy:
-                                stir_sound.play(-1)
-                            self.busy = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
                             # Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self)
                     elif(self.during):
@@ -905,8 +838,6 @@ class Player(pygame.sprite.Sprite):
 
                         if(self.location_sprite.cooked()):
                             self.game.client.publish('overcooked_imu', "Gesture Complete", qos=1)
-                            stir_sound.stop()
-                            self.busy = False
                             self.during = False
                             self.action = None
                         
@@ -915,7 +846,7 @@ class Player(pygame.sprite.Sprite):
     def send_message(self):
         # send message to pub 
         # uncomment for keyboard:
-        
+        '''
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic', "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun'):
@@ -924,7 +855,7 @@ class Player(pygame.sprite.Sprite):
             self.game.client.publish('overcooked_mic', "l", qos=1)
         elif(self.location_sprite.ingredient == 'Meat'):
             self.game.client.publish('overcooked_mic', "m", qos=1)
-        
+        '''
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
         self.message = None
@@ -940,11 +871,6 @@ class Player(pygame.sprite.Sprite):
         #     self.animation_loop += 0.1
         #     if self.animation_loop >= 6:
         #         self.animation_loop = 1
-
-    def stop_sounds(self):
-        stir_sound.stop()
-        cut_sound.stop()
-        walk_sound.stop()
 
 class Cursor(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
