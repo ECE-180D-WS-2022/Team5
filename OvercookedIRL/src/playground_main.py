@@ -99,12 +99,11 @@ def on_disconnect(client, userdata, rc):
         print('Expected Disconnect')
 
 def on_message(client, userdata, message):
-    print('Received message: "' + str(message.payload) + " on topic " + message.topic + '" with QoS ' + str(message.qos)) 
+    #print('Received message: "' + str(message.payload) + " on topic " + message.topic + '" with QoS ' + str(message.qos)) 
     # self.speech_log.write(str(message.payload) + "/n")
-    print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
+    #print(".:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:._.:*~*:.")
     line = str(message.payload)[2:][:-1]
-    print(line)
-    print("i am in multiplayer main")
+    #print(line)
     # userdata.speech_log.write(line + "\n")
     
     # if(str(message.payload) == "b\'" + "tomato" + "\'"):
@@ -329,7 +328,7 @@ class Game:
                         self.client.publish("overcooked_imu", "Mic Stop", qos=1)
                         self.player.stop_everything()
 
-                    print('CLICK')
+                    # print('CLICK')
                     # print(int(pos[0]/32) * 32, int(pos[1]/32) * 32)
             if event.type == pygame.QUIT:
                 self.playing = False

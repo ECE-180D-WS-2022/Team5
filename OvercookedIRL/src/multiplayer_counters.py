@@ -1,9 +1,9 @@
 import pygame
-from config import * 
+from multiplayer_config import * 
 from ingredients import *
 from sprites import *
 from animations import *
-from player import *
+from multiplayer_player import *
 import pickle
 
 class MultiplayerCounter(pygame.sprite.Sprite):
@@ -81,6 +81,7 @@ class MultiplayerCounter(pygame.sprite.Sprite):
         if (self.game.find_share_station(self.y, self.x) != None):
             print("SENDING DATA FROM PLAYER:", str(self.game.player.client_ID))
             self.game.socket_client.send(pickle.dumps(item_attrs))
+            print("Data:", str(item_attrs))
             
             # Delete the item, is this done correctly?
             while self.items:
@@ -445,4 +446,4 @@ class IngredientsCounter(MultiplayerCounter):
     def pickup_item(self):
         if(self.game.player.message == self.ingredient):
             if(len(self.game.player.inventory) == 0):
-                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
+                self.game.player.inventory.append(Ingredient(game=self.game, name=self.ingredient, x=INVENTORY_X, y=INVENTORY_Y, layer=INVENTORY_LAYER))

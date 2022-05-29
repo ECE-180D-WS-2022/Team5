@@ -1,6 +1,7 @@
 # from matplotlib.pyplot imsport xscale
 import pygame
 from config import * 
+from multiplayer_config import *
 from sprites import *
 
 # class Ingredient(pygame.sprite.Sprite):
@@ -135,9 +136,6 @@ class Ingredient(pygame.sprite.Sprite):
     def deep_kill(self):
         self.done = True
         
-        
-
-
 class Plate:
     # def __init__(self, ID_number):
     def __init__(self, game, name, cut_state, cook_state, x, y, layer, states, spritesheet):

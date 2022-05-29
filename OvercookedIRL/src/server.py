@@ -6,6 +6,7 @@ Created on Tue Apr 12 13:39:00 2022
 
 # Import Statements
 import sys
+import math
 import time
 import pickle
 import socket
@@ -40,69 +41,27 @@ server.listen(3)
 # server.setblocking(False)
 
 # %% Server Methods
-# Function : Threading function that checks for data updates in the background
-def update_state(clients, startTime):
-    prev_state = [None, None]
-    
-    # In threaded background, continuously check for a change in game state
-    while (True):
-        current_state = copy.deepcopy(temporary_data)
-        
-        # if (current_state == [None, None]): continue
-
-        # if (prev_state == [None, None]):
-        #     for client in clients:
-        #         client.send(pickle.dumps([current_state, time.time() - startTime]))
-        #     prev_state = current_state
-        # elif (current_state[0][4] != prev_state[0][4] or 
-        #       current_state[0][5] != prev_state[0][5]):
-        #     for client in clients:
-        #         client.send(pickle.dumps([current_state, time.time() - startTime]))
-        #     prev_state = current_state
-        
-        # for client in clients:
-        #     client.send(pickle.dumps([current_state, time.time() - startTime]))
-        
-        # if (current_state != None and 
-        #     (prev_state != [None, None] and current_state[0][0] != prev_state[0][0] and
-        #      current_state[0][1] != prev_state[0][1])):
-        #     # Send the updated data to the players
-        #     for client in clients:
-        #         client.send(pickle.dumps(current_state))
-        #     prev_state = current_state
-        # elif (prev_state == [None, None] and current_state != None):
-        #     for client in clients:
-        #         client.send(pickle.dumps(current_state))
-        #     prev_state = current_state
-        # if (current_state != prev_state):
-            # for client in clients:
-            #     client.send(pickle.dumps(current_state))
-            # prev_state = current_state
-
-            
-        # Set delay to avoid retrieving state between internal actions
-        time.sleep(0.10)
-        pass
-    pass
 
 # Function : threaded function to take care of each client's actions
 def threaded_client(clients, ID, temp_game_data, startTime):
     # Set a dedicated thread for checking for updates to the game state
-    input_thread = threading.Thread(target=update_state, 
-                                    args=(clients, startTime, ), 
-                                    daemon=True)
-    input_thread.start()
-    
+
     # Check for game data
-    prev_Time = 0
+    prev_Time = datetime.timedelta(seconds=10*60)
     interval = datetime.timedelta(minutes=10.0)
-    
+
     while True:
+        server.setblocking(False)
+        clients[ID].setblocking(False)
         data = get_unblocked_data(clients[ID])
+
         if (type(data) == list and len(data) != 0 and data[0] == 99):
             # Sending item to the other player!
+            print("Sending data1")
+            print("Received:", str(data))
             clients[not ID].send(pickle.dumps(data))
-            print(data)
+            print("ID:", str(ID), "and not ID:", str(not ID))
+            print("Client0:", str(clients[0]), ", Client1:", str(clients[1]))
         elif (type(data) == list and len(data) != 0 and data[0] == 88):
             # We need to update scores!
             # Code for updating scores!
@@ -114,9 +73,15 @@ def threaded_client(clients, ID, temp_game_data, startTime):
         else: 
             tick = time.perf_counter()
             time_left = interval - datetime.timedelta(seconds=tick-startTime)
-            clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
-            if (ID == 1):
-                print(format_timedelta(time_left))
+            
+            # if (ID==1):
+            #     print(datetime.timedelta(seconds=math.ceil(time_left.total_seconds())))
+            #     print(prev_Time)
+            
+            
+            if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < prev_Time):
+                clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
+                prev_Time = datetime.timedelta(seconds=math.ceil(time_left.total_seconds()))
             # if (round((time.time() - startTime), 2) > prev_Time + 1):
             #     prev_Time += 1
             #     clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
@@ -159,6 +124,8 @@ while True:
         clients[1].send(pickle.dumps(True))
         
         # Wait for ready signal from BOTH PLAYERS
+        # ready1 = get_data(clients[0])
+        # ready2 = get_data(clients[1])
         ready1 = pickle.loads(clients[0].recv(config["HEADER"]))
         ready2 = pickle.loads(clients[1].recv(config["HEADER"]))
 

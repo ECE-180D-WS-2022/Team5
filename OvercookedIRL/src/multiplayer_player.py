@@ -406,12 +406,16 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         self.y_change = 0
         self.x_change = 0
 
-        temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
-        self.game.socket_client.send(pickle.dumps(temp_data))
+        #temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
+        #self.game.socket_client.send(pickle.dumps(temp_data))
 
         self.frame += 1
-
         data = get_unblocked_data(self.game.socket_client)
+        
+        if (self.client_ID == 0):
+            if (data != None and data[0] != 77):
+                print(data)
+        
         # data = None
         if (data != None and type(data) == list and data[0] == 99):
             test_item = data[1] # list of item's attributes
@@ -680,7 +684,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             # send message to pub 
             if(self.message is not None or self.message is None):
                 # uncomment for keyboard:
-                # self.game.client.publish('overcooked_mic', self.message, qos=1)
+                self.game.client.publish('overcooked_mic', self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -789,7 +793,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             # self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             # uncomment for keyboard:
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             self.before = False
                             self.during = True
@@ -822,7 +826,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             # self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             # uncomment for keyboard:
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             self.before = False
                             self.during = True
@@ -851,7 +855,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
     def send_message(self):
         # send message to pub 
         # uncomment for keyboard:
-        '''
+        
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic', "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun'):
@@ -860,7 +864,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             self.game.client.publish('overcooked_mic', "l", qos=1)
         elif(self.location_sprite.ingredient == 'Meat'):
             self.game.client.publish('overcooked_mic', "m", qos=1)
-        '''
+        
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
         self.message = None

@@ -210,97 +210,97 @@ def action(client_socket, header=HEADER, loc=None): # ACTION = VARIABLE
     
     return loc
 
-# Class: Station Manager
-class Kitchen_Stations:
-    # Constructor method to initialize all kitchen stations
-    def __init__(self, stations, idx):
-        # Store stations in list for versatility of access
-        self.idx = idx # Index of where the ingredient stand is
-        self.stations = stations
-        self.stations_list = []
-        self.plate_counter = 0
+# # Class: Station Manager
+# class Kitchen_Stations:
+#     # Constructor method to initialize all kitchen stations
+#     def __init__(self, stations, idx):
+#         # Store stations in list for versatility of access
+#         self.idx = idx # Index of where the ingredient stand is
+#         self.stations = stations
+#         self.stations_list = []
+#         self.plate_counter = 0
         
-        for name in stations:
-            self.stations_list.append(Station(name))
-            pass
+#         for name in stations:
+#             self.stations_list.append(Station(name))
+#             pass
         
-    # Determine if station is empty
-    def is_empty(self, station_name):
-        if (self.stations_list[self.stations.index(station_name)].ingredients == []):
-            return True
-        else:
-            return False
+#     # Determine if station is empty
+#     def is_empty(self, station_name):
+#         if (self.stations_list[self.stations.index(station_name)].ingredients == []):
+#             return True
+#         else:
+#             return False
     
-    # Set down item onto the kitchen station
-    def add_item(self, station_name, item):
-        # Place our inventory onto a station
-        self.stations_list[self.stations.index(station_name)].ingredients.append(item)
+#     # Set down item onto the kitchen station
+#     def add_item(self, station_name, item):
+#         # Place our inventory onto a station
+#         self.stations_list[self.stations.index(station_name)].ingredients.append(item)
         
-    # Find item if choosing at a station
-    def find_item(self, station_name, target):
-        # Loop through the station's ingredients to see if we found it
-        for item in self.stations_list[self.stations.index(station_name)].ingredients:
-            # N.B. We will only deal with ingredients, NOT PLATES FOR NOW
-            if (item.ingredient_name == target): return item
+#     # Find item if choosing at a station
+#     def find_item(self, station_name, target):
+#         # Loop through the station's ingredients to see if we found it
+#         for item in self.stations_list[self.stations.index(station_name)].ingredients:
+#             # N.B. We will only deal with ingredients, NOT PLATES FOR NOW
+#             if (item.ingredient_name == target): return item
         
-        return None
+#         return None
         
-    # Pick up item from the kitchen station
-    def pick_item(self, station_name, target=None):
-        # Do nothing if the station has no item
-        if (self.stations_list[self.stations.index(station_name)].ingredients == []):
-            return None
+#     # Pick up item from the kitchen station
+#     def pick_item(self, station_name, target=None):
+#         # Do nothing if the station has no item
+#         if (self.stations_list[self.stations.index(station_name)].ingredients == []):
+#             return None
         
-        # Pick up target item if specified
-        if (target != None):
-            item = self.find_item(station_name, target)
+#         # Pick up target item if specified
+#         if (target != None):
+#             item = self.find_item(station_name, target)
             
-            # Remove item from the station, if valid (excluding pantry and plates)
-            if (item != None and (station_name != stations[2] and
-                                  station_name != stations[3])):
-                self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
-                return item
-            elif (item != None and station_name == stations[2]):
-                # Pantry should have an unlimited supply!
-                return copy.deepcopy(item)
-            elif (item != None and station_name == stations[3]):
-                # Plates should have an unlimited supply!
-                item.increment_ID()
-                return copy.deepcopy(item)
+#             # Remove item from the station, if valid (excluding pantry and plates)
+#             if (item != None and (station_name != stations[2] and
+#                                   station_name != stations[3])):
+#                 self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
+#                 return item
+#             elif (item != None and station_name == stations[2]):
+#                 # Pantry should have an unlimited supply!
+#                 return copy.deepcopy(item)
+#             elif (item != None and station_name == stations[3]):
+#                 # Plates should have an unlimited supply!
+#                 item.increment_ID()
+#                 return copy.deepcopy(item)
         
-        # Pick up item from station and clear the station (N.B. Fix for pantry)
-        item = self.stations_list[self.stations.index(station_name)].ingredients[0]
+#         # Pick up item from station and clear the station (N.B. Fix for pantry)
+#         item = self.stations_list[self.stations.index(station_name)].ingredients[0]
         
-        # Remove item from the station
-        self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
-        return item
+#         # Remove item from the station
+#         self.stations_list[self.stations.index(station_name)].ingredients.remove(item)
+#         return item
     
-    # Set the old station to be denoted empty/free
-    def set_free(self, station_name):
-        self.stations_list[self.stations.index(station_name)].busy = False
+#     # Set the old station to be denoted empty/free
+#     def set_free(self, station_name):
+#         self.stations_list[self.stations.index(station_name)].busy = False
     
-    # Set the target station to be denoted busy
-    def set_busy(self, station_name):
-        self.stations_list[self.stations.index(station_name)].busy = True
+#     # Set the target station to be denoted busy
+#     def set_busy(self, station_name):
+#         self.stations_list[self.stations.index(station_name)].busy = True
         
-    # Print out the states of every station in the kitchen
-    def display_kitchen(self):
-        status = ""
-        for location in self.stations_list:
-            message = location.station_name
-            message += ", " + str(location.ingredients)
-            message += ", busy: " + str(location.busy)
-            message += " ||| "
-            status += message
-        print(status)
+#     # Print out the states of every station in the kitchen
+#     def display_kitchen(self):
+#         status = ""
+#         for location in self.stations_list:
+#             message = location.station_name
+#             message += ", " + str(location.ingredients)
+#             message += ", busy: " + str(location.busy)
+#             message += " ||| "
+#             status += message
+#         print(status)
         
-# Class: Station
-class Station:
-    # Constructor method to initialize a kitchen station
-    def __init__(self, station_name):
-        self.station_name = station_name
-        self.ingredients = [] # Initialize station to have no ingredients
-        self.busy = False # Initialize station to be free    
+# # Class: Station
+# class Station:
+#     # Constructor method to initialize a kitchen station
+#     def __init__(self, station_name):
+#         self.station_name = station_name
+#         self.ingredients = [] # Initialize station to have no ingredients
+#         self.busy = False # Initialize station to be free    
 
 # Class: Player
 # class Player:
@@ -312,127 +312,127 @@ class Station:
 #         self.location = None # N.B. String of station name
 #         self.inventory = []
         
-# Plate Class
-class Plate:
-    def __init__(self, ID_number):
-        self.ID_number = ID_number # Identifier
-        self.contents = []
+# # Plate Class
+# class Plate:
+#     def __init__(self, ID_number):
+#         self.ID_number = ID_number # Identifier
+#         self.contents = []
         
-    def plate_item(self, item):
-        self.contents.append(item)
+#     def plate_item(self, item):
+#         self.contents.append(item)
         
-    def increment_ID(self):
-        self.ID_number += 1
+#     def increment_ID(self):
+#         self.ID_number += 1
         
-# Ingredient Class
-class Ingredient:
-    def __init__(self, name, cut_state, cook_state):
-        self.ingredient_name = name
-        self.cut_state = cut_state
-        self.cook_state = cook_state
+# # Ingredient Class
+# class Ingredient:
+#     def __init__(self, name, cut_state, cook_state):
+#         self.ingredient_name = name
+#         self.cut_state = cut_state
+#         self.cook_state = cook_state
         
-    def compare(self, ingred2):
-        # Compare two ingredients' by similarity
-        cut = abs(self.cut_state - ingred2.cut_state)
-        cook = abs(self.cook_state - ingred2.cook_state)
-        return cut + cook
+#     def compare(self, ingred2):
+#         # Compare two ingredients' by similarity
+#         cut = abs(self.cut_state - ingred2.cut_state)
+#         cook = abs(self.cook_state - ingred2.cook_state)
+#         return cut + cook
         
-# Recipe Class and Methods
-def generate_recipe():
-    # Pick a type of recipe to generate
-    recipe_types = ["sandwich", "soup", "steak", "noodles"]
-    recipe_type = recipe_types[np.random.randint(3)]
+# # Recipe Class and Methods
+# def generate_recipe():
+#     # Pick a type of recipe to generate
+#     recipe_types = ["sandwich", "soup", "steak", "noodles"]
+#     recipe_type = recipe_types[np.random.randint(3)]
     
-    # Depending on the recipe type, choose ingredients wisely!
-    if (recipe_type == recipe_types[0]):
-        # Generate a sandwich type recipe (2 Bread, 1 Meat, 1/2 Vegetable)
-        bun1 = Ingredient("Bread", 0, 1)
-        bun2 = Ingredient("Bread", 0, 1)
-        meat = Ingredient("Beef", 1, 3)
+#     # Depending on the recipe type, choose ingredients wisely!
+#     if (recipe_type == recipe_types[0]):
+#         # Generate a sandwich type recipe (2 Bread, 1 Meat, 1/2 Vegetable)
+#         bun1 = Ingredient("Bread", 0, 1)
+#         bun2 = Ingredient("Bread", 0, 1)
+#         meat = Ingredient("Beef", 1, 3)
         
-        # If needed, we can even randomize whether it's lettuce/tomato/both
-        toppings = Ingredient("Lettuce", 3, 0)
-        materials = [bun1, bun2, meat, toppings]
-        return Recipe(materials)
-    elif (recipe_type == recipe_types[1]):
-        # Generate a soup type recipe
-        tofu = Ingredient("Tofu", 5, 3)
-        cabbage = Ingredient("Cabbage", 2, 3)
-        chicken = Ingredient("Chicken", 4, 3)
+#         # If needed, we can even randomize whether it's lettuce/tomato/both
+#         toppings = Ingredient("Lettuce", 3, 0)
+#         materials = [bun1, bun2, meat, toppings]
+#         return Recipe(materials)
+#     elif (recipe_type == recipe_types[1]):
+#         # Generate a soup type recipe
+#         tofu = Ingredient("Tofu", 5, 3)
+#         cabbage = Ingredient("Cabbage", 2, 3)
+#         chicken = Ingredient("Chicken", 4, 3)
         
-        # If needed, further randomization/customization
-        materials = [tofu, cabbage, chicken]
-        return Recipe(materials)
-    elif (recipe_type == recipe_types[2]):
-        # Generate a steak type recipe
-        steak = Ingredient("Beef", 0, 6)
-        potato = Ingredient("Potato", 2, 2)
-        celery = Ingredient("Celery", 3, 3)
+#         # If needed, further randomization/customization
+#         materials = [tofu, cabbage, chicken]
+#         return Recipe(materials)
+#     elif (recipe_type == recipe_types[2]):
+#         # Generate a steak type recipe
+#         steak = Ingredient("Beef", 0, 6)
+#         potato = Ingredient("Potato", 2, 2)
+#         celery = Ingredient("Celery", 3, 3)
         
-        # If needed, further randomization/customization
-        materials = [steak, potato, celery]
-        return Recipe(materials)
-    else: # Once more types are added, we can alter this conditional
-        # Generate a noodle type recipe/further recipe
-        print("Still under development!")
-        pass
-    pass
+#         # If needed, further randomization/customization
+#         materials = [steak, potato, celery]
+#         return Recipe(materials)
+#     else: # Once more types are added, we can alter this conditional
+#         # Generate a noodle type recipe/further recipe
+#         print("Still under development!")
+#         pass
+#     pass
 
-class Recipe:
-    def __init__(self, materials):
-        self.materials = materials
+# class Recipe:
+#     def __init__(self, materials):
+#         self.materials = materials
         
-    # Get the ingredients of the recipe
-    def get_ingredients(self):
-        ingredient_names = []
+#     # Get the ingredients of the recipe
+#     def get_ingredients(self):
+#         ingredient_names = []
         
-        for item in self.materials:
-            ingredient_names.append(item.ingredient_name)
-            pass
+#         for item in self.materials:
+#             ingredient_names.append(item.ingredient_name)
+#             pass
         
-        return ingredient_names
+#         return ingredient_names
         
-    # Return the string representation of the recipe
-    def recipe_string(self):
-        representation = ""
-        mats = []
+#     # Return the string representation of the recipe
+#     def recipe_string(self):
+#         representation = ""
+#         mats = []
         
-        for item in self.materials:
-            raw = "["
-            details = [str(item.ingredient_name), str(item.cut_state), 
-                       str(item.cook_state)]
-            raw += ", ".join(details) + "]"
-            mats.append(raw)
-            pass
+#         for item in self.materials:
+#             raw = "["
+#             details = [str(item.ingredient_name), str(item.cut_state), 
+#                        str(item.cook_state)]
+#             raw += ", ".join(details) + "]"
+#             mats.append(raw)
+#             pass
         
-        return mats
+#         return mats
         
-    # Attribute a score to the target recipe
-    def score_dish(self, dish):
-        # Dish is a plate with all the necessary ingredients
-        target_dish = copy.deepcopy(self.materials)
-        test_dish = copy.deepcopy(dish)
+#     # Attribute a score to the target recipe
+#     def score_dish(self, dish):
+#         # Dish is a plate with all the necessary ingredients
+#         target_dish = copy.deepcopy(self.materials)
+#         test_dish = copy.deepcopy(dish)
         
-        score = 0
+#         score = 0
         
-        # Evaluate each element of the dish
-        for item in test_dish:
-            match = [part for part in target_dish if part.ingredient_name == item.ingredient_name]
+#         # Evaluate each element of the dish
+#         for item in test_dish:
+#             match = [part for part in target_dish if part.ingredient_name == item.ingredient_name]
             
-            # Calculate the score for each item
-            if (match == []):
-                # No match found, we added a wrong ingredient!
-                score -= 5
-            else:
-                target_item = match[0]
-                diff = target_item.compare(item)
-                score -= diff * 1 # Every different in cut/cook is penalized
+#             # Calculate the score for each item
+#             if (match == []):
+#                 # No match found, we added a wrong ingredient!
+#                 score -= 5
+#             else:
+#                 target_item = match[0]
+#                 diff = target_item.compare(item)
+#                 score -= diff * 1 # Every different in cut/cook is penalized
             
-            # Remove the items from our copies!
-            target_dish.remove(match[0])
-            pass
+#             # Remove the items from our copies!
+#             target_dish.remove(match[0])
+#             pass
         
-        return score
+#         return score
     
 def format_timedelta(td):
     minutes, seconds = divmod(td.seconds + td.days * 86400, 60)
