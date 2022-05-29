@@ -383,8 +383,8 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         #     if (data != None and data[0] != 77):
         #         print(data)
 
-        if(data != None):
-            print(data)
+        # if(data != None):
+        #     print(data)
         
         # data = None
         if (data != None and type(data) == list and data[0] == 99):
@@ -416,6 +416,14 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             self.game.timer.set_time(data[1])
             self.prev_code = data[0]
             pass
+        
+        if (data != None and type(data) == list and data[0] == 66):
+            print("Received notification to set share station to be free!")
+            print("Received station coords:", str(data[1][0]), str(data[1][1]))
+            # We need to set that station to be unoccupied!
+            countertop = self.game.find_share_station(data[1][0], data[1][1])
+            countertop = self.game.find_share_station(countertop.y, countertop.x)
+            countertop.occupied = False
 
         if (data != None and type(data) == list and data[0] == 33):
             # We need to update the timer!

@@ -28,6 +28,13 @@ class MultiplayerCounter(pygame.sprite.Sprite):
         self.rect.y = self.y
 
         self.items = []
+        self.occupied = False
+        
+    def counter_occupied(self):
+        if len(self.items) == 0:
+            return False # Counter is not occupied
+        else:
+            return True # Counter is occupied if there is >= 1 item on it!
 
     def player_has_plate(self):
         plate = False   # check if the player's inventory has a plate
@@ -58,6 +65,12 @@ class MultiplayerCounter(pygame.sprite.Sprite):
         else:
             item.y = self.y
         self.items.append(item)
+        print("In manually place one item, we have length:", str(len(self.items)))
+        
+    def notify_share_as_free(self):
+        # This function is called after first determining that the station is a share station
+        self.game.socket_client.send(pickle.dumps([66, [self.y, self.x]]))
+        pass
 
     def place_all_items(self):
         item_attrs = [99, ]
@@ -80,7 +93,13 @@ class MultiplayerCounter(pygame.sprite.Sprite):
         # self.game.socket_client.send(pickle.dumps(item_attrs))
         
         # DELTA: if share station, remove item and send over
-        if (self.game.find_share_station(self.y, self.x) != None):
+        share_station = self.game.find_share_station(self.y, self.x)
+        if (share_station != None):
+            print("This is the coords of returned share station:", str(share_station.y), str(share_station.x))
+            print("This is the coords of current share station:", str(self.y), str(self.x))
+            print("Items at other share station:", str(len(share_station.items)))
+        if (share_station != None and share_station.occupied == False):
+            share_station.occupied = True
             print("SENDING DATA FROM PLAYER:", str(self.game.player.client_ID))
             self.game.socket_client.send(pickle.dumps(item_attrs))
             self.game.socket_client.send(pickle.dumps(item_attrs))
@@ -99,6 +118,11 @@ class MultiplayerCounter(pygame.sprite.Sprite):
             # self.items.clear()
             
             print(len(self.game.player.inventory))
+            print("Passed item to empty share station")
+            pass
+        elif (share_station != None and share_station.occupied == True):
+            self.pick_up_all()
+            print("We should be here, at an occupied share station")
             pass
 
         # self.game.socket_client.send(pickle.dumps(item_attrs))
@@ -169,6 +193,11 @@ class MultiplayerCounter(pygame.sprite.Sprite):
             item.y = INVENTORY_Y
         self.game.player.inventory.extend(self.items)
         self.items.clear()
+        
+        countertop = self.game.find_share_station(self.y, self.x)
+        if (countertop != None):
+            # We need to notify the other player to set the share station to be free
+            self.notify_share_as_free()
 
     def pick_up_all_but_plate(self):
         # if the player has a plate, all items on the counter (except for the plate) can be transfered to the inventory 
@@ -183,6 +212,11 @@ class MultiplayerCounter(pygame.sprite.Sprite):
         for item in temp:
             self.items.remove(item)
         temp.clear()
+        
+        countertop = self.game.find_share_station(self.y, self.x)
+        if (countertop != None):
+            # We need to notify the other player to set the share station to be free
+            self.notify_share_as_free()
 
     def place_item(self):
         print('reg counter place item')

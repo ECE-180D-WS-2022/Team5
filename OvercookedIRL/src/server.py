@@ -75,6 +75,9 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             # Send the score to all other players
             clients[not ID].send(pickle.dumps(data))
             pass
+        elif (type(data) == list and len(data) != 0 and data[0] == 66):
+            # We need to set a share station to be unoccupied!
+            clients[not ID].send(pickle.dumps(data))
         else: 
             tick = time.perf_counter()
             time_left = interval - datetime.timedelta(seconds=tick-startTime)
