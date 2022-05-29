@@ -5,7 +5,7 @@ from ingredients import *
 import random
 
 class RecipeCard(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, three=None, four=None):
         self.game = game
         self._layer = COUNTER_LAYER
         self.x = x
@@ -30,13 +30,23 @@ class RecipeCard(pygame.sprite.Sprite):
         self.ingredient_3 = None
         self.ingredient_4 = None
 
-        if(random.randint(1,10) > 5):
-            self.ingredient_3 = Ingredient(self.game,"Lettuce",self.rect.x,self.rect.y+TILE_SIZE,self.layer)
-            self.ingredient_3.cut_state = 3
+        if(three == None):
+            if(random.randint(1,10) > 5):
+                self.ingredient_3 = Ingredient(self.game,"Lettuce",self.rect.x,self.rect.y+TILE_SIZE,self.layer)
+                self.ingredient_3.cut_state = 3
+        else:
+            if(three == True):
+                self.ingredient_3 = Ingredient(self.game,"Lettuce",self.rect.x,self.rect.y+TILE_SIZE,self.layer)
+                self.ingredient_3.cut_state = 3
 
-        if(random.randint(1,10) > 5):
-            self.ingredient_4 = Ingredient(self.game,"Tomato",self.rect.x,self.rect.y+TILE_SIZE,self.layer)
-            self.ingredient_4.cut_state = 3
+        if(four == None):
+            if(random.randint(1,10) > 5):
+                self.ingredient_4 = Ingredient(self.game,"Tomato",self.rect.x,self.rect.y+TILE_SIZE,self.layer)
+                self.ingredient_4.cut_state = 3
+        else:
+            if(four == True):
+                self.ingredient_4 = Ingredient(self.game,"Tomato",self.rect.x,self.rect.y+TILE_SIZE,self.layer)
+                self.ingredient_4.cut_state = 3    
 
     def update(self):
         self.rect.x = self.x

@@ -1,6 +1,7 @@
 import pygame
 from multiplayer_config import * 
 from ingredients import *
+from recipe import RecipeCard
 from sprites import *
 from animations import *
 from counters import *
@@ -11,6 +12,7 @@ from pymouse import PyMouse
 import pickle
 from playground_building_blocks import *
 from pygame import mixer
+from partner import *
 
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
 class MultiplayerPlayer(pygame.sprite.Sprite):
@@ -46,11 +48,14 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
 
         self.inventory = []
         self.image = self.game.character_idle_spritesheet.get_sprite(18*self.width,0,0,0,self.width,self.height)
+        self.image_name = 'down_idle'
 
         # hit box of rect and image are the same
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+
+        self.prev_code = 0
 
         self.right_run = [self.game.character_run_spritesheet.get_sprite(0*self.width,0,0,0,self.width, self.height),
                     self.game.character_run_spritesheet.get_sprite(1*self.width,0,0,0,self.width, self.height),
@@ -216,6 +221,8 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         self.client_ID = None
         self.frame = 0
 
+        self.partner = None
+
     def check_set_location(self, hit_top, hit_bottom, hit_block):
         if(self.facing == 'left'):
             if(hit_block):
@@ -256,8 +263,10 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                     self.location = "Bottom Counter"
                     self.location_sprite = hit_top[0]
 
-        if(self.location != None):
-            print(self.location)
+        # if(self.location != None):
+        #     print(self.location)
+        # if(self.action != None):
+        #     print(self.action)
 
     def stop_everything(self):
         self.action = None
@@ -352,45 +361,79 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         self.y_change = 0
         self.x_change = 0
 
-        #temp_data = [self.client_ID, self.frame, self.x, self.y,self.x_change,self.y_change,self.dest_x,self.dest_y,self.facing,self.prev_facing,self.animation_loop,self.location,self.message,self.action,self.before,self.during,self.after]
-        #self.game.socket_client.send(pickle.dumps(temp_data))
+        if(self.client_ID == 0):
+            # print(time_left.total_seconds())
+            if((self.frame-5) % 300 == 0):
+                if(len(self.game.recipes) < 10):                
+                    three = (random.randint(1,10) > 5)
+                    four = (random.randint(1,10) > 5)
+                    self.game.socket_client.send(pickle.dumps([33, three, four]))
+                    self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,three,four))
+            else:
+                temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
+                self.game.socket_client.send(pickle.dumps(temp_data))
+        else:
+            temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
+            self.game.socket_client.send(pickle.dumps(temp_data))
 
         self.frame += 1
         data = get_unblocked_data(self.game.socket_client)
         
-        if (self.client_ID == 0):
-            if (data != None and data[0] != 77):
-                print(data)
+        # if (self.client_ID == 0):
+        #     if (data != None and data[0] != 77):
+        #         print(data)
+
+        if(data != None):
+            print(data)
         
         # data = None
         if (data != None and type(data) == list and data[0] == 99):
-            for test_item in data[1:]:
-                # test_item = data[1] # list of item's attributes
-                print("This is test item:")
-                print(test_item)
-                print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                # coords = (data[1][-2], data[1][-1])
-                coords = (test_item[-2], test_item[-1])
-                print("Original coords:", str(coords[0]), str(coords[1]))
-                station_test = self.game.find_share_station(coords[1], coords[0])
-                
-                # Code copied from counter.place_all_items()
-                station_test.manually_place_one_item(test_item)
+            if(self.prev_code != data[0]):
+                for test_item in data[1:]:
+                    # test_item = data[1] # list of item's attributes
+                    print("This is test item:")
+                    print(test_item)
+                    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    # coords = (data[1][-2], data[1][-1])
+                    coords = (test_item[-2], test_item[-1])
+                    print("Original coords:", str(coords[0]), str(coords[1]))
+                    station_test = self.game.find_share_station(coords[1], coords[0])
+                    
+                    # Code copied from counter.place_all_items()
+                    station_test.manually_place_one_item(test_item)
+            self.prev_code = data[0]
             
         if (data != None and type(data) == list and data[0] == 88):
             # This means we are retrieving updated scores from other players!
-            updated_scores_ = data[1]
+            if(self.prev_code != data[0]):
+                updated_scores = data[1]
+                self.game.score.set_score(updated_scores)
+            self.prev_code = data[0]
             # Don't know what to do with it though?
             
         if (data != None and type(data) == list and data[0] == 77):
             # We need to update the timer!
             self.game.timer.set_time(data[1])
+            self.prev_code = data[0]
             pass
+
+        if (data != None and type(data) == list and data[0] == 33):
+            # We need to update the timer!
+            if(len(self.game.recipes) < 10):
+                self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,data[1],data[2]))
+            self.prev_code = data[0]
+            
             
             
         # Print received data, if it exists
-        if (data != None and type(data) == list and data[0] != 99):
+        elif (data != None and type(data) == list and data[0] == 22):
             prev_message = data
+            self.partner.rect.x = data[3]
+            self.partner.rect.y = data[4]
+            self.partner.image_name = data[6]
+            self.partner.animation_loop = data[7]
+            self.partner.action = data[8]
+            self.prev_code = data[0]
             #print("SERVER SENDS -> " + str(data))
         elif(data != None and type(data)==str):
             print('my client id: ' + data[10:])
@@ -400,13 +443,27 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                 self.y = 11*TILE_SIZE
                 self.rect.x = self.x
                 self.rect.y = self.y
+                self.partner = Partner(self.game,22,11)
             elif(self.client_ID == 1):
                 self.x = 22*TILE_SIZE
                 self.y = 11*TILE_SIZE
                 self.rect.x = self.x
                 self.rect.y = self.y
+                self.partner = Partner(self.game,10,11)
         elif (data != None and type(data) == float):
             pass
+        # elif (data != None):
+        #     print(data)
+            # temp_data = [self.client_ID, self.frame, 
+            # 2-self.rect.x,
+            # 3-self.rect.y,
+            # 4-self.facing,
+            # 5-self.image_name,
+            # 6-self.animation_loop,
+            # 7-self.action]
+
+
+            
             # print("TIMER -> " + str(data))
 
         # print('update')
@@ -562,8 +619,8 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                 if(self.location is not None):
                     if(self.action is not None):
                         self.stop_everything()
-                        self.game.client.publish('overcooked_mic', "Stop", qos=1)
-                        self.game.client.publish('overcooked_imu', "Mic Stop", qos=1)
+                        self.game.client.publish('overcooked_mic'+str(self.client_ID), "Stop", qos=1)
+                        self.game.client.publish('overcooked_imu'+str(self.client_ID), "Mic Stop", qos=1)
 
             # print(self.action)
                     
@@ -571,44 +628,52 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         if self.facing == "right":
             if self.x_change == 0:
                 self.image = self.right_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.image_name = 'right_idle'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.right_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.image_name = 'right_run'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "up":
             if self.y_change == 0:
                 self.image = self.up_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.image_name = 'up_idle'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.up_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.image_name = 'up_run'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "left":
             if self.x_change == 0:
                 self.image = self.left_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.image_name = 'left_idle'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.left_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.image_name = 'left_run'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "down":
             if self.y_change == 0:
                 self.image = self.down_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.image_name = 'down_idle'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.down_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.image_name = 'down_run'
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
@@ -618,7 +683,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             # send message to pub 
             if(self.message is not None or self.message is None):
                 # uncomment for keyboard:
-                self.game.client.publish('overcooked_mic', self.message, qos=1)
+                self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -644,12 +709,16 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             if(self.action == "Pick Up"): 
                 if self.facing == 'right':
                     self.image = self.pickup_right[math.floor(self.animation_loop)%PICKUP_FRAMES]
+                    self.image_name = 'pickup_right'
                 elif self.facing == 'up':
                     self.image = self.pickup_up[math.floor(self.animation_loop)%PICKUP_FRAMES]
+                    self.image_name = 'pickup_up'
                 elif self.facing == 'left':
                     self.image = self.pickup_left[math.floor(self.animation_loop)%PICKUP_FRAMES]
+                    self.image_name = 'pickup_left'
                 elif self.facing == 'down':
                     self.image = self.pickup_down[math.floor(self.animation_loop)%PICKUP_FRAMES]
+                    self.image_name = 'pickup_down'
                 self.animation_loop += 0.1
             
                 if self.animation_loop >= PICKUP_FRAMES:
@@ -661,12 +730,16 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             elif(self.action == "Put Down"):
                 if self.facing == 'right':
                     self.image = self.putdown_right[math.floor(self.animation_loop)%PUTDOWN_FRAMES]
+                    self.image_name = 'putdown_right'
                 elif self.facing == 'up':
                     self.image = self.putdown_up[math.floor(self.animation_loop)%PUTDOWN_FRAMES]
+                    self.image_name = 'putdown_up'
                 elif self.facing == 'left':
                     self.image = self.putdown_left[math.floor(self.animation_loop)%PUTDOWN_FRAMES]
+                    self.image_name = 'putdown_left'
                 elif self.facing == 'down':
                     self.image = self.putdown_down[math.floor(self.animation_loop)%PUTDOWN_FRAMES]
+                    self.image_name = 'putdown_down'
                 self.animation_loop += 0.1
             
                 if self.animation_loop >= PUTDOWN_FRAMES:
@@ -685,7 +758,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         if (self.action is None):
             self.stand_or_walk()
         elif(self.action == "Speak" or self.action == "Pick Up" or self.action == "Put Down"):
-            if (self.location[-7:] == "Counter"):
+            if (self.location[-7:] == "Counter"or self.location == "Submit Station"):
                 self.animate_mic_sequence()
             if (self.location == "Plate Station"):
                 self.animate_mic_sequence()
@@ -723,11 +796,8 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                     if(self.before):
                         if(self.message is not None):
 
-                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
-
                             # uncomment for keyboard:
-                            self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
 
                             self.before = False
                             self.during = True
@@ -735,6 +805,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self)
                     elif(self.during):
                         self.image = self.chop[math.floor(self.animation_loop)%CHOP_FRAMES]
+                        self.image_name = 'chop'
                         self.animation_loop += 0.1
                         
                         if self.animation_loop >= CHOP_FRAMES:
@@ -747,7 +818,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             # print("chop times" + str(self.location_sprite.items[0].cut_state))
 
                         if(self.location_sprite.chopped()):
-                            self.game.client.publish('overcooked_imu', "Gesture Complete", qos=1)
+                            self.game.client.publish('overcooked_imu'+str(self.client_ID), "Gesture Complete", qos=1)
                             self.during = False
                             self.action = None
 
@@ -756,11 +827,8 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                     if(self.before):
                         if(self.message is not None):
 
-                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
-
                             # uncomment for keyboard:
-                            self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
 
                             self.before = False
                             self.during = True
@@ -768,6 +836,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             # Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self)
                     elif(self.during):
                         self.image = self.cook[math.floor(self.animation_loop)%STIR_FRAMES]
+                        self.image_name = 'cook'
                         self.animation_loop += 0.1
                         
                         if self.animation_loop >= STIR_FRAMES:
@@ -780,7 +849,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             # print("cook times" + str(self.location_sprite.items[0].cook_state))
 
                         if(self.location_sprite.cooked()):
-                            self.game.client.publish('overcooked_imu', "Gesture Complete", qos=1)
+                            self.game.client.publish('overcooked_imu'+str(self.client_ID), "Gesture Complete", qos=1)
                             self.during = False
                             self.action = None
                         
@@ -791,13 +860,13 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         # uncomment for keyboard:
         
         if(self.location_sprite.ingredient == 'Tomato'):
-            self.game.client.publish('overcooked_mic', "t", qos=1)
+            self.game.client.publish('overcooked_mic'+str(self.client_ID), "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun'):
-            self.game.client.publish('overcooked_mic', "b", qos=1)
+            self.game.client.publish('overcooked_mic'+str(self.client_ID), "b", qos=1)
         elif(self.location_sprite.ingredient == 'Lettuce'):
-            self.game.client.publish('overcooked_mic', "l", qos=1)
+            self.game.client.publish('overcooked_mic'+str(self.client_ID), "l", qos=1)
         elif(self.location_sprite.ingredient == 'Meat'):
-            self.game.client.publish('overcooked_mic', "m", qos=1)
+            self.game.client.publish('overcooked_mic'+str(self.client_ID), "m", qos=1)
         
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)

@@ -1,6 +1,7 @@
 import pygame
 import math
 from multiplayer_config import * 
+import pickle
 
 class Score(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -35,6 +36,17 @@ class Score(pygame.sprite.Sprite):
         
         # Edits! 88 -> code for updating score!
         self.game.socket_client.send(pickle.dumps([88, self.score]))
+        self.game.socket_client.send(pickle.dumps([88, self.score]))
+        self.game.socket_client.send(pickle.dumps([88, self.score]))
+
+        W = self.txt.get_width()
+        H = self.txt.get_height()
+        self.image.fill((222,184,135))
+        self.image.blit(self.txt, [self.width/2 - W/2, self.height/2 - H/2])
+
+    def set_score(self, num):
+        self.score = num
+        self.txt = self.font.render(str(self.score), True, self.color)
 
         W = self.txt.get_width()
         H = self.txt.get_height()

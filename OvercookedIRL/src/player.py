@@ -674,7 +674,7 @@ class Player(pygame.sprite.Sprite):
         if (self.action is None):
             self.stand_or_walk()
         elif(self.action == "Speak" or self.action == "Pick Up" or self.action == "Put Down"):
-            if (self.location[-7:] == "Counter"):
+            if (self.location[-7:] == "Counter" or self.location == "Submit Station"):
                 self.animate_mic_sequence()
             if (self.location == "Plate Station"):
                 self.animate_mic_sequence()

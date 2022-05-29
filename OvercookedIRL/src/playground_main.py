@@ -11,7 +11,7 @@ from multiplayer_config import *
 from ingredients import * 
 from multiplayer_player import *
 from multiplayer_counters import *
-from timer import *
+from multiplayer_timer import *
 from score import *
 from recipe import *
 import sys
@@ -105,18 +105,6 @@ def on_message(client, userdata, message):
     line = str(message.payload)[2:][:-1]
     #print(line)
     # userdata.speech_log.write(line + "\n")
-    
-    # if(str(message.payload) == "b\'" + "tomato" + "\'"):
-    #     # client.publish("tomato")
-    #     # client.publish('overcooked_mic', 'tomato', qos=1)
-    #     print("recieved tomato")
-
-    # if(userdata.player.action is not None):
-    #     userdata.player.message = line
-    # if(str(message.payload) == "b\'" + "tomato" + "\'"):
-    #     # client.publish("tomato")
-    #     # client.publish('overcooked_mic', 'tomato', qos=1)
-    #     print("recieved tomato")
 
     # if(userdata.player.action is not None):
     #     userdata.player.message = line
@@ -125,7 +113,7 @@ def on_message(client, userdata, message):
             if(userdata.player.action is None):
                 userdata.player.action = "Speak"
                 userdata.player.before = True
-                userdata.client.publish('overcooked_mic', "Start", qos=1)
+                userdata.client.publish('overcooked_mic'+str(userdata.player.client_ID), "Start", qos=1)
         else:
             userdata.player.stop_everything()
     elif (line == "Pick Up" or line == "Put Down"):
@@ -144,7 +132,7 @@ def on_message(client, userdata, message):
             if(userdata.player.action == "Gesture"):
                 userdata.player.message = line
                 if(userdata.player.during == True):
-                    userdata.client.publish('overcooked_mic', "During!", qos=1)
+                    userdata.client.publish('overcooked_mic'+str(userdata.player.client_ID), "During!", qos=1)
     elif(line == "Mic Stop"):
         userdata.player.stop_everything()
     elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
@@ -190,6 +178,8 @@ class Game:
         self.knife_icon = Spritesheet('../img/knife_icon.png')
         self.cook_icon = Spritesheet('../img/cook_icon.png')
         self.speaking_animation = Spritesheet('../img/speaking_animation.png')
+        self.cook_state_spritesheet = Spritesheet('../img/cook_state.png')
+        self.cut_state_spritesheet = Spritesheet('../img/cut_state.png')
 
         self.fridge_open_animation = Spritesheet('../img/object_animations/fridge_open_spritesheet.png')
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
@@ -247,8 +237,6 @@ class Game:
                     IngredientsCounter("Plate",self, self.kitchen_spritesheet,white_counter["H"][0],white_counter["H"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.plate_stations))
                 elif column == '%':
                     CookCounter('pan',self, self.kitchen_spritesheet,white_counter["%"][0],white_counter["%"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.cooking_stations))
-                elif column == '&':
-                    MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["&"][0],white_counter["&"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.submit_stations))
                 elif column == 'B':
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["B"][0],white_counter["B"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters))
                 elif column == 'J':
@@ -263,8 +251,16 @@ class Game:
                         self.all_share_stations.append(temp)
                 elif column == 'V':
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,layer,(self.all_sprites))             
+                elif column == '8':
+                    BackgroundObject(self,self.cut_state_spritesheet,0,0,j,i,layer,(self.all_sprites)) 
+                elif column == '9':
+                    BackgroundObject(self,self.cook_state_spritesheet,0,0,j,i,layer,(self.all_sprites))       
                 elif column == 'S':
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
+                elif column == 'M':
+                    SubmitStation(self, self.kitchen_spritesheet,white_counter["G"][0],white_counter["G"][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters,self.left_counters,self.submit_stations))
+                elif column == '&':
+                    BackgroundObject(self, self.kitchen_spritesheet,9*TILE_SIZE,1408, j, i, COUNTER_LAYER+1, (self.all_sprites))
                 elif column == 'Z':
                     BackgroundObject(self,self.kitchen_shadowless_spritesheet,front_items["Z"][0],front_items["Z"][1],j,i,layer,(self.all_sprites))   
                 elif column == 'U':
@@ -287,6 +283,7 @@ class Game:
 
         # initialize empty sprite groups
         self.all_sprites = pygame.sprite.LayeredUpdates()   # layered updates object
+        self.player_updates = pygame.sprite.LayeredUpdates()
         self.counters = pygame.sprite.LayeredUpdates()
         self.block_counters = pygame.sprite.LayeredUpdates()
         self.bottom_perspective_counters = pygame.sprite.LayeredUpdates()
@@ -300,9 +297,10 @@ class Game:
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
         self.player = MultiplayerPlayer(self,10,11)
-        self.timer = Timer(self,17,0,60,FPS)
+        self.timer = MultiplayerTimer(self,17,0,60,FPS)
         self.score = Score(self,0,0)
-        self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
+        # self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
+        self.recipes = []
         # game, x, y
 
         self.animations = pygame.sprite.LayeredUpdates()
@@ -334,10 +332,8 @@ class Game:
                     # self.socket_client.send(pickle.dumps(temp_data))
 
                     if(self.player.action is not None):
-                        # self.socket_client.publish('overcooked_mic', "Stop", qos=1)
-                        # self.socket_client.publish('overcooked_imu', "Mic Stop", qos=1)
-                        self.client.publish("overcooked_mic", "Stop", qos=1)
-                        self.client.publish("overcooked_imu", "Mic Stop", qos=1)
+                        self.client.publish("overcooked_mic"+str(self.player.client_ID), "Stop", qos=1)
+                        self.client.publish("overcooked_imu"+str(self.player.client_ID), "Mic Stop", qos=1)
                         self.player.stop_everything()
 
                     # print('CLICK')
@@ -351,6 +347,7 @@ class Game:
 
         # run the update method of every sprite in the all_sprites group
         self.all_sprites.update() 
+        self.player_updates.update()
 
     def draw(self):
         # game loop draw
@@ -378,7 +375,6 @@ class Game:
         self.client.connect_async("test.mosquitto.org")
         self.client.connect("test.mosquitto.org", 1883, 60)
         self.client.loop_start()
-        # self.client.publish('overcooked_mic', "t", qos=1)
         
     def main(self):
         self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, MULT_WIN_HEIGHT))
@@ -410,7 +406,7 @@ class Game:
             #     done = True
             # else:
             #     timer -= dt
-        self.client.publish('overcooked_mic', "stop", qos=1)
+        self.client.publish('overcooked_mic'+str(self.client_ID), "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()
         # self.speech_log.close()
@@ -562,7 +558,7 @@ class Game:
                     ready_up_button.draw(self.screen)
                     if ready_button.draw(self.screen) and self.clicked is True:
                         done = True
-                        self.socket_client.send(pickle.dumps([1])) # Send ready signal to game server
+                        self.socket_client.send(pickle.dumps([sys.argv[1]])) # Send ready signal to game server
                         g.new()
                         ready_condition = pickle.loads(self.socket_client.recv(self.header)) # wait to recieve the ready signal from the server
                         self.socket_client.setblocking(False)

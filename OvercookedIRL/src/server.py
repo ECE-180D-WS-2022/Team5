@@ -14,6 +14,7 @@ import datetime
 import threading
 from _thread import *
 from playground_building_blocks import *
+import random
 
 # %% Server Configuration
 config = dict()
@@ -49,11 +50,15 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     # Check for game data
     prev_Time = datetime.timedelta(seconds=10*60)
     interval = datetime.timedelta(minutes=10.0)
+    server.setblocking(False)
+    clients[ID].setblocking(False)
+    prev_total_time = -1
+    # count = -10
 
     while True:
-        server.setblocking(False)
-        clients[ID].setblocking(False)
+        # count += 0
         data = get_unblocked_data(clients[ID])
+        # print(data)
 
         if (type(data) == list and len(data) != 0 and data[0] == 99):
             # Sending item to the other player!
@@ -82,14 +87,39 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < prev_Time):
                 clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
                 prev_Time = datetime.timedelta(seconds=math.ceil(time_left.total_seconds()))
+            if(data != None):
+                clients[not ID].send(pickle.dumps(data))
             # if (round((time.time() - startTime), 2) > prev_Time + 1):
             #     prev_Time += 1
             #     clients[ID].send(pickle.dumps(round((time.time() - startTime), 2)))
-            continue
+            
         temp_game_data[ID] = data
         # loc = [data[0], data[1], data[2], data[3], data[4], data[5]]
         
-        
+        # if(ID == 0):
+        #     # print(time_left.total_seconds())
+        #     t = math.ceil(time_left.total_seconds())
+        #     print(t)
+        #     if((t+1) % 5 == 0):
+        #         if(t != prev_total_time):
+        #             three = (random.randint(1,10) > 5)
+        #             four = (random.randint(1,10) > 5)
+        #             server.setblocking(True)
+        #             clients[ID].send(pickle.dumps([33, three, four]))
+        #             clients[ID].send(pickle.dumps([33, three, four]))
+        #             clients[ID].send(pickle.dumps([33, three, four]))
+        #             clients[ID].send(pickle.dumps([33, three, four]))
+        #             clients[ID].send(pickle.dumps([33, three, four]))
+        #             clients[not ID].send(pickle.dumps([33, three, four]))
+        #             clients[not ID].send(pickle.dumps([33, three, four]))
+        #             clients[not ID].send(pickle.dumps([33, three, four]))
+        #             clients[not ID].send(pickle.dumps([33, three, four]))
+        #             clients[not ID].send(pickle.dumps([33, three, four]))
+        #             print('sent recipe')
+        #     prev_total_time = t
+
+        server.setblocking(False)
+        # print(count)
         
         
         
@@ -103,6 +133,7 @@ clients = []
 player_names = []
 temporary_data = [None, None]
 game_scores = [0, 0, 0, 0]
+# count = 0
 while True:
     # Listen for client connections
     client, address = server.accept()
@@ -132,17 +163,28 @@ while True:
         # server.setblocking(False)
         time.sleep(1)
         # Send confirmation for synchronized start
+        print('ready recev')
+        
         clients[0].send(pickle.dumps(ready1))
         clients[1].send(pickle.dumps(ready2))
 
-        clients[0].send(pickle.dumps("ClientID: 0"))
-        clients[1].send(pickle.dumps("ClientID: 1"))
+        print('send start back')
+
+        if(ready1[0] == '0'):
+            clients[0].send(pickle.dumps("ClientID: 0"))
+            clients[1].send(pickle.dumps("ClientID: 1"))
+        else:
+            clients[1].send(pickle.dumps("ClientID: 0"))
+            clients[0].send(pickle.dumps("ClientID: 1"))
 
         print('sent both')
         
         start_time = time.perf_counter()
+
+        # print(count)
         
         start_new_thread(threaded_client, (clients, 0, temporary_data, start_time))
         start_new_thread(threaded_client, (clients, 1, temporary_data, start_time))
+        # count += 1
     pass
 
