@@ -138,7 +138,7 @@ def complete_speech_recognition(recognizer, audio):
         line = recognizer.recognize_google(audio)
         #line.lower()
         print("Google Speech Recognition thinks you said " + line)
-        speech_log.write(line + "/n")
+        # speech_log.write(line + "/n")
         pronounce = pr.phones_for_word(line)[0].split()
         first2phones = ''
         if len(pronounce) >= 2:
@@ -175,13 +175,13 @@ def complete_speech_recognition(recognizer, audio):
     except sr.UnknownValueError:
         line = "count not understand audio"
         print("Google Speech Recognition could not understand audio")
-        speech_log.write(line + "/n")
+        # speech_log.write(line + "/n")
         game_msg = "Mic Stop"
         imu_msg = "Mic Stop"
     except sr.RequestError as e:
         line = "could not request results"
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
-        speech_log.write(line + "/n")
+        # speech_log.write(line + "/n")
         game_msg = "Mic Stop"
         imu_msg = "Mic Stop"
 

@@ -56,7 +56,6 @@ class BackgroundObject(pygame.sprite.Sprite):
         # print("background " + str(self._layer))
         if self.player is not None:
             if len(self.player.inventory) != 0:
-                print(self.player.inventory[0].name)
                 if self.player.inventory[0].ingredient_name == 'Plate':
                     self.image = self.spritesheet.get_sprite(self.s_x,self.s_y,0,0,self.width,self.height)
                 else:

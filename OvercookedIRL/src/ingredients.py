@@ -3,32 +3,8 @@ import pygame
 from config import * 
 from sprites import *
 
-# class Ingredient(pygame.sprite.Sprite):
-#     def __init__(self, game, name, x, y, layer):
-#         self.ingredient_name = name
-
-#         self.game = game
-#         self.image_sprites = [] 
-#         self.x = x
-#         self.y = y
-#         self.ingredient_layer = 0
-        
-#         if(self.ingredient_name == "Tomato"):
-#             self.cut_state = 0
-#             self.cook_state = 0
-#             # (self, game, spritesheet, s_x, s_y, x, y, layer, groups):
-#             self.image_sprites.append(BackgroundObject(self.game, self.game.tomato_spritesheet,0,0,x,y,layer,self.game.all_sprites))
-
-        
-#     def compare(self, ingred2):
-#         # Compare two ingredients' by similarity
-#         cut = abs(self.cut_state - ingred2.cut_state)
-#         cook = abs(self.cook_state - ingred2.cook_state)
-#         return cut + cook
-
 class Ingredient(pygame.sprite.Sprite):
     def __init__(self, game, name, x, y, layer):
-        self.name = 'ingredient'
         self.game = game
         self._layer = layer
         # add player to all_sprites group of game object

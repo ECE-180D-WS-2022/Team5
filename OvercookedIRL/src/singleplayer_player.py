@@ -423,29 +423,18 @@ class Player(pygame.sprite.Sprite):
 
         self.frame += 1
 
-        data = get_unblocked_data(self.game.socket_client) # DELTA
-        
-        
-        # if (type(data) != type(None) and )
-        # print("This is our data in player_update:", str(data))
-        
-        # data = None
+        # data = get_unblocked_data(self.game.socket_client)
+        data = None
         if (data != None and type(data) == list and data[0] == 99):
             test_item = data[1] # list of item's attributes
             print("This is test item:")
             print(test_item)
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
             coords = (data[1][-2], data[1][-1])
-            print("Original coords:", str(coords[0]), str(coords[1]))
             station_test = self.game.find_share_station(coords[1], coords[0])
             
             # Code copied from counter.place_all_items()
             station_test.manually_place_one_item(test_item)
-            
-        if (data != None and type(data) == list and data[0] == 88):
-            # This means we are retrieving updated scores from other players!
-            updated_scores_ = data[1]
-            # Don't know what to do with it though?
             
             
         # Print received data, if it exists
@@ -615,6 +604,27 @@ class Player(pygame.sprite.Sprite):
                         self.before = True
             # if keys[pygame.K_d]:
             if keys[pygame.K_d]:
+                if(self.location is not None):
+                    if(self.action is None):
+                        self.action = "Speak"
+                        self.message = "d"
+                        self.before = True
+            if keys[pygame.K_c]:
+                if(self.location == "Chopping Station"):
+                    print(self.action)
+                    if(self.action is None):
+                        self.action = "Gesture"
+                        self.message = "cd"
+                        self.before = True
+                elif(self.location == "Cooking Station"):
+                    if(self.action is None):
+                        self.action = "Gesture"
+                        self.message = "sd"
+                        self.before = True
+            if keys[pygame.K_q]:
+                if(self.location is not None):
+                    if(self.action is not None):
+                        self.stop_everything()
                         self.game.client.publish('overcooked_mic', "Stop", qos=1)
                         self.game.client.publish('overcooked_imu', "Mic Stop", qos=1)
 
@@ -812,13 +822,8 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
-
-                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
-
                             # uncomment for keyboard:
                             self.game.client.publish('overcooked_mic', self.message, qos=1)
-
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -853,13 +858,8 @@ class Player(pygame.sprite.Sprite):
                 if(self.action == "Gesture"):
                     if(self.before):
                         if(self.message is not None):
-
-                            # self.game.client.publish('overcooked_IMU', self.message, qos=1)
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
-
                             # uncomment for keyboard:
                             self.game.client.publish('overcooked_mic', self.message, qos=1)
-
                             self.before = False
                             self.during = True
                             Effects(self.game,self.game.stirring_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)

@@ -3,7 +3,7 @@ from config import *
 from ingredients import *
 from sprites import *
 from animations import *
-from player import *
+from singleplayer_player import *
 import pickle
 from pygame import mixer
 
@@ -181,7 +181,18 @@ class Counter(pygame.sprite.Sprite):
             else:
                 if(self.counter_has_plate()):
                     self.pick_up_all()
+class IngredientsCounter(Counter):
+    def __init__(self, ingredient, *args, **kw):
+        super().__init__(*args, **kw) 
+        self.ingredient = ingredient
 
+    def place_item(self):
+        pass
+
+    def pickup_item(self):
+        if(self.game.player.message == self.ingredient):
+            if(len(self.game.player.inventory) == 0):
+                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
 
 class ChopCounter(Counter):
     def __init__(self, *args, **kw):
@@ -415,4 +426,4 @@ class IngredientsCounter(Counter):
     def pickup_item(self):
         if(self.game.player.message == self.ingredient):
             if(len(self.game.player.inventory) == 0):
-                self.game.player.inventory.append(Ingredient(self.game, self.ingredient, INVENTORY_X, INVENTORY_Y, INVENTORY_LAYER))
+                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
