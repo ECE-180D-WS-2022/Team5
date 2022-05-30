@@ -3,7 +3,7 @@ from config import *
 from ingredients import *
 from sprites import *
 from animations import *
-from player import *
+from singleplayer_player import *
 import pickle
 from pygame import mixer
 
@@ -181,7 +181,18 @@ class Counter(pygame.sprite.Sprite):
             else:
                 if(self.counter_has_plate()):
                     self.pick_up_all()
+class IngredientsCounter(Counter):
+    def __init__(self, ingredient, *args, **kw):
+        super().__init__(*args, **kw) 
+        self.ingredient = ingredient
 
+    def place_item(self):
+        pass
+
+    def pickup_item(self):
+        if(self.game.player.message == self.ingredient):
+            if(len(self.game.player.inventory) == 0):
+                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
 
 class ChopCounter(Counter):
     def __init__(self, *args, **kw):
@@ -322,13 +333,6 @@ class SubmitStation(Counter):
                     if(del_index > -1):
                         self.game.score.update_score(score)
                         print('del index' + str(del_index))
-                        self.game.recipes[del_index].ingredient_1.deep_kill()
-                        self.game.recipes[del_index].ingredient_2.deep_kill()
-                        if(self.game.recipes[del_index].ingredient_3 != None):
-                            self.game.recipes[del_index].ingredient_3.deep_kill()
-                        if(self.game.recipes[del_index].ingredient_4 != None):
-                            self.game.recipes[del_index].ingredient_4.deep_kill()
-                        self.game.recipes[del_index].kill()
                         del self.game.recipes[del_index]
                         for i in range(len(self.game.recipes)):
                             # if(i > del_index):
@@ -422,4 +426,4 @@ class IngredientsCounter(Counter):
     def pickup_item(self):
         if(self.game.player.message == self.ingredient):
             if(len(self.game.player.inventory) == 0):
-                self.game.player.inventory.append(Ingredient(self.game, self.ingredient, INVENTORY_X, INVENTORY_Y, INVENTORY_LAYER))
+                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))

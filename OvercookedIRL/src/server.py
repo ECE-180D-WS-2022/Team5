@@ -274,7 +274,7 @@ game_scores = [0, 0, 0, 0]
 # count = 0
 while True:
     # Listen for client connections
-    client, address = server.accept()
+    client, address = get_accept(server)
     
     # Update the count of threaded processes
     config["Thread_Count"] += 1
@@ -284,7 +284,7 @@ while True:
     
     # Store each connection
     clients.append(client)
-    player_names.append(pickle.loads(client.recv(HEADER))[1])
+    # player_names.append(pickle.loads(client.recv(HEADER))[1])
     
     # Begin new threaded process for each player
     if (config["Thread_Count"] == 2):

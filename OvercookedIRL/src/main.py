@@ -2,10 +2,10 @@ import pygame
 from sprites import *
 from config import *
 from ingredients import * 
-from player import *
-from counters import *
-from timer import *
-from score import *
+from singleplayer_player import *
+from singleplayer_counters import *
+from singleplayer_timer import *
+from singleplayer_score import *
 from recipe import *
 import sys
 import new_button
@@ -20,11 +20,8 @@ pygame.init()
 
 mixer.init()
 mixer.music.load("Sounds/jazz_background.wav")
+mixer.music.set_volume(0.1)
 mixer.music.play(-1)
-
-stir_sound = pygame.mixer.Sound("Sounds/stirring.wav")
-cut_sound = pygame.mixer.Sound("Sounds/cutting.wav")
-walk_sound = pygame.mixer.Sound("Sounds/walking.wav")
 
 font = pygame.font.SysFont("comicsansms", 40)
 r = pygame.rect.Rect((0, WIN_HEIGHT-30, 70, 30))
@@ -78,7 +75,7 @@ def on_message(client, userdata, message):
                 userdata.player.action = "Gesture"
                 userdata.player.message = "Gesture"
                 userdata.player.before = True
-    elif(line == "Chop" or line == "Stir"):
+    elif(line == "Chop" or line == "Stir" or line == "Idle"):
         if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action == "Gesture"):
                 userdata.player.message = line
@@ -105,6 +102,7 @@ class Game:
         self.running = True
         self.screen_x, self.screen_y = self.screen.get_size()
         print(self.screen_x)
+        print(self.screen_y)
 
         self.character_idle_spritesheet = Spritesheet('../img/chef1/chef1_idle_32.png')
         self.character_run_spritesheet = Spritesheet('../img/chef1/chef1_run_32.png')
@@ -120,6 +118,7 @@ class Game:
         self.plates_stack = Spritesheet('../img/individual_tiles/dish_pile.png')
         self.inventory_spritesheet = Spritesheet('../img/inventory_tile.png')
         self.bun_spritesheet = Spritesheet('../img/recipes/bun_spritesheet.png')
+        self.full_bun_spritesheet = Spritesheet('../img/recipes/bun_full.png')
         self.meat_spritesheet = Spritesheet('../img/recipes/meat_spritesheet.png')
         self.tomato_spritesheet = Spritesheet('../img/recipes/tomato_spritesheet.png')
         self.lettuce_spritesheet = Spritesheet('../img/recipes/lettuce_spritesheet.png')
@@ -128,8 +127,22 @@ class Game:
         self.knife_icon = Spritesheet('../img/knife_icon.png')
         self.cook_icon = Spritesheet('../img/cook_icon.png')
         self.speaking_animation = Spritesheet('../img/speaking_animation.png')
+        self.stirring_animation = Spritesheet('../img/stirring_animation.png')
+        self.chopping_animation = Spritesheet('../img/chopping_animation.png')
         self.cook_state_spritesheet = Spritesheet('../img/cook_state.png')
         self.cut_state_spritesheet = Spritesheet('../img/cut_state.png')
+        self.cut_state0_spritesheet = Spritesheet('../img/cut_state0.png', False)
+        self.cut_state1_spritesheet = Spritesheet('../img/cut_state1.png', False)
+        self.cut_state2_spritesheet = Spritesheet('../img/cut_state2.png', False)
+        self.cut_state3_spritesheet = Spritesheet('../img/cut_state3.png', False)
+        self.cook_state0_spritesheet = Spritesheet('../img/cook_state0.png', False)
+        self.cook_state1_spritesheet = Spritesheet('../img/cook_state1.png', False)
+        self.cook_state2_spritesheet = Spritesheet('../img/cook_state2.png', False)
+        self.cook_state3_spritesheet = Spritesheet('../img/cook_state3.png', False)
+        self.current_cut_sheet = self.cut_state_spritesheet
+        self.current_cook_sheet = self.cook_state_spritesheet
+        self.cook_state_list = [self.cook_state0_spritesheet, self.cook_state1_spritesheet, self.cook_state2_spritesheet, self.cook_state3_spritesheet]
+        self.cut_state_list = [self.cut_state0_spritesheet, self.cut_state1_spritesheet, self.cut_state2_spritesheet, self.cut_state3_spritesheet]
 
         self.fridge_open_animation = Spritesheet('../img/object_animations/fridge_open_spritesheet.png')
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet.png')
@@ -156,22 +169,24 @@ class Game:
         back_alt_img = pygame.image.load('Game_Texts/back_alt.png')
         self.back_button = new_button.Button(back_img, back_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 80, SING_WIN_HEIGHT-80)
         welcome_2_tut_img = pygame.image.load('Game_Texts/welcome_2_tut.png')
-        self.welcome_2_tut_button = new_button.Button(welcome_2_tut_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
+        self.welcome_2_tut_button = new_button.Button(welcome_2_tut_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -300)
+
         gesture_img = pygame.image.load('Game_Texts/gesture.png')
         gesture_alt_img = pygame.image.load('Game_Texts/gesture_alt.png')
-        self.gesture_button = new_button.Button(gesture_img, gesture_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 400)
+        self.gesture_button = new_button.Button(gesture_img, gesture_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -200)
         controller_img = pygame.image.load('Game_Texts/controller.png')
         controller_alt_img = pygame.image.load('Game_Texts/controller_alt.png')
-        self.controller_button = new_button.Button(controller_img, controller_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 160)
+        self.controller_button = new_button.Button(controller_img, controller_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 0)
         speech_img = pygame.image.load('Game_Texts/speech.png')
         speech_alt_img = pygame.image.load('Game_Texts/speech_alt.png')
-        self.speech_button = new_button.Button(speech_img, speech_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 240)
+        self.speech_button = new_button.Button(speech_img, speech_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -100)
         movement_img = pygame.image.load('Game_Texts/movement.png')
         movement_alt_img = pygame.image.load('Game_Texts/movement_alt.png')
-        self.movement_button = new_button.Button(movement_img, movement_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 320)
+        self.movement_button = new_button.Button(movement_img, movement_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 100)
         how2play_img = pygame.image.load('Game_Texts/how2play.png')
         how2play_alt_img = pygame.image.load('Game_Texts/how2play_alt.png')
-        self.how2play_button = new_button.Button(how2play_img, how2play_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 80)
+        #self.how2play_button = new_button.Button(how2play_img, how2play_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 200)
+        self.how2play_button = new_button.Button(how2play_img, how2play_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 200)
         wait_4_all_img = pygame.image.load('Game_Texts/wait_4_all.png')
         self.wait_4_all_button = new_button.Button(wait_4_all_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)
         ready_img = pygame.image.load('Game_Texts/ready.png')
@@ -206,7 +221,23 @@ class Game:
         self.fifteenmin_button = new_button.Button(fifteenmin_img, fifteenmin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 400)
         resign_img = pygame.image.load('Game_Texts/resign.png')
         resign_alt_img = pygame.image.load('Game_Texts/resign_alt.png')
-        self.resign_button = new_button.Button(resign_img, resign_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 330, SING_WIN_HEIGHT-420)
+        self.resign_button = new_button.Button(resign_img, resign_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 330, SING_WIN_HEIGHT-110)
+        pickup_img = pygame.image.load('Game_Texts/pickup.png')
+        self.pickup_button = new_button.Button(pickup_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-385)
+        down_img = pygame.image.load('Game_Texts/down.png')
+        self.down_button = new_button.Button(down_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-320)
+        meat_img = pygame.image.load('Game_Texts/meat.png')
+        self.meat_button = new_button.Button(meat_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)
+        bread_img = pygame.image.load('Game_Texts/bread.png')
+        self.bread_button = new_button.Button(bread_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)
+        lettuce_img = pygame.image.load('Game_Texts/lettuce.png')
+        self.lettuce_button = new_button.Button(lettuce_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)
+        tomato_img = pygame.image.load('Game_Texts/tomato.png')
+        self.tomato_button = new_button.Button(tomato_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)
+        plate_img = pygame.image.load('Game_Texts/plate.png')
+        self.plate_button = new_button.Button(plate_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)
+        voice_commands_img = pygame.image.load('Game_Texts/voice_commands.png')
+        self.voice_commands_button = new_button.Button(voice_commands_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-440)
 
     def createTilemap(self,tilemap,layer):
         for i, row in enumerate(tilemap):
@@ -215,6 +246,14 @@ class Game:
                 #     Player(self, j, i)
                 if column == '0':
                     BackgroundObject(self, self.plates_stack, 0, 0, j, i, layer, (self.all_sprites))
+                elif column == '1':
+                    BackgroundObject(self, self.tomato_spritesheet, 0, 0, j, i, layer, (self.all_sprites))
+                elif column == '2':
+                    BackgroundObject(self, self.lettuce_spritesheet, 0, 0, j, i, layer, (self.all_sprites))
+                elif column == '3':
+                    BackgroundObject(self, self.meat_spritesheet, 0, 0, j, i, layer, (self.all_sprites))
+                elif column == '4':
+                    BackgroundObject(self, self.full_bun_spritesheet, 0, 0, j, i, layer, (self.all_sprites))
                 elif column == '!':
                     IngredientsCounter("Tomato",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
                 elif column == '^':
@@ -243,9 +282,9 @@ class Game:
                 elif column == 'V':
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,layer,(self.all_sprites)) 
                 elif column == '8':
-                    BackgroundObject(self,self.cut_state_spritesheet,0,0,j,i,layer,(self.all_sprites)) 
+                    BackgroundObject(self,self.current_cut_sheet,0,0,j,i,layer,(self.all_sprites), 8, self.player, self.cook_state_list, self.cut_state_list)
                 elif column == '9':
-                    BackgroundObject(self,self.cook_state_spritesheet,0,0,j,i,layer,(self.all_sprites))       
+                    BackgroundObject(self,self.cook_state_spritesheet,0,0,j,i,layer,(self.all_sprites), 9, self.player, self.cook_state_list, self.cut_state_list)       
                 elif column == 'S':
                     Counter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == 'M':
@@ -304,7 +343,7 @@ class Game:
         # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
         # initialize_camera()
 
-        ProgressBar(self, self.progress_spritesheet, 3*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
+        ProgressBar(self, self.progress_spritesheet, 7*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
         # self.mouse.setupMouse()
 
         # self.setup_audiofile()
@@ -333,6 +372,7 @@ class Game:
         # game loop updates
 
         # run the update method of every sprite in the all_sprites group
+
         self.all_sprites.update() 
 
     def draw(self):
@@ -344,6 +384,22 @@ class Game:
         if self.resign_button.draw(self.screen) and self.clicked is True:
             self.playing = False
             self.clicked = False
+        self.voice_commands_button.draw(self.screen)
+        if self.player.location is not None:
+            if self.player.location == "Plate Station":
+                self.plate_button.draw(self.screen)
+            elif self.player.location == "Ingredients Stand":
+                if self.player.location_sprite.ingredient == 'Meat':
+                    self.meat_button.draw(self.screen)
+                elif self.player.location_sprite.ingredient == 'Lettuce':
+                    self.lettuce_button.draw(self.screen)
+                elif self.player.location_sprite.ingredient == 'Bun':
+                    self.bread_button.draw(self.screen)
+                elif self.player.location_sprite.ingredient == 'Tomato':
+                    self.tomato_button.draw(self.screen)
+            elif self.player.location in ["Chopping Station", "Cooking Station", "Top Counter", "Left Counter", "Right Counter"]:
+                self.pickup_button.draw(self.screen)
+                self.down_button.draw(self.screen)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -403,12 +459,14 @@ class Game:
             if self.timer.min == '0' and self.timer.sec == '00':
                 break
             self.clicked=True
+        self.player.game_on = False
         self.client.publish('overcooked_mic', "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()
         # self.speech_log.close()
         self.running = False
         self.clicked = False
+        self.player.stop_sounds()
         return self.game_over()
 
     def intro_screen(self):
@@ -524,9 +582,9 @@ class Game:
             self.clock.tick(FPS)
 
     def game_over(self):
-        self.clicked = False
+        self.player.game_on = False
         myFont = pygame.font.SysFont("Comic Sans MS", 40)
-        scoreDisplay = myFont.render(str(self.score.score), 1, (255,255,255))
+        scoreDisplay = myFont.render(str(self.score.score), 1, (0,0,0))
         while True:
             if self.clicked:
                 self.screen.blit(self.title_screen, (0,0))

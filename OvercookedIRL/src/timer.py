@@ -80,6 +80,8 @@ class Timer(pygame.sprite.Sprite):
         self.sec = self.timer%60
         self.fps = fps
         self.count = 1
+        
+        self.temp_time = datetime.timedelta(minutes=10.0)
 
         # print('background object created')
         
