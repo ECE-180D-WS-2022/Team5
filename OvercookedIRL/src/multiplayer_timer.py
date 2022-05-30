@@ -50,6 +50,7 @@ import datetime
 from config import *
 from recipe import RecipeCard 
 from playground_building_blocks import *
+import random
 
 class MultiplayerTimer(pygame.sprite.Sprite):
     def __init__(self, game, x, y, timer, fps):
@@ -131,6 +132,15 @@ class MultiplayerTimer(pygame.sprite.Sprite):
         # if(self.count%2700 == 0):
         #     if(len(self.game.recipes) < 5):
         #         self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0))
+
+        if(self.game.player.client_ID == 0):
+            # print(time_left.total_seconds())
+            if((self.count-5) % 1200 == 0):
+                if(len(self.game.recipes) < 5):                
+                    three = (random.randint(1,10) > 5)
+                    four = (random.randint(1,10) > 5)
+                    self.game.socket_client.send(pickle.dumps([33, three, four]))
+                    self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,three,four))
         
         self.txt = self.font.render(min+':'+sec, True, self.color)
 

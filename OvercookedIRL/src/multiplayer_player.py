@@ -359,22 +359,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         # print(self.rect.x)
 
         self.y_change = 0
-        self.x_change = 0
-
-        if(self.client_ID == 0):
-            # print(time_left.total_seconds())
-            if((self.frame-5) % 300 == 0):
-                if(len(self.game.recipes) < 10):                
-                    three = (random.randint(1,10) > 5)
-                    four = (random.randint(1,10) > 5)
-                    self.game.socket_client.send(pickle.dumps([33, three, four]))
-                    self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,three,four))
-            else:
-                temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
-                self.game.socket_client.send(pickle.dumps(temp_data))
-        else:
-            temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
-            self.game.socket_client.send(pickle.dumps(temp_data))
+        self.x_change = 0            
 
         self.frame += 1
         data = get_unblocked_data(self.game.socket_client)
@@ -383,38 +368,37 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         #     if (data != None and data[0] != 77):
         #         print(data)
 
-        # if(data != None):
-        #     print(data)
+        if(data != None):
+            print(data)
         
         # data = None
         if (data != None and type(data) == list and data[0] == 99):
-            if(self.prev_code != data[0]):
-                for test_item in data[1:]:
-                    # test_item = data[1] # list of item's attributes
-                    print("This is test item:")
-                    print(test_item)
-                    print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                    # coords = (data[1][-2], data[1][-1])
-                    coords = (test_item[-2], test_item[-1])
-                    print("Original coords:", str(coords[0]), str(coords[1]))
-                    station_test = self.game.find_share_station(coords[1], coords[0])
-                    
-                    # Code copied from counter.place_all_items()
-                    station_test.manually_place_one_item(test_item)
-            self.prev_code = data[0]
+            for test_item in data[1:]:
+                # test_item = data[1] # list of item's attributes
+                print("This is test item:")
+                print(test_item)
+                print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                # coords = (data[1][-2], data[1][-1])
+                coords = (test_item[-2], test_item[-1])
+                print("Original coords:", str(coords[0]), str(coords[1]))
+                station_test = self.game.find_share_station(coords[1], coords[0])
+                
+                # Code copied from counter.place_all_items()
+                station_test.manually_place_one_item(test_item)
+            self.game.socket_client.send(pickle.dumps([999, data[-1]]))
             
         if (data != None and type(data) == list and data[0] == 88):
             # This means we are retrieving updated scores from other players!
-            if(self.prev_code != data[0]):
-                updated_scores = data[1]
-                self.game.score.set_score(updated_scores)
-            self.prev_code = data[0]
+            updated_scores = data[1]
+            self.game.score.set_score(updated_scores)
+            self.game.score.del_recipe_at_index(data[2])
+            self.game.socket_client.send(pickle.dumps([888, data[-1]]))
             # Don't know what to do with it though?
             
         if (data != None and type(data) == list and data[0] == 77):
             # We need to update the timer!
             self.game.timer.set_time(data[1])
-            self.prev_code = data[0]
+            # self.game.socket_client.send(pickle.dumps([777, data[-1]]))
             pass
         
         if (data != None and type(data) == list and data[0] == 66):
@@ -424,12 +408,15 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             countertop = self.game.find_share_station(data[1][0], data[1][1])
             countertop = self.game.find_share_station(countertop.y, countertop.x)
             countertop.occupied = False
+            self.game.socket_client.send(pickle.dumps([666, data[-1]]))
 
         if (data != None and type(data) == list and data[0] == 33):
             # We need to update the timer!
-            if(len(self.game.recipes) < 10):
+            if(len(self.game.recipes) < 5):
                 self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,data[1],data[2]))
-            self.prev_code = data[0]
+                
+            print('recieved 33, sending 333 back!-------------------------------------' + str(self.frame))
+            self.game.socket_client.send(pickle.dumps([333, data[-1]]))
             
             
             
@@ -460,6 +447,9 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                 self.partner = Partner(self.game,10,11)
         elif (data != None and type(data) == float):
             pass
+
+        temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
+        self.game.socket_client.send(pickle.dumps(temp_data))
         # elif (data != None):
         #     print(data)
             # temp_data = [self.client_ID, self.frame, 

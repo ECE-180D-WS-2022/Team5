@@ -102,8 +102,6 @@ class MultiplayerCounter(pygame.sprite.Sprite):
             share_station.occupied = True
             print("SENDING DATA FROM PLAYER:", str(self.game.player.client_ID))
             self.game.socket_client.send(pickle.dumps(item_attrs))
-            self.game.socket_client.send(pickle.dumps(item_attrs))
-            self.game.socket_client.send(pickle.dumps(item_attrs))
             print("Data:", str(item_attrs))
             
             # Delete the item, is this done correctly?
@@ -390,7 +388,7 @@ class SubmitStation(MultiplayerCounter):
                                 break
 
                     if(del_index > -1):
-                        self.game.score.update_score(score)
+                        self.game.score.update_score(score, del_index)
                         print('del index' + str(del_index))
                         self.game.recipes[del_index].ingredient_1.deep_kill()
                         self.game.recipes[del_index].ingredient_2.deep_kill()

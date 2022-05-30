@@ -30,14 +30,12 @@ class Score(pygame.sprite.Sprite):
 
         # print('background object created')
 
-    def update_score(self, num):
+    def update_score(self, num, index):
         self.score += num
         self.txt = self.font.render(str(self.score), True, self.color)
         
         # Edits! 88 -> code for updating score!
-        self.game.socket_client.send(pickle.dumps([88, self.score]))
-        self.game.socket_client.send(pickle.dumps([88, self.score]))
-        self.game.socket_client.send(pickle.dumps([88, self.score]))
+        self.game.socket_client.send(pickle.dumps([88, self.score, index]))
 
         W = self.txt.get_width()
         H = self.txt.get_height()
@@ -52,3 +50,18 @@ class Score(pygame.sprite.Sprite):
         H = self.txt.get_height()
         self.image.fill((222,184,135))
         self.image.blit(self.txt, [self.width/2 - W/2, self.height/2 - H/2])
+
+        # self.del_recipe_at_index(index)
+
+    def del_recipe_at_index(self, del_index):
+        self.game.recipes[del_index].ingredient_1.deep_kill()
+        self.game.recipes[del_index].ingredient_2.deep_kill()
+        if(self.game.recipes[del_index].ingredient_3 != None):
+            self.game.recipes[del_index].ingredient_3.deep_kill()
+        if(self.game.recipes[del_index].ingredient_4 != None):
+            self.game.recipes[del_index].ingredient_4.deep_kill()
+        self.game.recipes[del_index].kill()
+        del self.game.recipes[del_index]
+        for i in range(len(self.game.recipes)):
+            # if(i > del_index):
+            self.game.recipes[i].x = 3*TILE_SIZE + ((i) * 2 * TILE_SIZE)
