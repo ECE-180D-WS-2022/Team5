@@ -51,7 +51,7 @@ from config import *
 from recipe import RecipeCard 
 from playground_building_blocks import *
 
-class Timer(pygame.sprite.Sprite):
+class TimerPoop(pygame.sprite.Sprite):
     def __init__(self, game, x, y, timer, fps):
         self.game = game
         self._layer = COUNTER_LAYER
