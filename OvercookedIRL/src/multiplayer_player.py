@@ -398,6 +398,10 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         if (data != None and type(data) == list and data[0] == 77):
             # We need to update the timer!
             self.game.timer.set_time(data[1])
+            
+            # If the timer has reached the end, quit the game!
+            if (data[2] == True):
+                self.game.game_over()
             # self.game.socket_client.send(pickle.dumps([777, data[-1]]))
             pass
         

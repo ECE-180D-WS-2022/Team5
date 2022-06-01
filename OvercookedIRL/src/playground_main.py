@@ -149,7 +149,7 @@ def on_message(client, userdata, message):
 class Game:
     def __init__(self, client_socket, header):
         pygame.init()
-        self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT)) # DELTA
         # self.game_screen = pygame.display.set_mode((MULT_WIN_WIDTH, WIN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
@@ -299,6 +299,7 @@ class Game:
         self.player = MultiplayerPlayer(self,10,11)
         self.timer = MultiplayerTimer(self,17,0,60,FPS)
         self.score = Score(self,0,0)
+        # self.score.set_score(0) #DELTA
         # self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
         self.recipes = []
         # game, x, y
@@ -587,13 +588,14 @@ class Game:
     def game_over(self):
         self.clicked = False
         myFont = pygame.font.SysFont("Times New Roman", 18)
-        scoreDisplay = myFont.render(self.score.score, 1, black)
+        scoreDisplay = myFont.render(str(self.score.score), 1, black)
+        print("This is the FINAL SCORE:", str(self.score.score))
         while True:
             if self.clicked:
                 self.screen.blit(title_screen, (0,0))
                 game_over_button.draw(self.screen)
                 score_button.draw(self.screen)
-                self.screen.blit(scoreDisplay, (SING_WIN_WIDTH-30, SING_WIN_HEIGHT- 30))
+                self.screen.blit(scoreDisplay, (MULT_WIN_WIDTH-30, MULT_WIN_HEIGHT- 30)) # DELTA
                 if back_button.draw(self.screen) and self.clicked is True:
                     return self.intro_screen()
                 for event in pygame.event.get():
