@@ -19,13 +19,23 @@ import sys
 import os
 from input_box import *
 import new_button
+from pygame.locals import *	
+from pygame import mixer	
+# import math
 # import speech_recognition as sr 
 import paho.mqtt.client as mqtt
+import time
 # from playground_building_blocks import *
 import threading
 
 
 pygame.init()
+
+mixer.init()	
+mixer.music.load("Sounds/jazz_background.wav")	
+mixer.music.set_volume(0.1)	
+mixer.music.play(-1)
+
 font = pygame.font.SysFont("comicsansms", 40)
 r = pygame.rect.Rect((0, WIN_HEIGHT-30, 70, 30))
 black = (0, 0, 0)
@@ -128,7 +138,7 @@ def on_message(client, userdata, message):
                 userdata.player.action = "Gesture"
                 userdata.player.message = "Gesture"
                 userdata.player.before = True
-    elif(line == "Chop" or line == "Stir"):
+    elif(line == "Chop" or line == "Stir" or line == "Idle"):
         if(userdata.player.location == "Chopping Station" or userdata.player.location == "Cooking Station"):
             if(userdata.player.action == "Gesture"):
                 userdata.player.message = line
@@ -150,7 +160,8 @@ def on_message(client, userdata, message):
 class Game:
     def __init__(self, client_socket, header):
         pygame.init()
-        self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)	
+        # self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
         # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         # self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, MULT_WIN_HEIGHT))
         self.clock = pygame.time.Clock()
@@ -158,6 +169,8 @@ class Game:
         self.socket_client = client_socket
         self.clicked = False
         self.header = header
+        self.in_tutorial = False	
+        self.screen_x, self.screen_y = self.screen.get_size()
         self.character_idle_spritesheet = Spritesheet('../img/chef1/chef1_idle_48.png')
         self.character_run_spritesheet = Spritesheet('../img/chef1/chef1_run_48.png')
         self.kitchen_spritesheet = Spritesheet('../img/12_Kitchen_48x48.png')
@@ -184,8 +197,20 @@ class Game:
         self.speaking_animation = Spritesheet('../img/speaking_animation_48.png')
         self.cook_state_spritesheet = Spritesheet('../img/cook_state.png')
         self.cut_state_spritesheet = Spritesheet('../img/cut_state.png')
+        self.cut_state0_spritesheet = Spritesheet('../img/cut_state0.png', False)	
+        self.cut_state1_spritesheet = Spritesheet('../img/cut_state1.png', False)	
+        self.cut_state2_spritesheet = Spritesheet('../img/cut_state2.png', False)	
+        self.cut_state3_spritesheet = Spritesheet('../img/cut_state3.png', False)
+        self.cook_state0_spritesheet = Spritesheet('../img/cook_state0.png', False)	
+        self.cook_state1_spritesheet = Spritesheet('../img/cook_state1.png', False)	
+        self.cook_state2_spritesheet = Spritesheet('../img/cook_state2.png', False)	
+        self.cook_state3_spritesheet = Spritesheet('../img/cook_state3.png', False)
         self.share_left_spritesheet = Spritesheet('../img/share_left_48.png')
         self.share_right_spritesheet = Spritesheet('../img/share_right_48.png')
+        self.current_cut_sheet = self.cut_state_spritesheet	
+        self.current_cook_sheet = self.cook_state_spritesheet	
+        self.cook_state_list = [self.cook_state0_spritesheet, self.cook_state1_spritesheet, self.cook_state2_spritesheet, self.cook_state3_spritesheet]	
+        self.cut_state_list = [self.cut_state0_spritesheet, self.cut_state1_spritesheet, self.cut_state2_spritesheet, self.cut_state3_spritesheet]	
 
         self.fridge_open_animation = Spritesheet('../img/object_animations/fridge_open_spritesheet_48.png')
         self.fridge_close_animation = Spritesheet('../img/object_animations/fridge_close_spritesheet_48.png')
@@ -195,7 +220,202 @@ class Game:
         
         self.all_share_stations = []
         self.all_counters = []
-        
+
+        SING_WIN_WIDTH = self.screen_x		
+        SING_WIN_HEIGHT = self.screen_y		
+        title_screen = pygame.image.load("../img/title_background.png")		
+        self.title_screen = pygame.transform.scale(title_screen, (SING_WIN_WIDTH, SING_WIN_HEIGHT))		
+        start_button_img = pygame.image.load("Game_Texts/Start_the_game.png")		
+        start_button_alt_img = pygame.image.load('Game_Texts/Start_the_game_alt.png')		
+        tutorial_button_img = pygame.image.load('Game_Texts/tutorial.png')		
+        tutorial_button_alt_img = pygame.image.load('Game_Texts/tutorial_alt.png')		
+        title_img = pygame.image.load('Game_Texts/new_title.png')		
+        exit_img = pygame.image.load('Game_Texts/exit.png')		
+        exit_alt_img = pygame.image.load('Game_Texts/exit_alt.png')		
+        self.exit_button = new_button.Button(exit_img, exit_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 80, SING_WIN_HEIGHT-80)		
+        self.new_start_button = new_button.Button(start_button_img, start_button_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -90)		
+        self.new_tutorial_button = new_button.Button(tutorial_button_img, tutorial_button_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 10)		
+        self.new_title = new_button.Button(title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        enter_name_img = pygame.image.load('Game_Texts/enter_name.png')		
+        self.enter_name = new_button.Button(enter_name_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        back_img = pygame.image.load('Game_Texts/back.png')		
+        back_alt_img = pygame.image.load('Game_Texts/back_alt.png')		
+        self.back_button = new_button.Button(back_img, back_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 80, SING_WIN_HEIGHT-80)		
+        self.tutorial_back_button = new_button.Button(back_img, back_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 180, SING_WIN_HEIGHT-80)		
+        welcome_2_tut_img = pygame.image.load('Game_Texts/welcome_2_tut.png')		
+        self.welcome_2_tut_button = new_button.Button(welcome_2_tut_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -300)		
+        gesture_img = pygame.image.load('Game_Texts/gesture.png')		
+        gesture_alt_img = pygame.image.load('Game_Texts/gesture_alt.png')		
+        self.gesture_button = new_button.Button(gesture_img, gesture_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 100)		
+        controller_img = pygame.image.load('Game_Texts/controller.png')		
+        controller_alt_img = pygame.image.load('Game_Texts/controller_alt.png')		
+        self.controller_button = new_button.Button(controller_img, controller_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -200)		
+        speech_img = pygame.image.load('Game_Texts/speech.png')		
+        speech_alt_img = pygame.image.load('Game_Texts/speech_alt.png')		
+        self.speech_button = new_button.Button(speech_img, speech_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -100)		
+        movement_img = pygame.image.load('Game_Texts/movement.png')		
+        movement_alt_img = pygame.image.load('Game_Texts/movement_alt.png')		
+        self.movement_button = new_button.Button(movement_img, movement_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 0)		
+        how2play_img = pygame.image.load('Game_Texts/how2play.png')		
+        how2play_alt_img = pygame.image.load('Game_Texts/how2play_alt.png')		
+        self.how2play_button = new_button.Button(how2play_img, how2play_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 200)		
+        wait_4_all_img = pygame.image.load('Game_Texts/wait_4_all.png')		
+        self.wait_4_all_button = new_button.Button(wait_4_all_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        ready_img = pygame.image.load('Game_Texts/ready.png')		
+        ready_alt_img = pygame.image.load('Game_Texts/ready_alt.png')		
+        self.ready_button = new_button.Button(ready_img, ready_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -90)		
+        ready_up_img = pygame.image.load('Game_Texts/ready_up.png')		
+        self.ready_up_button= new_button.Button(ready_up_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        select_mode_img = pygame.image.load('Game_Texts/select_mode.png')		
+        self.select_mode_button = new_button.Button(select_mode_img, None, 0.55, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        singleplayer_img = pygame.image.load('Game_Texts/singleplayer.png')		
+        singleplayer_alt_img = pygame.image.load('Game_Texts/singleplayer_alt.png')		
+        multiplayer_img = pygame.image.load('Game_Texts/multiplayer.png')		
+        multiplayer_alt_img = pygame.image.load('Game_Texts/multiplayer_alt.png')		
+        self.singleplayer_button = new_button.Button(singleplayer_img, singleplayer_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, -90)		
+        self.multiplayer_button = new_button.Button(multiplayer_img, multiplayer_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 10)		
+        no_srv_fnd_img = pygame.image.load('Game_Texts/no_srv_fnd.png')		
+        self.no_srv_fnd_button = new_button.Button(no_srv_fnd_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        game_over_img = pygame.image.load('Game_Texts/game_over.png')		
+        self.game_over_button = new_button.Button(game_over_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        score_img = pygame.image.load('Game_Texts/score.png')		
+        self.score_button = new_button.Button(score_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, -30, -90)		
+        settings_img = pygame.image.load('Game_Texts/settings.png')		
+        self.settings_button = new_button.Button(settings_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -330)		
+        fivemin_img = pygame.image.load('Game_Texts/5min.png')		
+        fivemin_alt_img = pygame.image.load('Game_Texts/5min_alt.png')		
+        self.fivemin_button = new_button.Button(fivemin_img, fivemin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 240)		
+        tenmin_img = pygame.image.load('Game_Texts/10min.png')		
+        tenmin_alt_img = pygame.image.load('Game_Texts/10min_alt.png')		
+        self.tenmin_button = new_button.Button(tenmin_img, tenmin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 320)		
+        fifteenmin_img = pygame.image.load('Game_Texts/15min.png')		
+        fifteenmin_alt_img = pygame.image.load('Game_Texts/15min_alt.png')		
+        self.fifteenmin_button = new_button.Button(fifteenmin_img, fifteenmin_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 400)		
+        resign_img = pygame.image.load('Game_Texts/resign.png')	
+        resign_alt_img = pygame.image.load('Game_Texts/resign_alt.png')	
+        self.resign_button = new_button.Button(resign_img, resign_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 330, SING_WIN_HEIGHT-110)	
+        pickup_img = pygame.image.load('Game_Texts/pickup.png')
+        self.pickup_button = new_button.Button(pickup_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-385)	
+        down_img = pygame.image.load('Game_Texts/down.png')	
+        self.down_button = new_button.Button(down_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-320)	
+        meat_img = pygame.image.load('Game_Texts/meat.png')	
+        self.meat_button = new_button.Button(meat_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)
+        bread_img = pygame.image.load('Game_Texts/bread.png')	
+        self.bread_button = new_button.Button(bread_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)	
+        lettuce_img = pygame.image.load('Game_Texts/lettuce.png')	
+        self.lettuce_button = new_button.Button(lettuce_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)	
+        tomato_img = pygame.image.load('Game_Texts/tomato.png')
+        self.tomato_button = new_button.Button(tomato_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)	
+        plate_img = pygame.image.load('Game_Texts/plate.png')	
+        self.plate_button = new_button.Button(plate_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-370)	
+        voice_commands_img = pygame.image.load('Game_Texts/voice_commands.png')	
+        self.voice_commands_button = new_button.Button(voice_commands_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 420, SING_WIN_HEIGHT-440)
+        begin_img = pygame.image.load('Game_Texts/begin.png')	
+        begin_alt_img = pygame.image.load('Game_Texts/begin_alt.png')	
+        self.begin_button = new_button.Button(begin_img, begin_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 380, 630)	
+        try_it_img = pygame.image.load('Game_Texts/try_it.png')	
+        try_it_alt_img = pygame.image.load('Game_Texts/try_it_alt.png')	
+        self.try_it_button = new_button.Button(try_it_img, try_it_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 300)
+        skip_alt_img = pygame.image.load('Game_Texts/skip_alt.png')	
+        skip_img = pygame.image.load('Game_Texts/skip.png')	
+        self.skip_button = new_button.Button(skip_img, skip_alt_img, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, SING_WIN_WIDTH - 280, SING_WIN_HEIGHT-80)	
+        continue_alt_img = pygame.image.load('Game_Texts/continue_alt.png')	
+        continue_img = pygame.image.load('Game_Texts/continue.png')	
+        self.continue_button = new_button.Button(continue_img, continue_alt_img, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, True, 0, 80)
+        great_job_img = pygame.image.load('Game_Texts/great_job.png')	
+        self.great_job_button = new_button.Button(great_job_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -20)	
+        tut_completed_img = pygame.image.load('Game_Texts/tut_completed.png')	
+        self.tut_completed_button = new_button.Button(tut_completed_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, -20)	
+        # have_fun_img = pygame.image.load('Game_Texts/have_fun.png')	
+        # self.have_fun_button = new_button.Button(have_fun_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, True, False, 0, 260)
+        welcome_how2play_img = pygame.image.load('Game_Texts/wel_howtoplay.png')	
+        self.welcome_how2play_button = new_button.Button(welcome_how2play_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, False, 120, 100)	
+        how2play_intro_text_img = pygame.image.load('Game_Texts/Intro_txt.png')	
+        self.how2play_intro_text_button = new_button.Button(how2play_intro_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, False, 15, 220)
+
+        tut_1_img = pygame.image.load('Game_Texts/tut_1_pic.png')	
+        self.tut_1_button = new_button.Button(tut_1_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 680, 220)	
+        tut_2_img = pygame.image.load('Game_Texts/tut_2_pic.png')	
+        self.tut_2_button = new_button.Button(tut_2_img, None, 0.3, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 830, 220)	
+        tut_3_img = pygame.image.load('Game_Texts/tut_3_pic.png')	
+        self.tut_3_button = new_button.Button(tut_3_img, None, 0.2, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 680, 460)	
+        tut_4_img = pygame.image.load('Game_Texts/tut_4_pic.png')
+        self.tut_4_button = new_button.Button(tut_4_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 680, 340)	
+        obj1_text_img = pygame.image.load('Game_Texts/obj1_text.png')	
+        self.obj1_text_button = new_button.Button(obj1_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        obj1_title_img = pygame.image.load('Game_Texts/obj1_title.png')	
+        self.obj1_title = new_button.Button(obj1_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
+        tut_5_img = pygame.image.load('Game_Texts/tut_5_pic.png')	
+        self.tut_5_button = new_button.Button(tut_5_img, None, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 620, 220)	
+        tut_6_img = pygame.image.load('Game_Texts/tut_6_pic.png')	
+        self.tut_6_button = new_button.Button(tut_6_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 870, 220)	
+        tut_7_img = pygame.image.load('Game_Texts/tut_7_pic.png')	
+        self.tut_7_button = new_button.Button(tut_7_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 870, 400)	
+        tut_8_img = pygame.image.load('Game_Texts/tut_8_pic.png')
+        self.tut_8_button = new_button.Button(tut_8_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 870, 470)	
+        obj2_text_img = pygame.image.load('Game_Texts/obj2_text.png')	
+        self.obj2_text_button = new_button.Button(obj2_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        obj2_title_img = pygame.image.load('Game_Texts/obj2_title.png')	
+        self.obj2_title = new_button.Button(obj2_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
+        tut_9_img = pygame.image.load('Game_Texts/tut_9_pic.png')	
+        self.tut_9_button = new_button.Button(tut_9_img, None, 0.4, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 620, 220)	
+        tut_10_img = pygame.image.load('Game_Texts/tut_10_pic.png')	
+        self.tut_10_button = new_button.Button(tut_10_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 800, 220)	
+        tut_11_img = pygame.image.load('Game_Texts/tut_11_pic.png')	
+        self.tut_11_button = new_button.Button(tut_11_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 800, 300)	
+        obj3_text_img = pygame.image.load('Game_Texts/obj3_text.png')
+        self.obj3_text_button = new_button.Button(obj3_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        obj3_title_img = pygame.image.load('Game_Texts/obj3_title.png')	
+        self.obj3_title = new_button.Button(obj3_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)	
+        tut_12_img = pygame.image.load('Game_Texts/tut_12_pic.png')	
+        self.tut_12_button = new_button.Button(tut_12_img, None, 0.45, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 600, 80)	
+        tut_13_img = pygame.image.load('Game_Texts/tut_13_pic.png')
+        self.tut_13_button = new_button.Button(tut_13_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 600, 420)	
+        tut_14_img = pygame.image.load('Game_Texts/tut_14_pic.png')	
+        self.tut_14_button = new_button.Button(tut_14_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 900, 460)	
+        obj4_text_img = pygame.image.load('Game_Texts/obj4_text.png')	
+        self.obj4_text_button = new_button.Button(obj4_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        obj4_title_img = pygame.image.load('Game_Texts/obj4_title.png')
+        self.obj4_title = new_button.Button(obj4_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)	
+        tut_15_img = pygame.image.load('Game_Texts/tut_15_pic.png')	
+        self.tut_15_button = new_button.Button(tut_15_img, None, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 620, 100)	
+        tut_16_img = pygame.image.load('Game_Texts/tut_16_pic.png')	
+        self.tut_16_button = new_button.Button(tut_16_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 760, 360)	
+        tut_17_img = pygame.image.load('Game_Texts/tut_17_pic.png')
+        self.tut_17_button = new_button.Button(tut_17_img, None, 0.35, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 620, 370)	
+        tut_18_img = pygame.image.load('Game_Texts/tut_18_pic.png')	
+        self.tut_18_button = new_button.Button(tut_18_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 760, 440)	
+        obj5_text_img = pygame.image.load('Game_Texts/obj5_text.png')	
+        self.obj5_text_button = new_button.Button(obj5_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        obj5_title_img = pygame.image.load('Game_Texts/obj5_title.png')
+        self.obj5_title = new_button.Button(obj5_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)	
+        tut_19_img = pygame.image.load('Game_Texts/tut_19_pic.png')	
+        self.tut_19_button = new_button.Button(tut_19_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 620, 140)	
+        tut_20_img = pygame.image.load('Game_Texts/tut_20_pic.png')	
+        self.tut_20_button = new_button.Button(tut_20_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 740, 270)	
+        tut_21_img = pygame.image.load('Game_Texts/tut_21_pic.png')
+        self.tut_21_button = new_button.Button(tut_21_img, None, 0.4, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 620, 450)	
+        obj6_text_img = pygame.image.load('Game_Texts/obj6_text.png')	
+        self.obj6_text_button = new_button.Button(obj6_text_img, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        obj6_title_img = pygame.image.load('Game_Texts/obj6_title.png')	
+        self.obj6_title = new_button.Button(obj6_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
+
+        controller_1_img = pygame.image.load('Game_Texts/controller_1.png')	
+        self.controller_1_button = new_button.Button(controller_1_img, None, 0.08, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 690, 170)	
+        controller_2_img = pygame.image.load('Game_Texts/controller_2.png')	
+        self.controller_2_button = new_button.Button(controller_2_img, None, 0.08, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 690, 550)	
+        controller_title_img = pygame.image.load('Game_Texts/controller_title.png')	
+        self.controller_title_button = new_button.Button(controller_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
+        controller_text = pygame.image.load('Game_Texts/controller_text.png')	
+        self.controller_text_button = new_button.Button(controller_text, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        speech_1_img = pygame.image.load('Game_Texts/speech_1.png')	
+        self.speech_1_button = new_button.Button(speech_1_img, None, 0.7, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 630, 220)	
+        speech_title_img = pygame.image.load('Game_Texts/speech_title.png')	
+        self.speech_title_button = new_button.Button(speech_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
+        speech_title_img = pygame.image.load('Game_Texts/speech_title.png')	
+
+        self.current_obj = 0
+
     def check_if_share(self, row, column):
         columns = [8, 9]
         rows = [4,5]
@@ -228,6 +448,14 @@ class Game:
                 #     Player(self, j, i)
                 if column == '0':
                     BackgroundObject(self, self.plates_stack, 0, 0, j, i, layer, (self.all_sprites))
+                elif column == '1':	
+                    BackgroundObject(self, self.tomato_spritesheet, 0, 0, j, i, layer, (self.all_sprites))	
+                elif column == '2':	
+                    BackgroundObject(self, self.lettuce_spritesheet, 0, 0, j, i, layer, (self.all_sprites))	
+                elif column == '3':	
+                    BackgroundObject(self, self.meat_spritesheet, 0, 0, j, i, layer, (self.all_sprites))	
+                elif column == '4':	
+                    BackgroundObject(self, self.full_bun_spritesheet, 0, 0, j, i, layer, (self.all_sprites))	
                 elif column == '!':
                     IngredientsCounter("Tomato",self, self.kitchen_spritesheet,white_counter["!"][0],white_counter["!"][1],j,i,layer,(self.all_sprites,self.counters,self.top_perspective_counters,self.ingredients_stands))
                 elif column == '^':
@@ -294,7 +522,7 @@ class Game:
                     # self.image = self.game.kitchen_spritesheet.get_sprite(white_counter[type][0],white_counter[type][1],0,0,self.width,self.height)
         # print('created tilemap')
 
-    def new(self):
+    def new(self, timer=None):
         # a new game starts
         self.playing = True
 
@@ -327,6 +555,7 @@ class Game:
         self.createTilemap(mult_counter_tilemap_back,COUNTER_BACK_LAYER)
         self.createTilemap(mult_counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
         self.createTilemap(mult_counter_tilemap,COUNTER_LAYER)
+        self.createTilemap(counter_tilemap_ingredient, COUNTER_LAYER)
         self.createTilemap(mult_counter_tilemap_2,COUNTER_FRONT_LAYER)
         self.createTilemap(mult_counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
         # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
@@ -369,7 +598,8 @@ class Game:
 
     def draw(self):
         # game loop draw
-        self.screen.fill((0,0,0))
+        # self.screen.fill((0,0,0))
+        self.screen.fill((222,184,135))
 
         # draws the image and rect of all sprites in the all_sprites group onto the screen
         self.all_sprites.draw(self.screen)
@@ -393,6 +623,282 @@ class Game:
         self.client.connect_async("test.mosquitto.org")
         self.client.connect("test.mosquitto.org", 1883, 60)
         self.client.loop_start()
+
+    def obj1(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.obj1_title.draw(self.screen)
+            self.obj1_text_button.draw(self.screen)
+            self.tut_1_button.draw(self.screen)
+            self.tut_2_button.draw(self.screen)
+            self.tut_3_button.draw(self.screen)
+            self.tut_4_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.try_it_button.draw(self.screen) and self.clicked is True:
+                return None
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+    
+    def obj2(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.obj2_title.draw(self.screen)
+            self.obj2_text_button.draw(self.screen)
+            self.tut_5_button.draw(self.screen)
+            self.tut_6_button.draw(self.screen)
+            self.tut_7_button.draw(self.screen)
+            self.tut_8_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.try_it_button.draw(self.screen) and self.clicked is True:
+                return None
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def obj3(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.obj3_title.draw(self.screen)
+            self.obj3_text_button.draw(self.screen)
+            self.tut_9_button.draw(self.screen)
+            self.tut_10_button.draw(self.screen)
+            self.tut_11_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.try_it_button.draw(self.screen) and self.clicked is True:
+                return None
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def obj4(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.obj4_title.draw(self.screen)
+            self.obj4_text_button.draw(self.screen)
+            self.tut_12_button.draw(self.screen)
+            self.tut_13_button.draw(self.screen)
+            self.tut_14_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.try_it_button.draw(self.screen) and self.clicked is True:
+                return None
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def obj5(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.obj5_title.draw(self.screen)
+            self.obj5_text_button.draw(self.screen)
+            self.tut_15_button.draw(self.screen)
+            self.tut_16_button.draw(self.screen)
+            self.tut_17_button.draw(self.screen)
+            self.tut_18_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.try_it_button.draw(self.screen) and self.clicked is True:
+                return None
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def obj6(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.obj6_title.draw(self.screen)
+            self.obj6_text_button.draw(self.screen)
+            self.tut_19_button.draw(self.screen)
+            self.tut_20_button.draw(self.screen)
+            self.tut_21_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.try_it_button.draw(self.screen) and self.clicked is True:
+                return None
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def tutorial_main(self):
+        self.new()
+        self.recipes = [RecipeCard(self,3*TILE_SIZE,0), self.in_tutorial]
+        self.clicked = False
+        correct = False
+        drop_meat = False
+        pick_bread = False
+        drop_bread = False
+        assembled = False
+        num_of_objectives = 6
+        self.current_obj = 0
+        self.obj1()
+        while self.playing:
+            print(self.current_obj)
+            match self.current_obj:
+                case 0:
+                    if len(self.player.inventory) != 0:
+                        if self.player.inventory[0].ingredient_name == 'Meat':
+                            correct = True
+                            while True:
+                                self.great_job_button.draw(self.screen)
+                                if self.continue_button.draw(self.screen) and self.clicked is True:
+                                    break
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                self.clicked=True
+                                pygame.display.update()
+                                self.clock.tick(FPS)
+                            self.obj2()
+                case 1:
+                    if len(self.player.inventory) != 0:
+                        if self.player.inventory[0].ingredient_name == 'Meat' and self.player.inventory[0].cut_state == 3:
+                            correct = True
+                            while True:
+                                self.great_job_button.draw(self.screen)
+                                if self.continue_button.draw(self.screen) and self.clicked is True:
+                                    break
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                self.clicked=True
+                                pygame.display.update()
+                                self.clock.tick(FPS)
+                            self.obj3()
+                case 2:
+                    if len(self.player.inventory) != 0:
+                        if self.player.inventory[0].ingredient_name == 'Meat' and self.player.inventory[0].cut_state == 3 and self.player.inventory[0].cook_state == 3:
+                            correct = True
+                            while True:
+                                self.great_job_button.draw(self.screen)
+                                if self.continue_button.draw(self.screen) and self.clicked is True:
+                                    break
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                self.clicked=True
+                                pygame.display.update()
+                                self.clock.tick(FPS)
+                            self.obj4()
+                case 3:
+                    if len(self.player.inventory) == 0:
+                        drop_meat = True
+                    if drop_meat:
+                        if len(self.player.inventory) != 0:
+                            if self.player.inventory[0].ingredient_name == 'Bun':
+                                pick_bread = True
+                    if pick_bread:
+                        if len(self.player.inventory) == 0:
+                            drop_bread = True
+                    if drop_meat and pick_bread and drop_bread:
+                        correct = True
+                        while True:
+                                self.great_job_button.draw(self.screen)
+                                if self.continue_button.draw(self.screen) and self.clicked is True:
+                                    break
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                self.clicked=True
+                                pygame.display.update()
+                                self.clock.tick(FPS)
+                        self.obj5()
+                case 4:
+                    if len(self.player.inventory) == 3:
+                        for item in self.player.inventory:
+                            if item.ingredient_name == 'Plate' or item.ingredient_name == 'Bun' or item.ingredient_name == 'Meat':
+                                assembled = True
+                            else:
+                                assembled = False
+                    else:
+                        assembled = False
+                    if assembled:
+                        correct = True
+                        while True:
+                                self.great_job_button.draw(self.screen)
+                                if self.continue_button.draw(self.screen) and self.clicked is True:
+                                    break
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                self.clicked=True
+                                pygame.display.update()
+                                self.clock.tick(FPS)
+                        self.obj6()
+                case 5:
+                    if self.score.score == 40:
+                        correct = True
+                        while True:
+                                self.great_job_button.draw(self.screen)
+                                if self.continue_button.draw(self.screen) and self.clicked is True:
+                                    break
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                        sys.exit()
+                                self.clicked=True
+                                pygame.display.update()
+                                self.clock.tick(FPS)
+            self.events()
+            self.update()
+            self.draw()
+            self.clicked=True
+            if correct is True:
+                self.current_obj+=1
+                correct = False
+            if self.current_obj == num_of_objectives:
+                while True:
+                    if self.exit_button.draw(self.screen) and self.clicked is True:
+                        break
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                            sys.exit()
+                    self.clicked=True
+                    pygame.display.update()
+                    self.clock.tick(FPS)
+                self.tut_completed_button.draw(self.screen)
+        self.client.publish('overcooked_mic', "stop", qos=1)    
+        self.player.stop_sounds()
+        return self.tutorial_screen_intro()
         
     def main(self):
         self.screen = pygame.display.set_mode((MULT_WIN_WIDTH, MULT_WIN_HEIGHT))
@@ -410,6 +916,12 @@ class Game:
             self.events()
             self.update()
             self.draw()
+
+            if self.timer.min == '0' and self.timer.sec == '00':	
+                break	
+            self.clicked=True	
+            self.player.game_on = False	
+            self.client.publish('overcooked_mic', "stop", qos=1)
             # round_timer = int(math.ceil(timer))
             # min = str(int(round_timer/60))
             # sec = str(int(round_timer%60))
@@ -430,17 +942,21 @@ class Game:
         self.client.disconnect()
         # self.speech_log.close()
         self.running = False
+        self.clicked = False	
+        self.player.stop_sounds()	
+        return self.game_over()
 
     def intro_screen(self):
+            self.in_tutorial = False
             self.clicked = False
             while True:
                 self.screen.blit(title_screen, (0,0))
-                new_title.draw(self.screen)
-                if new_start_button.draw(self.screen) and self.clicked is True:
+                self.new_title.draw(self.screen)
+                if self.new_start_button.draw(self.screen) and self.clicked is True:
                     return self.gamemode_selection_screen()
-                if new_tutorial_button.draw(self.screen) and self.clicked is True:
+                if self.new_tutorial_button.draw(self.screen) and self.clicked is True:
                     return self.tutorial_screen_intro()
-                if exit_button.draw(self.screen) and self.clicked is True:
+                if self.exit_button.draw(self.screen) and self.clicked is True:
                     print("exit")
                     pygame.quit()
                     sys.exit()
@@ -602,6 +1118,135 @@ class Game:
                     sys.exit()
             pygame.display.update()
             self.clock.tick(FPS)
+
+    def settings_screen(self):
+        self.clicked = False
+        time_selected = False
+        timer = 0
+        while True:
+            if self.clicked:
+                
+                self.screen.blit(self.title_screen, (0,0))
+                self.settings_button.draw(self.screen)
+                if time_selected is False:
+                    if self.fivemin_button.draw(self.screen) and self.clicked is True:
+                        timer = 300
+                        time_selected = True
+                    if self.tenmin_button.draw(self.screen) and self.clicked is True:
+                        timer = 600
+                        time_selected = True
+                    if self.fifteenmin_button.draw(self.screen) and self.clicked is True:
+                        timer = 900
+                        time_selected = True
+                else:
+                    while True:
+                        self.screen.blit(self.title_screen, (0,0))
+                        self.ready_up_button.draw(self.screen)
+                        if self.ready_button.draw(self.screen) and self.clicked is True:
+                            self.new(timer)
+                            self.running = True
+                            self.clicked = False
+                            while self.running:
+                                self.main()
+                            return None
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                        pygame.display.update()
+                        self.clock.tick(FPS)           
+                if self.back_button.draw(self.screen) and self.clicked is True:
+                    return self.gamemode_selection_screen()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def how2play_screen(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.welcome_how2play_button.draw(self.screen)
+            self.how2play_intro_text_button.draw(self.screen)
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            if self.begin_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_main()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def tutorial_screen_intro(self):
+        self.current_obj = 0
+        self.in_tutorial = True
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.welcome_2_tut_button.draw(self.screen)
+            if self.gesture_button.draw(self.screen) and self.clicked is True:
+                return self.gesture_tutorial()
+            if self.controller_button.draw(self.screen) and self.clicked is True:
+                return self.controller_tutorial()
+            if self.speech_button.draw(self.screen) and self.clicked is True:
+                return self.speech_tutorial()
+            if self.movement_button.draw(self.screen) and self.clicked is True:
+                return self.movement_tutorial()
+            if self.back_button.draw(self.screen) and self.clicked is True:
+                return self.intro_screen()
+            if self.how2play_button.draw(self.screen) and self.clicked is True:
+                return self.how2play_screen()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked = True
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def gesture_tutorial(self):
+        pass
+    def controller_tutorial(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.controller_title_button.draw(self.screen)
+            self.controller_text_button.draw(self.screen)
+            self.controller_1_button.draw(self.screen)
+            self.controller_2_button.draw(self.screen)
+            if self.back_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+    def speech_tutorial(self):
+        self.clicked = False
+        while True:
+            self.screen.blit(self.title_screen, (0,0))
+            self.speech_title_button.draw(self.screen)
+            self.speech_text_button.draw(self.screen)
+            self.speech_1_button.draw(self.screen)
+            if self.back_button.draw(self.screen) and self.clicked is True:
+                return self.tutorial_screen_intro()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            self.clicked=True
+            pygame.display.update()
+            self.clock.tick(FPS)
+    def movement_tutorial(self):
+        pass
 
     def game_over(self):
         self.clicked = False
