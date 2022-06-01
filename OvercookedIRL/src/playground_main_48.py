@@ -185,6 +185,7 @@ class Game:
         self.plates_stack = Spritesheet('../img/individual_tiles/dish_pile_48.png')
         self.inventory_spritesheet = Spritesheet('../img/inventory_tile_48.png')
         self.bun_spritesheet = Spritesheet('../img/recipes/bun_spritesheet_48.png')
+        self.full_bun_spritesheet = Spritesheet('../img/recipes/bun_full_48.png')
         self.meat_spritesheet = Spritesheet('../img/recipes/meat_spritesheet_48.png')
         self.tomato_spritesheet = Spritesheet('../img/recipes/tomato_spritesheet_48.png')
         self.lettuce_spritesheet = Spritesheet('../img/recipes/lettuce_spritesheet_48.png')
@@ -408,11 +409,13 @@ class Game:
         self.controller_title_button = new_button.Button(controller_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
         controller_text = pygame.image.load('Game_Texts/controller_text.png')	
         self.controller_text_button = new_button.Button(controller_text, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
+        
         speech_1_img = pygame.image.load('Game_Texts/speech_1.png')	
         self.speech_1_button = new_button.Button(speech_1_img, None, 0.7, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 630, 220)	
         speech_title_img = pygame.image.load('Game_Texts/speech_title.png')	
         self.speech_title_button = new_button.Button(speech_title_img, None, 0.6, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 100)
-        speech_title_img = pygame.image.load('Game_Texts/speech_title.png')	
+        speech_text = pygame.image.load('Game_Texts/speech_text.png')
+        self.speech_text_button = new_button.Button(speech_text, None, 0.5, SING_WIN_WIDTH, SING_WIN_HEIGHT, False, True, 15, 220)	
 
         self.current_obj = 0
 
@@ -603,8 +606,75 @@ class Game:
 
         # draws the image and rect of all sprites in the all_sprites group onto the screen
         self.all_sprites.draw(self.screen)
-        self.clock.tick(FPS)
+
+        if not self.in_tutorial:
+            if self.resign_button.draw(self.screen) and self.clicked is True:
+                self.playing = False
+                self.clicked = False
+        else:
+            if self.exit_button.draw(self.screen) and self.clicked is True:
+                self.playing=False
+                self.clicked=False
+                return self.intro_screen()
+            # if self.skip_button.draw(self.screen) and self.clicked is True:
+            #     self.clicked=False
+            #     self.current_obj+=1
+            #     match self.current_obj:
+            #         case 1:
+            #             self.player.inventory.append(Ingredient(self.game, "Meat", INVENTORY_X, INVENTORY_Y, INVENTORY_LAYER))
+            #             self.obj2()
+            #         case 2:
+            #             self.player.inventory = []
+            #             self.player.inventory.append(Ingredient(self.game, "Meat", INVENTORY_X, INVENTORY_Y, INVENTORY_LAYER))
+            #             self.player.inventory[0].cut_state = 3
+            #             self.obj3()
+            #         case 3:
+            #             self.player.inventory = []
+            #             self.player.inventory.append(Ingredient(self.game, "Meat", INVENTORY_X, INVENTORY_Y, INVENTORY_LAYER))
+            #             self.player.inventory[0].cut_state = 3
+            #             self.player.inventory[0].cook_state = 3
+            #             self.obj4()
+            #         case 4:
+            #             self.obj5()
+            #         case 5:
+            #             self.obj6()
+            if self.tutorial_back_button.draw(self.screen) and self.clicked is True:
+                self.clicked=False
+                match self.current_obj:
+                    case 0:
+                        self.obj1()
+                    case 1:
+                        self.obj2()
+                    case 2:
+                        self.obj3()
+                    case 3:
+                        self.obj4()
+                    case 4:
+                        self.obj5()
+                    case 5:
+                        self.obj6()
+        self.voice_commands_button.draw(self.screen)
+        if self.player.location is not None:
+            if self.player.location == "Plate Station":
+                self.plate_button.draw(self.screen)
+            elif self.player.location == "Ingredients Stand":
+                if self.player.location_sprite.ingredient == 'Meat':
+                    self.meat_button.draw(self.screen)
+                elif self.player.location_sprite.ingredient == 'Lettuce':
+                    self.lettuce_button.draw(self.screen)
+                elif self.player.location_sprite.ingredient == 'Bun':
+                    self.bread_button.draw(self.screen)
+                elif self.player.location_sprite.ingredient == 'Tomato':
+                    self.tomato_button.draw(self.screen)
+            elif self.player.location in ["Chopping Station", "Cooking Station", "Top Counter", "Left Counter", "Right Counter"]:
+                self.pickup_button.draw(self.screen)
+                self.down_button.draw(self.screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
         pygame.display.update()
+        self.clock.tick(FPS)
 
     def setup_audiofile(self):
         i = 0
