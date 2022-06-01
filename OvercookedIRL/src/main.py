@@ -315,8 +315,8 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and self.clicked is True:
                 pos = pygame.mouse.get_pos()
-                self.player.dest_x = ((round(pos[0]/32)-1) * 32)
-                self.player.dest_y = ((round(pos[1]/32)-1) * 32)
+                self.player.dest_x = ((round(pos[0]/TILE_SIZE)-1) * TILE_SIZE)
+                self.player.dest_y = ((round(pos[1]/TILE_SIZE)-1) * TILE_SIZE)
                 if(self.player.action is not None):
                     self.client.publish('overcooked_mic', "Stop", qos=1)
                     self.client.publish('overcooked_imu', "Mic Stop", qos=1)

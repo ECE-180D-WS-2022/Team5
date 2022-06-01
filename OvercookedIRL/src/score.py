@@ -1,6 +1,6 @@
 import pygame
 import math
-from multiplayer_config import * 
+from multiplayer_config_48 import * 
 import pickle
 
 class Score(pygame.sprite.Sprite):

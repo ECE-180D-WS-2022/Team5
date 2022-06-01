@@ -1,5 +1,5 @@
 import pygame
-from multiplayer_config import * 
+from multiplayer_config_48 import * 
 import math
 # from ingredients import *
 # from sprites import *

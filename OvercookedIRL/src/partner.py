@@ -1,5 +1,5 @@
 import pygame
-from multiplayer_config import * 
+from multiplayer_config_48 import * 
 from ingredients import *
 from sprites import *
 from animations import *
@@ -271,7 +271,7 @@ class Partner(pygame.sprite.Sprite):
             self.image = self.chop[math.floor(self.animation_loop)%CHOP_FRAMES]
             if(self.prev_image_name != 'chop'):
                 print('create effects chop')
-                self.effects.append(Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self))
+                self.effects.append(Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,54,102,'during',self))
         elif(self.image_name == 'cook'):
             self.image = self.cook[math.floor(self.animation_loop)%STIR_FRAMES]
         if(self.action == 'Speak'):

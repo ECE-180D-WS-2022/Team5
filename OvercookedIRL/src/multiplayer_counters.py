@@ -1,5 +1,5 @@
 import pygame
-from multiplayer_config import * 
+from multiplayer_config_48 import * 
 from ingredients import *
 from sprites import *
 from animations import *
@@ -346,18 +346,22 @@ class SubmitStation(MultiplayerCounter):
                 let_i = 2
                 tom_i = 3
 
+                types = ["",""]
+
                 score = 0
 
                 for item in self.items:
                     print('item: ' + item.ingredient_name)
-                    if(item.ingredient_name == "Bun"):
+                    if(item.ingredient_name[:3] == "Bun"):
                         if(item.cut_state == 0 and item.cook_state >= STIR_TIMES):
                             score += item.score
                             submitted[bun_i] = 1
-                    if(item.ingredient_name == "Meat"):
+                            types[bun_i] = item.ingredient_name
+                    if(item.ingredient_name[:4] == "Meat"):
                         if(item.cut_state >= CHOP_TIMES and item.cook_state >= STIR_TIMES):
                             score += item.score
                             submitted[meat_i] = 1
+                            types[meat_i] = item.ingredient_name
                     if(item.ingredient_name == "Lettuce"):
                         if(item.cut_state >= CHOP_TIMES and item.cook_state == 0):
                             score += item.score
@@ -374,6 +378,10 @@ class SubmitStation(MultiplayerCounter):
                     del_index = -1
                     for i in range(len(self.game.recipes)):
                         recipe = self.game.recipes[i]
+                        if(recipe.ingredient_1.ingredient_name != types[bun_i]):
+                            continue
+                        if(recipe.ingredient_2.ingredient_name != types[meat_i]):
+                            continue
                         if(recipe.ingredient_3 == None and recipe.ingredient_4 == None):
                             if(submitted[let_i] == 0 and submitted[tom_i] == 0):
                                 del_index = i
@@ -487,6 +495,6 @@ class IngredientsCounter(MultiplayerCounter):
         pass
 
     def pickup_item(self):
-        if(self.game.player.message == self.ingredient):
+        if(self.game.player.message == self.ingredient[:len(self.game.player.message)]):
             if(len(self.game.player.inventory) == 0):
                 self.game.player.inventory.append(Ingredient(game=self.game, name=self.ingredient, x=INVENTORY_X, y=INVENTORY_Y, layer=INVENTORY_LAYER))

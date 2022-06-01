@@ -217,44 +217,47 @@ class Player(pygame.sprite.Sprite):
         self.frame = 0
 
     def check_set_location(self, hit_top, hit_bottom, hit_block):
-        if(self.facing == 'left'):
-            if(hit_block):
-                if(self.game.submit_stations in hit_block[0].groups):
-                    self.location = "Submit Station"
-                    self.location_sprite = hit_block[0]
-                elif(self.game.left_counters in hit_block[0].groups):
-                    self.location = "Left Counter"
-                    self.location_sprite = hit_block[0]
-        elif(self.facing == 'right'):
-            if(hit_block):
-                if(self.game.plate_stations in hit_block[0].groups):
-                    self.location = "Plate Station"
-                    self.location_sprite = hit_block[0]
-                elif(self.game.right_counters in hit_block[0].groups):
-                    self.location = "Right Counter"
-                    self.location_sprite = hit_block[0]
-        elif(self.facing == 'up'):
-            if(hit_top):
-                if(self.game.ingredients_stands in hit_top[0].groups):
-                    self.location = "Ingredients Stand"
-                    self.location_sprite = hit_top[0]
-                elif(self.game.cooking_stations in hit_top[0].groups):
-                    self.location = "Cooking Station"
-                    self.location_sprite = hit_top[0]
-                else:
-                    if(hit_bottom):
-                        print('should be top here')
-                        if(self.game.top_perspective_counters in hit_top[0].groups and self.game.bottom_perspective_counters in hit_bottom[0].groups):
-                            self.location = "Top Counter"
-                            self.location_sprite = hit_top[0]
-        elif(self.facing == 'down'):
-            if(hit_top and not hit_bottom):
-                if(self.game.chopping_stations in hit_top[0].groups):
-                    self.location = "Chopping Station"
-                    self.location_sprite = hit_top[0]
-                elif(self.game.top_perspective_counters in hit_top[0].groups):
-                    self.location = "Bottom Counter"
-                    self.location_sprite = hit_top[0]
+        if(hit_top):
+            if(self.game.ingredients_stands in hit_top[0].groups):
+                self.location = "Ingredients Stand"
+                self.location_sprite = hit_top[0]
+                self.facing = 'up'
+            elif(self.game.cooking_stations in hit_top[0].groups):
+                self.location = "Cooking Station"
+                self.location_sprite = hit_top[0]
+                self.facing = 'up'
+            else:
+                if(hit_bottom):
+                    if(self.game.top_perspective_counters in hit_top[0].groups and self.game.bottom_perspective_counters in hit_bottom[0].groups):
+                        self.location = "Top Counter"
+                        self.location_sprite = hit_top[0]
+                        self.facing = 'up'
+        elif(hit_top and not hit_bottom):
+            if(self.game.chopping_stations in hit_top[0].groups):
+                self.location = "Chopping Station"
+                self.location_sprite = hit_top[0]
+                self.facing = 'down'
+            elif(self.game.top_perspective_counters in hit_top[0].groups):
+                self.location = "Bottom Counter"
+                self.location_sprite = hit_top[0]
+                self.facing = 'down'
+        elif(hit_block):
+            if(self.game.submit_stations in hit_block[0].groups):
+                self.location = "Submit Station"
+                self.facing = 'left'
+                self.location_sprite = hit_block[0]
+            elif(self.game.left_counters in hit_block[0].groups):
+                self.location = "Left Counter"
+                self.location_sprite = hit_block[0]
+                self.facing = 'left'
+            elif(self.game.plate_stations in hit_block[0].groups):
+                self.location = "Plate Station"
+                self.location_sprite = hit_block[0]
+                self.facing = 'right'
+            elif(self.game.right_counters in hit_block[0].groups):
+                self.location = "Right Counter"
+                self.location_sprite = hit_block[0]
+                self.facing = 'right'
 
         if(self.location != None):
             print(self.location)

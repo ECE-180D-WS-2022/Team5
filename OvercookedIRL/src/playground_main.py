@@ -150,6 +150,7 @@ class Game:
     def __init__(self, client_socket, header):
         pygame.init()
         self.screen = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
+        # self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         # self.game_screen = pygame.display.set_mode((MULT_WIN_WIDTH, WIN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True

@@ -1,5 +1,5 @@
 import pygame
-from multiplayer_config import * 
+from multiplayer_config_48 import * 
 class Spritesheet:
     def __init__(self, file):
         self.sheet = pygame.image.load(file).convert_alpha()

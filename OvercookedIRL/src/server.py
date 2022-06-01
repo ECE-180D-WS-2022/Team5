@@ -56,7 +56,9 @@ def threaded_client(clients, ID, temp_game_data, startTime):
 
     # Check for game data
     prev_Time = datetime.timedelta(seconds=10*60)
+    zero_time = datetime.timedelta(seconds=0.0)
     interval = datetime.timedelta(minutes=10.0)
+    # interval = datetime.timedelta(seconds=15.0) # DELTA: Uncomment for better testing
     server.setblocking(False)
     clients[ID].setblocking(False)
     prev_total_time = -1
@@ -184,7 +186,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             
             
             if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < prev_Time):
-                clients[ID].send(pickle.dumps([77, format_timedelta(time_left)]))
+                clients[ID].send(pickle.dumps([77, format_timedelta(time_left), time_left < zero_time]))
                 prev_Time = datetime.timedelta(seconds=math.ceil(time_left.total_seconds()))
             if(data != None):
                 clients[not ID].send(pickle.dumps(data))

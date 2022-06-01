@@ -1,5 +1,5 @@
 import pygame
-from multiplayer_config import * 
+from multiplayer_config_48 import * 
 from ingredients import *
 from recipe import RecipeCard
 from sprites import *
@@ -224,44 +224,52 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         self.partner = None
 
     def check_set_location(self, hit_top, hit_bottom, hit_block):
-        if(self.facing == 'left'):
-            if(hit_block):
-                if(self.game.submit_stations in hit_block[0].groups):
-                    self.location = "Submit Station"
-                    self.location_sprite = hit_block[0]
-                elif(self.game.left_counters in hit_block[0].groups):
-                    self.location = "Left Counter"
-                    self.location_sprite = hit_block[0]
-        elif(self.facing == 'right'):
-            if(hit_block):
-                if(self.game.plate_stations in hit_block[0].groups):
-                    self.location = "Plate Station"
-                    self.location_sprite = hit_block[0]
-                elif(self.game.right_counters in hit_block[0].groups):
-                    self.location = "Right Counter"
-                    self.location_sprite = hit_block[0]
-        elif(self.facing == 'up'):
-            if(hit_top):
-                if(self.game.ingredients_stands in hit_top[0].groups):
-                    self.location = "Ingredients Stand"
-                    self.location_sprite = hit_top[0]
-                elif(self.game.cooking_stations in hit_top[0].groups):
-                    self.location = "Cooking Station"
-                    self.location_sprite = hit_top[0]
+        if(hit_top):
+            if(self.game.ingredients_stands in hit_top[0].groups):
+                self.location = "Ingredients Stand"
+                self.location_sprite = hit_top[0]
+                if(self.x_change == 0 and self.y_change == 0):
+                    self.facing = 'up'
+            elif(self.game.cooking_stations in hit_top[0].groups):
+                self.location = "Cooking Station"
+                self.location_sprite = hit_top[0]
+                if(self.x_change == 0 and self.y_change == 0):
+                    self.facing = 'up'
+            else:
+                if(hit_bottom):
+                    if(self.game.top_perspective_counters in hit_top[0].groups and self.game.bottom_perspective_counters in hit_bottom[0].groups):
+                        self.location = "Top Counter"
+                        self.location_sprite = hit_top[0]
+                    if(self.x_change == 0 and self.y_change == 0):
+                        self.facing = 'up'
                 else:
-                    if(hit_bottom):
-                        print('should be top here')
-                        if(self.game.top_perspective_counters in hit_top[0].groups and self.game.bottom_perspective_counters in hit_bottom[0].groups):
-                            self.location = "Top Counter"
-                            self.location_sprite = hit_top[0]
-        elif(self.facing == 'down'):
-            if(hit_top and not hit_bottom):
-                if(self.game.chopping_stations in hit_top[0].groups):
-                    self.location = "Chopping Station"
-                    self.location_sprite = hit_top[0]
-                elif(self.game.top_perspective_counters in hit_top[0].groups):
-                    self.location = "Bottom Counter"
-                    self.location_sprite = hit_top[0]
+                    if(self.game.chopping_stations in hit_top[0].groups):
+                        self.location = "Chopping Station"
+                        self.location_sprite = hit_top[0]
+                        if(self.x_change == 0 and self.y_change == 0):
+                            self.facing = 'down'
+                    else:
+                        self.location = "Bottom Counter"
+                        self.location_sprite = hit_top[0]
+                        if(self.x_change == 0 and self.y_change == 0):
+                            self.facing = 'down'
+        elif(hit_block):
+            if(self.game.submit_stations in hit_block[0].groups):
+                self.location = "Submit Station"
+                self.facing = 'left'
+                self.location_sprite = hit_block[0]
+            elif(self.game.left_counters in hit_block[0].groups):
+                self.location = "Left Counter"
+                self.location_sprite = hit_block[0]
+                self.facing = 'left'
+            elif(self.game.plate_stations in hit_block[0].groups):
+                self.location = "Plate Station"
+                self.location_sprite = hit_block[0]
+                self.facing = 'right'
+            elif(self.game.right_counters in hit_block[0].groups):
+                self.location = "Right Counter"
+                self.location_sprite = hit_block[0]
+                self.facing = 'right'
 
         # if(self.location != None):
         #     print(self.location)
@@ -398,6 +406,10 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         if (data != None and type(data) == list and data[0] == 77):
             # We need to update the timer!
             self.game.timer.set_time(data[1])
+
+            # If the timer has reached the end, quit the game!
+            if (data[2] == True):
+                self.game.game_over()
             # self.game.socket_client.send(pickle.dumps([777, data[-1]]))
             pass
         
@@ -413,7 +425,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         if (data != None and type(data) == list and data[0] == 33):
             # We need to update the timer!
             if(len(self.game.recipes) < 5):
-                self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,data[1],data[2]))
+                self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,data[1],data[2],data[3]))
                 
             print('recieved 33, sending 333 back!-------------------------------------' + str(self.frame))
             self.game.socket_client.send(pickle.dumps([333, data[-1]]))
@@ -423,33 +435,38 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         # Print received data, if it exists
         elif (data != None and type(data) == list and data[0] == 22):
             prev_message = data
-            self.partner.rect.x = data[3]
-            self.partner.rect.y = data[4]
-            self.partner.image_name = data[6]
-            self.partner.animation_loop = data[7]
-            self.partner.action = data[8]
+            self.partner.rect.x = data[1][2]
+            self.partner.rect.y = data[1][3]
+            self.partner.image_name = data[1][5]
+            self.partner.animation_loop = data[1][6]
+            self.partner.action = data[1][7]
             self.prev_code = data[0]
+            self.game.item_gen.gen_items(data[2])
             #print("SERVER SENDS -> " + str(data))
         elif(data != None and type(data)==str):
             print('my client id: ' + data[10:])
             self.client_ID = int(data[10:])
             if(self.client_ID == 0):
-                self.x = 10*TILE_SIZE
-                self.y = 11*TILE_SIZE
+                self.x = 6*TILE_SIZE
+                self.y = 7*TILE_SIZE
                 self.rect.x = self.x
                 self.rect.y = self.y
-                self.partner = Partner(self.game,22,11)
+                self.dest_x = self.x
+                self.dest_y = self.y
+                self.partner = Partner(self.game,15,7)
             elif(self.client_ID == 1):
-                self.x = 22*TILE_SIZE
-                self.y = 11*TILE_SIZE
+                self.x = 15*TILE_SIZE
+                self.y = 7*TILE_SIZE
                 self.rect.x = self.x
                 self.rect.y = self.y
-                self.partner = Partner(self.game,10,11)
+                self.dest_x = self.x
+                self.dest_y = self.y
+                self.partner = Partner(self.game,6,7)
         elif (data != None and type(data) == float):
             pass
 
-        temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
-        self.game.socket_client.send(pickle.dumps(temp_data))
+        # temp_data = [22, self.client_ID, self.frame, self.rect.x,self.rect.y,self.facing,self.image_name,self.animation_loop,self.action]
+        # self.game.socket_client.send(pickle.dumps(temp_data))
         # elif (data != None):
         #     print(data)
             # temp_data = [self.client_ID, self.frame, 
@@ -484,15 +501,15 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                 self.facing = 'down'
             else:
                 if ((self.rect.x != self.dest_x or self.rect.y != self.dest_y)):
-                    if((self.rect.x % 32 != 0 or (self.rect.y % 32 != 0 and self.rect.y != self.dest_y))):
+                    if((self.rect.x % TILE_SIZE != 0 or (self.rect.y % TILE_SIZE != 0 and self.rect.y != self.dest_y))):
                         # print('continue')
                         # print(self.rect.x, self.rect.y)
-                        if(self.prev_dest_y % 32 != 0 and (self.dest_y < self.prev_dest_y)):
+                        if(self.prev_dest_y % TILE_SIZE != 0 and (self.dest_y < self.prev_dest_y)):
                         # if(self.location == 'Top Counter'):
                             self.y_change = -1 * PLAYER_SPEED
                             self.facing = 'up'
                             self.prev_dest_y = self.dest_y
-                        elif(self.prev_dest_y % 32 != 0 and (self.dest_y > self.prev_dest_y)):
+                        elif(self.prev_dest_y % TILE_SIZE != 0 and (self.dest_y > self.prev_dest_y)):
                         # elif(self.location == 'Bottom Counter'):
                             self.y_change = PLAYER_SPEED
                             self.facing = 'down'
@@ -517,7 +534,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             elif(self.facing == 'down'):
                                 self.y_change = PLAYER_SPEED
                                 self.facing = 'down'
-                    elif ((self.rect.x % 32 == 0) and (self.rect.y % 32 == 0 or self.rect.y == self.dest_y)):
+                    elif ((self.rect.x % TILE_SIZE == 0) and (self.rect.y % TILE_SIZE == 0 or self.rect.y == self.dest_y)):
                         # compute new direction
                         # print('compute new direction')
                         # print(self.rect.x, self.rect.y, self.dest_x, self.dest_y)
@@ -603,7 +620,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                         self.before = True
             if keys[pygame.K_c]:
                 if(self.location == "Chopping Station"):
-                    print(self.action)
+                    # print(self.action)
                     if(self.action is None):
                         self.action = "Gesture"
                         self.message = "cd"
@@ -800,7 +817,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
-                            Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self)
+                            Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,54,102,'during',self)
                     elif(self.during):
                         self.image = self.chop[math.floor(self.animation_loop)%CHOP_FRAMES]
                         self.image_name = 'chop'
@@ -859,11 +876,11 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "t", qos=1)
-        elif(self.location_sprite.ingredient == 'Bun'):
+        elif(self.location_sprite.ingredient == 'Bun' or self.location_sprite.ingredient == 'Bun_2'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "b", qos=1)
         elif(self.location_sprite.ingredient == 'Lettuce'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "l", qos=1)
-        elif(self.location_sprite.ingredient == 'Meat'):
+        elif(self.location_sprite.ingredient == 'Meat' or self.location_sprite.ingredient == 'Meat_2'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "m", qos=1)
         
         self.during = True
@@ -913,8 +930,8 @@ class Cursor(pygame.sprite.Sprite):
 
     def movement(self, x, y):
         # get all keys that have been pressed
-        self.x = x%32
-        self.y = y%32
+        self.x = x%TILE_SIZE
+        self.y = y%TILE_SIZE
 
     def update(self):
         # x = random.randint(0, WIN_WIDTH)
@@ -927,8 +944,8 @@ class Cursor(pygame.sprite.Sprite):
         # self.rect.y = y
         # print("pymouse coord: " + str(x-TILE_SIZE) + ", " + str(y))
 
-        self.rect.x = ((round(x/32)-1) * 32)
-        self.rect.y = ((round(y/32)) * 32)
+        self.rect.x = ((round(x/TILE_SIZE)-1) * TILE_SIZE)
+        self.rect.y = ((round(y/TILE_SIZE)) * TILE_SIZE)
 
         self.dest_cursor.rect.x = self.game.player.dest_x
         self.dest_cursor.rect.y= (self.game.player.dest_y + TILE_SIZE)

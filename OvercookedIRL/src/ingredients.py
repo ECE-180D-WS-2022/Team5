@@ -1,7 +1,7 @@
 # from matplotlib.pyplot imsport xscale
 import pygame
 from config import * 
-from multiplayer_config import *
+from multiplayer_config_48 import *
 from sprites import *
 
 # class Ingredient(pygame.sprite.Sprite):
@@ -90,6 +90,23 @@ class Ingredient(pygame.sprite.Sprite):
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))
             self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,TILE_SIZE,0,self.x,self.y,self._layer+self.ingredient_layers[1],(self.game.all_sprites)))
             self.score = 10
+        elif(self.ingredient_name == "Meat_2"):
+            self.spritesheet = self.game.meat_2_spritesheet
+            self.cut_state = 0
+            self.cook_state = 0
+            self.states = 3
+            self.ingredient_layers = [MEAT_LAYER]
+            self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))     
+            self.score = 30
+        elif(self.ingredient_name == "Bun_2"):
+            self.spritesheet = self.game.bun_2_spritesheet
+            self.cut_state = 0
+            self.cook_state = STIR_TIMES
+            self.states = 1
+            self.ingredient_layers = [TOP_BUN_LAYER, BOTTOM_BUN_LAYER]
+            self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,0,0,self.x,self.y,self._layer+self.ingredient_layers[0],(self.game.all_sprites)))
+            self.image_sprites.append(BackgroundObject(self.game,self.spritesheet,TILE_SIZE,0,self.x,self.y,self._layer+self.ingredient_layers[1],(self.game.all_sprites)))
+            self.score = 10
         elif(self.ingredient_name == "Plate"):
             self.spritesheet = self.game.plate_spritesheet
             self.cut_state = 0
@@ -118,6 +135,8 @@ class Ingredient(pygame.sprite.Sprite):
         if(self.done):
             for img in self.image_sprites:
                 img.kill()
+            # print('ingredient: ' + str(self.image_sprites[0]._layer) + "." + str(self._layer) + '-------' + str(self.rect.x) + ", " + str(self.game.player.frame))
+            # print("i " + self.ingredient_name + " " + str(self.rect.x) + "," + str(self.x) + " am being killed")
             self.kill()
         else:
             self.animate()
@@ -128,6 +147,7 @@ class Ingredient(pygame.sprite.Sprite):
             self.image_sprites[i].rect.x = self.x
             self.image_sprites[i].rect.y = self.y
             self.image_sprites[i]._layer = self._layer + self.ingredient_layers[i]
+            # print('ingredient: ' + self.ingredient_name + ". " + str(self.image_sprites[i]._layer) + "." + str(self._layer) + '-------' + str(self.rect.x) + ", " + str(self.rect.y) + "/ " + str(self.game.player.frame))
             # print(self._layer, self.image_sprites[i]._layer)
             self.game.all_sprites.change_layer(self.image_sprites[i],self.image_sprites[i]._layer)
         if(len(self.image_sprites) == 1):
