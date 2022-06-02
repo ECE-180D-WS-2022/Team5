@@ -28,7 +28,7 @@ class CounterItemsGenerator(pygame.sprite.Sprite):
 
         
     def gen_items(self, recv_items):
-        print('item_copies lne: ' + str(len(self.item_copies)))
+        #print('item_copies lne: ' + str(len(self.item_copies)))
         for item in self.item_copies:
             if(item.y != 10 * TILE_SIZE):
                 print('deleteing: ' + item.ingredient_name + ' ' + str(self.game.player.frame))

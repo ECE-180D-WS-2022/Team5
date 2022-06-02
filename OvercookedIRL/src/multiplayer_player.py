@@ -376,8 +376,8 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
         #     if (data != None and data[0] != 77):
         #         print(data)
 
-        if(data != None):
-            print(data)
+        #if(data != None):
+            #print(data)
         
         # data = None
         if (data != None and type(data) == list and data[0] == 99):

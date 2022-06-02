@@ -100,8 +100,8 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             acks[ID][0][0] = data
             lock.release()
             clients[not ID].send(pickle.dumps(data))
-            print("ID:", str(ID), "and not ID:", str(not ID))
-            print("Client0:", str(clients[0]), ", Client1:", str(clients[1]))
+            # print("ID:", str(ID), "and not ID:", str(not ID))
+            # print("Client0:", str(clients[0]), ", Client1:", str(clients[1]))
         elif (type(data) == list and len(data) != 0 and data[0] == 88):
             print('score update --------------------------------------------')
             # We need to update scores!

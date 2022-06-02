@@ -594,7 +594,7 @@ class Game:
                 self.screen.blit(title_screen, (0,0))
                 game_over_button.draw(self.screen)
                 score_button.draw(self.screen)
-                self.screen.blit(scoreDisplay, (SING_WIN_WIDTH-30, SING_WIN_HEIGHT- 30))
+                self.screen.blit(scoreDisplay, (self.screen_x-30, self.screen_y- 30))
                 if back_button.draw(self.screen) and self.clicked is True:
                     return self.intro_screen()
                 for event in pygame.event.get():
