@@ -423,6 +423,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
 
             # If the timer has reached the end, quit the game!
             if (data[2] == True):
+                print("We have received no good to be True!")
                 self.game.game_over()
             # self.game.socket_client.send(pickle.dumps([777, data[-1]]))
             pass
