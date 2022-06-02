@@ -5,6 +5,10 @@ from sprites import *
 from animations import *
 from multiplayer_player import *
 import pickle
+from pygame import mixer
+
+mixer.init()
+bell_ding = mixer.Sound("Sounds/bell_ding.wav") 
 
 class MultiplayerCounter(pygame.sprite.Sprite):
     def __init__(self, game, sprite_sheet, s_x, s_y, x, y, layer, groups):
@@ -416,6 +420,7 @@ class SubmitStation(MultiplayerCounter):
                     print('killing ' + item.ingredient_name)
                     item.deep_kill()
                 self.items.clear()
+                bell_ding.play()
                 print('complete')
 
                 self.frames = 120

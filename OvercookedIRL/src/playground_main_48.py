@@ -141,6 +141,8 @@ class Game:
         self.cook_state1_spritesheet = Spritesheet('../img/cook_state1.png')
         self.cook_state2_spritesheet = Spritesheet('../img/cook_state2.png')
         self.cook_state3_spritesheet = Spritesheet('../img/cook_state3.png')
+        self.stirring_animation = Spritesheet('../img/stirring_animation.png')
+        self.chopping_animation = Spritesheet('../img/chopping_animation.png')
         self.current_cut_sheet = self.cut_state_spritesheet
         self.current_cook_sheet = self.cook_state_spritesheet
         self.cook_state_list = [self.cook_state0_spritesheet, self.cook_state1_spritesheet, self.cook_state2_spritesheet, self.cook_state3_spritesheet]
@@ -437,9 +439,9 @@ class Game:
                 elif column == 'V':
                     BackgroundObject(self,self.inventory_spritesheet,0,0,j,i,INVENTORY_LAYER,(self.all_sprites))             
                 elif column == '8':
-                    BackgroundObject(self,self.cut_state_spritesheet,0,0,j,i,layer,(self.all_sprites)) 
+                    BackgroundObject(self,self.cut_state_spritesheet,0,0,j,i,layer,(self.all_sprites), 9, self.player, self.cook_state_list, self.cut_state_list) 
                 elif column == '9':
-                    BackgroundObject(self,self.cook_state_spritesheet,0,0,j,i,layer,(self.all_sprites))       
+                    BackgroundObject(self,self.cook_state_spritesheet,0,0,j,i,layer,(self.all_sprites), 8, self.player, self.cook_state_list, self.cut_state_list)       
                 elif column == 'S':
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter["S"][0],white_counter["S"][1],j,i,layer,(self.all_sprites,self.counters,self.bottom_perspective_counters))
                 elif column == 'M':

@@ -12,6 +12,12 @@ import pickle
 from playground_building_blocks import *
 from pygame import mixer
 
+stir_sound = pygame.mixer.Sound("Sounds/stirring.wav")
+cut_sound = pygame.mixer.Sound("Sounds/cutting.wav")
+walk_sound = pygame.mixer.Sound("Sounds/fast_walking.wav")
+fridge_close_sound = pygame.mixer.Sound("Sounds/fridge_close.wav")
+fridge_open_sound = pygame.mixer.Sound("Sounds/fridge_open.wav")
+
 # Player inherits from pygame.sprite.Sprite (class in pygame module)
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -215,6 +221,10 @@ class Player(pygame.sprite.Sprite):
         self.after = False
         self.client_ID = None
         self.frame = 0
+        self.walking=False
+        self.chopping=False
+        self.stirring=False
+        self.busy = False
 
     def check_set_location(self, hit_top, hit_bottom, hit_block):
         if(hit_top):
@@ -269,6 +279,10 @@ class Player(pygame.sprite.Sprite):
         self.during = False
         self.after = False
 
+    def stop_sounds(self):
+        stir_sound.stop()
+        cut_sound.stop()
+        walk_sound.stop()
 
     def collide_counters(self, direction):
         hits_top = pygame.sprite.spritecollide(self, self.game.top_perspective_counters, False)
@@ -563,44 +577,76 @@ class Player(pygame.sprite.Sprite):
         if self.facing == "right":
             if self.x_change == 0:
                 self.image = self.right_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.walking = False
+                if not self.walking and self.busy:
+                    walk_sound.stop()
+                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.right_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.walking = True
+                if self.walking and not self.busy:
+                    walk_sound.play(-1)
+                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "up":
             if self.y_change == 0:
                 self.image = self.up_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.walking = False
+                if not self.walking and self.busy:
+                    walk_sound.stop()
+                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.up_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.walking = True
+                if self.walking and not self.busy:
+                    walk_sound.play(-1)
+                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "left":
             if self.x_change == 0:
                 self.image = self.left_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.walking = False
+                if not self.walking and self.busy:
+                    walk_sound.stop()
+                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.left_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.walking = True
+                if self.walking and not self.busy:
+                    walk_sound.play(-1)
+                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
         elif self.facing == "down":
             if self.y_change == 0:
                 self.image = self.down_idle[math.floor(self.animation_loop)%IDLE_FRAMES]
+                self.walking = False
+                if not self.walking and self.busy:
+                    walk_sound.stop()
+                self.busy = False
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
             else:
                 self.image = self.down_run[math.floor(self.animation_loop)%RUN_FRAMES]
+                self.walking = True
+                if self.walking and not self.busy:
+                    walk_sound.play(-1)
+                self.busy = True
                 self.animation_loop += 0.1
                 if self.animation_loop >= 6:
                     self.animation_loop = 1
@@ -610,7 +656,7 @@ class Player(pygame.sprite.Sprite):
             # send message to pub 
             if(self.message is not None or self.message is None):
                 # uncomment for keyboard:
-                # self.game.client.publish('overcooked_mic', self.message, qos=1)
+                self.game.client.publish('overcooked_mic', self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -668,13 +714,9 @@ class Player(pygame.sprite.Sprite):
                     self.after = False
         
     def animate(self):
-        # print("action: ")
-        # print(self.action)
-        # print("----------------")
-        # print("location: ")
-        # print(self.location)
-        # print("----------------")
         if (self.action is None):
+            stir_sound.stop()
+            cut_sound.stop()
             self.stand_or_walk()
         elif(self.action == "Speak" or self.action == "Pick Up" or self.action == "Put Down"):
             if (self.location[-7:] == "Counter" or self.location == "Submit Station"):
@@ -719,12 +761,17 @@ class Player(pygame.sprite.Sprite):
                             # self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             # uncomment for keyboard:
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
+                            Effects(self.game,self.game.chopping_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
                             Effects(self.game,self.game.knife_animation,self.rect.x,self.rect.y,COUNTER_FRONT_ITEMS_LAYER+TOP_BUN_LAYER+1,self.groups,0.1,CHOP_FRAMES,36,68,'during',self)
+                            self.chopping = True
+                            if self.chopping and not self.busy:
+                                cut_sound.play(-1)
+                            self.busy = True
                     elif(self.during):
                         self.image = self.chop[math.floor(self.animation_loop)%CHOP_FRAMES]
                         self.animation_loop += 0.1
@@ -740,6 +787,8 @@ class Player(pygame.sprite.Sprite):
 
                         if(self.location_sprite.chopped()):
                             self.game.client.publish('overcooked_imu', "Gesture Complete", qos=1)
+                            cut_sound.stop()
+                            self.busy = False
                             self.during = False
                             self.action = None
 
@@ -752,8 +801,13 @@ class Player(pygame.sprite.Sprite):
                             # self.game.client.publish('overcooked_mic', self.message, qos=1)
 
                             # uncomment for keyboard:
-                            # self.game.client.publish('overcooked_mic', self.message, qos=1)
+                            self.game.client.publish('overcooked_mic', self.message, qos=1)
 
+                            Effects(self.game,self.game.stirring_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
+                            self.stirring = True
+                            if self.stirring and not self.busy:
+                                stir_sound.play()
+                            self.busy = True
                             self.before = False
                             self.during = True
                             # self, game, spritesheet, x, y, layer, groups, animation_speed, frames, width, height, which_bool, player
@@ -773,6 +827,8 @@ class Player(pygame.sprite.Sprite):
 
                         if(self.location_sprite.cooked()):
                             self.game.client.publish('overcooked_imu', "Gesture Complete", qos=1)
+                            stir_sound.stop()
+                            self.busy = False
                             self.during = False
                             self.action = None
                         
@@ -781,7 +837,6 @@ class Player(pygame.sprite.Sprite):
     def send_message(self):
         # send message to pub 
         # uncomment for keyboard:
-        '''
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic', "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun'):
@@ -790,7 +845,7 @@ class Player(pygame.sprite.Sprite):
             self.game.client.publish('overcooked_mic', "l", qos=1)
         elif(self.location_sprite.ingredient == 'Meat'):
             self.game.client.publish('overcooked_mic', "m", qos=1)
-        '''
+
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
         self.message = None
