@@ -57,7 +57,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     # Check for game data
     prev_Time = datetime.timedelta(seconds=10*60)
     zero_time = datetime.timedelta(seconds=0.0)
-    interval = datetime.timedelta(minutes=1.0)
+    interval = datetime.timedelta(minutes=10.0)
     # interval = datetime.timedelta(seconds=15.0) # DELTA: Uncomment for better testing
     server.setblocking(False)
     clients[ID].setblocking(False)

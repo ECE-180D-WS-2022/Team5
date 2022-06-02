@@ -551,6 +551,7 @@ class Game:
             self.clicked = False
             # DELTA: Resign both players from the game!
             self.socket_client.send(pickle.dumps([-12345, "fill"])) # CODE: -12345 -> force quit on both players!
+            print("We have clicked the RESIGN BUTTON")
         if self.player.location is not None:
             if self.player.location == "Plate Station":
                 self.plate_button.draw(self.screen)
