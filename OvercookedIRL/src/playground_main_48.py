@@ -21,6 +21,7 @@ from input_box import *
 import new_button
 from pygame import mixer
 import paho.mqtt.client as mqtt
+from timer import *
 
 pygame.init()
 
@@ -465,6 +466,49 @@ class Game:
                 elif column != "." and column != "P":
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter[column][0],white_counter[column][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters))
 
+    def single_new(self, timer=None):
+        # a new game starts
+        self.playing = True
+
+        # initialize empty sprite groups
+        self.all_sprites = pygame.sprite.LayeredUpdates()   # layered updates object
+        self.counters = pygame.sprite.LayeredUpdates()
+        self.block_counters = pygame.sprite.LayeredUpdates()
+        self.bottom_perspective_counters = pygame.sprite.LayeredUpdates()
+        self.top_perspective_counters = pygame.sprite.LayeredUpdates()
+        self.chopping_stations = pygame.sprite.LayeredUpdates()
+        self.plate_stations = pygame.sprite.LayeredUpdates()
+        self.ingredients_stands = pygame.sprite.LayeredUpdates()
+        self.cooking_stations = pygame.sprite.LayeredUpdates()
+        self.submit_stations = pygame.sprite.LayeredUpdates()
+        self.left_counters = pygame.sprite.LayeredUpdates()
+        self.right_counters = pygame.sprite.LayeredUpdates()
+        self.cursor = Cursor(self,8,9)
+        self.player = Player(self,10,11)
+        if timer is not None:
+            self.timer = Timer(self,17,0,timer,FPS)
+        self.score = Score(self,0,0)
+        self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
+        # game, x, y
+
+        self.animations = pygame.sprite.LayeredUpdates()
+
+
+        self.createTilemap(counter_tilemap_back,COUNTER_BACK_LAYER)
+        self.createTilemap(counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
+        self.createTilemap(counter_tilemap,COUNTER_LAYER)
+        self.createTilemap(counter_tilemap_ingredient, COUNTER_LAYER)
+        self.createTilemap(counter_tilemap_2,COUNTER_FRONT_LAYER)
+        self.createTilemap(counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
+        # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
+        # initialize_camera()
+
+        ProgressBar(self, self.progress_spritesheet, 7*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
+        # self.mouse.setupMouse()
+
+        # self.setup_audiofile()
+        self.setup_mqtt()
+
     def new(self):
         # a new game starts
         self.playing = True
@@ -818,8 +862,9 @@ config = dict()
 # # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
 # config["Host"] = "192.168.1.91"
 # =======
-config["Host"] = socket.gethostbyname(socket.gethostname())
-config["Port"] = 4900 # Unique ID, can be any number but must match server's
+# config["Host"] = socket.gethostbyname(socket.gethostname())
+config["Host"] = "131.179.50.103"
+config["Port"] = 443 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 
 # %% Client Setup
@@ -847,10 +892,6 @@ client_socket = socket.socket()
 
 g = Game(client_socket, config["HEADER"])
 g.intro_screen() # this should technically loop forever until closed out of
-g.new()
-while g.running:
-    g.main()
-    g.game_over()
 
 pygame.quit()
 sys.exit()

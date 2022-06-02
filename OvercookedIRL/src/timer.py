@@ -1,55 +1,9 @@
-'''
-import pygame as pg
-import math
 
-
-def main():
-    pg.init()
-    screen = pg.display.set_mode((640, 480))
-    font = pg.font.Font(None, 40)
-    gray = pg.Color('gray19')
-    blue = pg.Color('dodgerblue')
-    # The clock is used to limit the frame rate
-    # and returns the time since last tick.
-    clock = pg.time.Clock()
-    timer = 120  # Decrease this to count down.
-    dt = 0  # Delta time (time since last tick).
-
-    done = False
-    while not done:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                done = True
-
-        screen.fill(gray)
-
-        round_timer = int(math.ceil(timer))
-        min = str(int(round_timer/60))
-        sec = str(int(round_timer%60))
-        if(int(sec)<10):
-            sec = '0'+str(sec)
-        
-        txt = font.render(min+':'+sec, True, blue)
-        screen.blit(txt, (70, 70))
-        pg.display.flip()
-        dt = clock.tick(30) / 1000  # / 1000 to convert to seconds.
-
-        if int(sec) == 0 and int(min) == 0:
-            done = True
-        else:
-            timer -= dt
-
-
-if __name__ == '__main__':
-    main()
-    pg.quit()
-'''
 import pygame
 import math
 import datetime
 from config import *
 from recipe import RecipeCard 
-from playground_building_blocks import *
 
 class Timer(pygame.sprite.Sprite):
     def __init__(self, game, x, y, timer, fps):

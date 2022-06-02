@@ -18,8 +18,9 @@ import random
 
 # %% Server Configuration
 config = dict()
-config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
-config["Port"] = 4900 # Unique ID, can be any number but must match client's
+#config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
+config["Host"] = "131.179.39.186"
+config["Port"] = 443 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 config["Player_Num"] = 4 # Configure the number of players for the server
 config["Thread_Count"] = 0 # Stores the number of threaded processes running
