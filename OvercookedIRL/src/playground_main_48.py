@@ -141,8 +141,8 @@ class Game:
         self.cook_state1_spritesheet = Spritesheet('../img/cook_state1.png')
         self.cook_state2_spritesheet = Spritesheet('../img/cook_state2.png')
         self.cook_state3_spritesheet = Spritesheet('../img/cook_state3.png')
-        self.stirring_animation = Spritesheet('../img/stirring_animation.png')
-        self.chopping_animation = Spritesheet('../img/chopping_animation.png')
+        self.stirring_animation = Spritesheet('../img/stirring_animation_48.png')
+        self.chopping_animation = Spritesheet('../img/chopping_animation_48.png')
         self.current_cut_sheet = self.cut_state_spritesheet
         self.current_cook_sheet = self.cook_state_spritesheet
         self.cook_state_list = [self.cook_state0_spritesheet, self.cook_state1_spritesheet, self.cook_state2_spritesheet, self.cook_state3_spritesheet]
@@ -818,8 +818,9 @@ config = dict()
 # # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
 # config["Host"] = "192.168.1.91"
 # =======
-config["Host"] = socket.gethostbyname(socket.gethostname())
-config["Port"] = 4900 # Unique ID, can be any number but must match server's
+# config["Host"] = socket.gethostbyname(socket.gethostname())
+config["Host"] = "131.179.39.186"
+config["Port"] = 443 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 
 # %% Client Setup
