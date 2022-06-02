@@ -419,6 +419,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             
         if (data != None and type(data) == list and data[0] == 77):
             # We need to update the timer!
+            print(data) # DELTA1
             self.game.timer.set_time(data[1])
 
             # If the timer has reached the end, quit the game!

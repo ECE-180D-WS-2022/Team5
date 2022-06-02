@@ -45,6 +45,10 @@ acks = [[[None, None, None, None],[1, 1, 1, 1]], [[None, None, None, None],[1, 1
 ack_time = 2500
 ack_messages = [{}, {}, {}, {}]
 ack_counts = [1,1,1,1]
+no_good = False
+prev_Time = datetime.timedelta(seconds=10*60)
+tick = datetime.timedelta(seconds=1)
+time_left = datetime.timedelta(seconds=1)
 
 lock = Lock()
 
@@ -55,14 +59,14 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     # Set a dedicated thread for checking for updates to the game state
 
     # Check for game data
-    prev_Time = datetime.timedelta(seconds=10*60)
+    #prev_Time = datetime.timedelta(seconds=10*60)
     zero_time = datetime.timedelta(seconds=0.0)
     interval = datetime.timedelta(minutes=10.0)
     # interval = datetime.timedelta(seconds=15.0) # DELTA: Uncomment for better testing
     server.setblocking(False)
     clients[ID].setblocking(False)
     prev_total_time = -1
-    global acks
+    global acks, prev_Time, no_good, tick, time_left
 
     # shared_station_free_66 = None
     # shared_station_pass_99 = None
@@ -178,25 +182,38 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             #print(str(ID) + '-' + str(acks[not ID][1][3]))
             #print(str(ID) + 'we should be done here ----------------------------2')
         else: 
-            tick = time.perf_counter()
-            time_left = interval - datetime.timedelta(seconds=tick-startTime)
+            if (ID == 1):
+                lock.acquire()
+                tick = time.perf_counter()
+                time_left = interval - datetime.timedelta(seconds=tick-startTime)
+                lock.release()
             
             # if (ID==1):
             #     print(datetime.timedelta(seconds=math.ceil(time_left.total_seconds())))
             #     print(prev_Time)
-            no_good = bool(time_left < zero_time)
+            
             if (type(data) == list and len(data) != 0 and data[0] == -12345):
+                lock.acquire()
                 no_good = True
+                lock.release()
                 print("No good is being set to True!")
             
+            lock.acquire()
+            test_prev_Time = prev_Time
+            lock.release()
             
-            if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < prev_Time or
+            if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < test_prev_Time or
                 no_good == True):
-                clients[ID].send(pickle.dumps([77, format_timedelta(time_left), no_good]))
-                
-                if (no_good):
+                if (ID == 1): # Let only one of the threaded functions be sending the timer?
+                    clients[ID].send(pickle.dumps([77, format_timedelta(time_left), no_good]))
                     clients[not ID].send(pickle.dumps([77, format_timedelta(time_left), no_good]))
-                prev_Time = datetime.timedelta(seconds=math.ceil(time_left.total_seconds()))
+                
+                # if (no_good):
+                #     clients[not ID].send(pickle.dumps([77, format_timedelta(time_left), no_good]))
+                
+                    lock.acquire()
+                    prev_Time = datetime.timedelta(seconds=math.ceil(time_left.total_seconds()))
+                    lock.release()
             if(data != None):
                 clients[not ID].send(pickle.dumps(data))
             # if (round((time.time() - startTime), 2) > prev_Time + 1):
@@ -267,7 +284,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
         #             print('sent recipe')
         #     prev_total_time = t
 
-        server.setblocking(False)
+        # server.setblocking(False) DELTA1
         # print(count)
         
         
