@@ -487,6 +487,7 @@ class Game:
         self.player = MultiplayerPlayer(self,-1,-1)
         self.timer = MultiplayerTimer(self,14,0,60,FPS)
         self.score = Score(self,0,0)
+        self.score.set_score(0)
         # self.recipes = [RecipeCard(self,3*48,0)]
         self.recipes = []
         self.item_gen = CounterItemsGenerator(self,self.item_updates)
@@ -544,8 +545,6 @@ class Game:
 
         # draws the image and rect of all sprites in the all_sprites group onto the screen
         self.all_sprites.draw(self.screen)
-        self.clock.tick(FPS)
-        pygame.display.update()
         self.voice_commands_button.draw(self.screen)
         if self.resign_button.draw(self.screen) and self.clicked is True:
             self.playing = False
@@ -784,7 +783,7 @@ class Game:
 
     def game_over(self):
         self.clicked = False
-        myFont = pygame.font.SysFont("Times New Roman", 18)
+        myFont = pygame.font.SysFont("Comic Sans MS", 40)
         scoreDisplay = myFont.render(str(self.score.score), 1, black)
         print("This is the FINAL SCORE:", str(self.score.score))
         while True:
@@ -792,7 +791,7 @@ class Game:
                 self.screen.blit(self.title_screen, (0,0))
                 self.game_over_button.draw(self.screen)
                 self.score_button.draw(self.screen)
-                self.screen.blit(scoreDisplay, (MULT_WIN_WIDTH-30, MULT_WIN_HEIGHT- 30)) # DELTA
+                self.screen.blit(scoreDisplay, (self.screen_x/2 +35, self.screen_y/2 - 70)) # DELTA
                 if self.back_button.draw(self.screen) and self.clicked is True:
                     return self.intro_screen()
                 for event in pygame.event.get():

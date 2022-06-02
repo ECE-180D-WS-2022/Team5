@@ -1,6 +1,11 @@
 # original button class from: https://github.com/russs123/pygame_tutorials/blob/main/Button/button.py
 
 import pygame
+from pygame import mixer
+
+mixer.init()
+knife_sharpen_sound = mixer.Sound("Sounds/knife_sharpen.wav")
+knife_sharpen_sound.set_volume(0.1)
 
 #button class
 class Button():
@@ -28,13 +33,17 @@ class Button():
         pos = pygame.mouse.get_pos()
 
         #check mouseover and clicked conditions
-        if self.rect.collidepoint(pos) and self.alt_image is not None:
-            surface.blit(self.alt_image, (self.rect.x, self.rect.y))
-            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
-                self.clicked = True
-                action = True
+        if self.is_button:
+            if self.rect.collidepoint(pos) and self.alt_image is not None:
+                surface.blit(self.alt_image, (self.rect.x, self.rect.y))
+                if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                    knife_sharpen_sound.play()
+                    self.clicked = True
+                    action = True
+            else:
+                #draw button on screen
+                surface.blit(self.image, (self.rect.x, self.rect.y))
         else:
-            #draw button on screen
             surface.blit(self.image, (self.rect.x, self.rect.y))
 
         if pygame.mouse.get_pressed()[0] == 0:
