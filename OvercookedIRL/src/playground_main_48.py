@@ -550,6 +550,8 @@ class Game:
         if self.resign_button.draw(self.screen) and self.clicked is True:
             self.playing = False
             self.clicked = False
+            # DELTA: Resign both players from the game!
+            self.socket_client.send(pickle.dumps([-12345, "fill"])) # CODE: -12345 -> force quit on both players!
         if self.player.location is not None:
             if self.player.location == "Plate Station":
                 self.plate_button.draw(self.screen)
@@ -603,7 +605,7 @@ class Game:
             self.update()
             self.draw()
 
-        self.client.publish('overcooked_mic'+str(self.client_ID), "stop", qos=1)
+        self.client.publish('overcooked_mic'+str(self.player.client_ID), "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()
         # self.speech_log.close()

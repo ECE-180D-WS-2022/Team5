@@ -80,16 +80,17 @@ def threaded_client(clients, ID, temp_game_data, startTime):
         # count += 0
         data = get_unblocked_data(clients[ID])
         if(data != None):
-            print(data)
-            print(str(ID) + "- sdfsdfsdf " + str(data[0]))
+            #print(data)
+            #print(str(ID) + "- sdfsdfsdf " + str(data[0]))
+            pass
 
         
         if (type(data) == list and len(data) != 0 and data[0] == 22):
-                clients[not ID].send(pickle.dumps(data))
+            clients[not ID].send(pickle.dumps(data))
         elif (type(data) == list and len(data) != 0 and data[0] == 99):
             # Sending item to the other player!
-            print("Sending data1------------------------")
-            print("Received:", str(data))
+            #print("Sending data1------------------------")
+            #print("Received:", str(data))
             # key = len(shared_station_pass_99)
             # key = 0
             # new_data = data.append(key)
@@ -103,7 +104,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             # print("ID:", str(ID), "and not ID:", str(not ID))
             # print("Client0:", str(clients[0]), ", Client1:", str(clients[1]))
         elif (type(data) == list and len(data) != 0 and data[0] == 88):
-            print('score update --------------------------------------------')
+            #print('score update --------------------------------------------')
             # We need to update scores!
             # Code for updating scores!
             game_scores[ID] = data[1]
@@ -121,7 +122,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             pass
         elif (type(data) == list and len(data) != 0 and data[0] == 66):
             # We need to set a share station to be unoccupied!
-            print('shared station free -----------------------------------')
+            #print('shared station free -----------------------------------')
             # key = len(shared_station_free_66)
             # key = 0
             # new_data = data.append(key)
@@ -133,7 +134,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             lock.release()
             clients[not ID].send(pickle.dumps(data))
         elif (type(data) == list and len(data) != 0 and data[0] == 33):
-            print('recipe gen received--------------------')
+            #print('recipe gen received--------------------')
             # key = len(recipe_33)
             # key = 0
             # new_data = data.append(key)
@@ -167,15 +168,15 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             lock.release()
         elif (type(data) == list and len(data) != 0 and data[0] == 333):
             # del recipe_33[data[1]]
-            print(str(ID) +'we should be done here ----------------------------:' + str(acks[not ID][1][3]))
+            #print(str(ID) +'we should be done here ----------------------------:' + str(acks[not ID][1][3]))
             recipe_33 = None
             lock.acquire()
             acks[not ID][0][3] = None
             acks[not ID][1][3] = 1
             lock.release()
             # print(str(ID) + vals[3])
-            print(str(ID) + '-' + str(acks[not ID][1][3]))
-            print(str(ID) + 'we should be done here ----------------------------2')
+            #print(str(ID) + '-' + str(acks[not ID][1][3]))
+            #print(str(ID) + 'we should be done here ----------------------------2')
         else: 
             tick = time.perf_counter()
             time_left = interval - datetime.timedelta(seconds=tick-startTime)
@@ -183,10 +184,18 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             # if (ID==1):
             #     print(datetime.timedelta(seconds=math.ceil(time_left.total_seconds())))
             #     print(prev_Time)
+            no_good = bool(time_left < zero_time)
+            if (type(data) == list and len(data) != 0 and data[0] == -12345):
+                no_good = True
+                print("No good is being set to True!")
             
             
-            if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < prev_Time):
-                clients[ID].send(pickle.dumps([77, format_timedelta(time_left), time_left < zero_time]))
+            if (datetime.timedelta(seconds=math.ceil(time_left.total_seconds())) < prev_Time or
+                no_good == True):
+                clients[ID].send(pickle.dumps([77, format_timedelta(time_left), no_good]))
+                
+                if (no_good):
+                    clients[not ID].send(pickle.dumps([77, format_timedelta(time_left), no_good]))
                 prev_Time = datetime.timedelta(seconds=math.ceil(time_left.total_seconds()))
             if(data != None):
                 clients[not ID].send(pickle.dumps(data))
@@ -214,9 +223,9 @@ def threaded_client(clients, ID, temp_game_data, startTime):
             acks[ID][1][2] += 1
         if(acks[ID][0][3]):
             if(acks[ID][1][3] % ack_time == 0):
-                print(acks[ID][1][3])
-                print(acks[ID][0][3])
-                print('we are sending data for some reaons')
+                #print(acks[ID][1][3])
+                #print(acks[ID][0][3])
+                #print('we are sending data for some reaons')
                 clients[not ID].send(pickle.dumps(acks[ID][0][3]))
                 acks[ID][1][3] = 0
             acks[ID][1][3] += 1
