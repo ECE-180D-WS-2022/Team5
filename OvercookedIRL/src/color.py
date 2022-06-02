@@ -4,7 +4,7 @@ from pymouse import PyMouse
 import paho.mqtt.client as mqtt
 import keyboard
 import pyautogui
-
+import sys
 
 
 
@@ -30,7 +30,7 @@ global other_button_click
 other_button_click = False
 
 def on_connect(client,userdata,flags,rc):
-    client.subscribe("overcooked_game", qos=1)
+    client.subscribe("overcooked_game" + str(sys.argv[1]), qos=1)
     print("connection returned result:" + str(rc))
 
 def on_disconnect(client, userdata, rc):

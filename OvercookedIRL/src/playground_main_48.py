@@ -34,7 +34,7 @@ black = (0, 0, 0)
 
 
 def on_connect(client,userdata,flags,rc):
-    client.subscribe("overcooked_game", qos=1)
+    client.subscribe("overcooked_game" + str(sys.argv[1]), qos=1)
     print("connection returned result:" + str(rc))
 
 def on_disconnect(client, userdata, rc):
