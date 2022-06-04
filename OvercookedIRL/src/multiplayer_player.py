@@ -746,7 +746,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             # send message to pub 
             if(self.message is not None or self.message is None):
                 # uncomment for keyboard:
-                # self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
+                self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
                 self.message = None
                 # create thinking bubble
                 self.before = False
@@ -858,7 +858,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                         if(self.message is not None):
 
                             # uncomment for keyboard:
-                            # self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
+                            self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
 
                             self.before = False
                             self.during = True
@@ -896,7 +896,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                         if(self.message is not None):
 
                             # uncomment for keyboard:
-                            # self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
+                            self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
 
                             Effects(self.game,self.game.stirring_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
                             self.stirring = True
@@ -933,7 +933,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
     def send_message(self):
         # send message to pub 
         # uncomment for keyboard:
-        '''
+        
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun' or self.location_sprite.ingredient == 'Bun_2'):
@@ -942,7 +942,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "l", qos=1)
         elif(self.location_sprite.ingredient == 'Meat' or self.location_sprite.ingredient == 'Meat_2'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "m", qos=1)
-        '''
+        
         self.during = True
         Effects(self.game,self.game.speaking_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
         self.message = None

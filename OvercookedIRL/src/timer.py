@@ -2,7 +2,7 @@
 import pygame
 import math
 import datetime
-from config import *
+from multiplayer_config_48 import *
 from recipe import RecipeCard 
 
 class Timer(pygame.sprite.Sprite):

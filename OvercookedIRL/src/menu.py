@@ -1,7 +1,7 @@
 from threading import Thread
 import subprocess
 
-t1 = Thread(target=subprocess.run, args=(["python", "pub.py"],))
+t1 = Thread(target=subprocess.run, args=(["python", "pub_0.py"],))
 t2 = Thread(target=subprocess.run, args=(["python", "color.py"],))
 t3 = Thread(target=subprocess.run, args=(["python", "main.py"],))
 

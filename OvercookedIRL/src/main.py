@@ -31,7 +31,7 @@ r = pygame.rect.Rect((0, WIN_HEIGHT-30, 70, 30))
 black = (0, 0, 0)
 
 def on_connect(client,userdata,flags,rc):
-    client.subscribe("overcooked_game", qos=1)
+    client.subscribe("overcooked_game0", qos=1)
     print("connection returned result:" + str(rc))
 
 def on_disconnect(client, userdata, rc):
@@ -64,7 +64,7 @@ def on_message(client, userdata, message):
             if(userdata.player.action is None):
                 userdata.player.action = "Speak"
                 userdata.player.before = True
-                userdata.client.publish('overcooked_mic', "Start", qos=1)
+                userdata.client.publish('overcooked_mic0', "Start", qos=1)
         else:
             userdata.player.stop_everything()
     elif (line == "Pick Up" or line == "Put Down"):
@@ -83,7 +83,7 @@ def on_message(client, userdata, message):
             if(userdata.player.action == "Gesture"):
                 userdata.player.message = line
                 if(userdata.player.during == True):
-                    userdata.client.publish('overcooked_mic', "During!", qos=1)
+                    userdata.client.publish('overcooked_mic0', "During!", qos=1)
     elif(line == "Mic Stop"):
         userdata.player.stop_everything()
     elif(line == "Tomato" or line == "Bun" or line == "Lettuce" or line == "Meat"):
@@ -318,8 +318,8 @@ class Game:
                 self.player.dest_x = ((round(pos[0]/TILE_SIZE)-1) * TILE_SIZE)
                 self.player.dest_y = ((round(pos[1]/TILE_SIZE)-1) * TILE_SIZE)
                 if(self.player.action is not None):
-                    self.client.publish('overcooked_mic', "Stop", qos=1)
-                    self.client.publish('overcooked_imu', "Mic Stop", qos=1)
+                    self.client.publish('overcooked_mic0', "Stop", qos=1)
+                    self.client.publish('overcooked_imu0', "Mic Stop", qos=1)
                     self.player.stop_everything()
 
                 print('CLICK')
@@ -403,7 +403,7 @@ class Game:
             if self.timer.min == '0' and self.timer.sec == '00':
                 break
             self.clicked=True
-        self.client.publish('overcooked_mic', "stop", qos=1)
+        self.client.publish('overcooked_mic0', "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()
         # self.speech_log.close()

@@ -24,7 +24,8 @@ class CounterItemsGenerator(pygame.sprite.Sprite):
         temp_data = [self.game.player.client_ID, self.game.player.frame, self.game.player.rect.x,self.game.player.rect.y,self.game.player.facing,self.game.player.image_name,self.game.player.animation_loop,self.game.player.action]
         message.append(temp_data)
         message.append(counter_items)
-        self.game.socket_client.send(pickle.dumps(message))
+        if self.game.gamemode == "multiplayer":
+            self.game.socket_client.send(pickle.dumps(message))
 
         
     def gen_items(self, recv_items):

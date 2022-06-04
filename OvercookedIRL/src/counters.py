@@ -160,8 +160,12 @@ class Counter(pygame.sprite.Sprite):
     def pick_up_all(self):
         for item in self.items:
             item._layer = INVENTORY_LAYER
-            item.x = INVENTORY_X
-            item.y = INVENTORY_Y
+            if self.game.gamemode == "multiplayer":
+                item.x = INVENTORY_X
+                item.y = INVENTORY_Y
+            else:
+                item.x = SING_INVENTORY_X
+                item.y = SING_INVENTORY_Y          
         self.game.player.inventory.extend(self.items)
         self.items.clear()
 
@@ -171,8 +175,12 @@ class Counter(pygame.sprite.Sprite):
         for item in self.items:
             if(item.ingredient_name != 'Plate'):
                 item._layer = INVENTORY_LAYER
-                item.x = INVENTORY_X
-                item.y = INVENTORY_Y
+                if self.game.gamemode == "multiplayer":
+                    item.x = INVENTORY_X
+                    item.y = INVENTORY_Y
+                else:
+                    item.x = SING_INVENTORY_X
+                    item.y = SING_INVENTORY_Y   
                 self.game.player.inventory.append(item)
                 temp.append(item)
         for item in temp:
@@ -212,7 +220,10 @@ class IngredientsCounter(Counter):
     def pickup_item(self):
         if(self.game.player.message == self.ingredient):
             if(len(self.game.player.inventory) == 0):
-                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
+                if self.game.gamemode == "multiplayer":
+                    self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
+                else:
+                    self.game.player.inventory.append(Ingredient(self.game,self.ingredient,SING_INVENTORY_X,SING_INVENTORY_Y,INVENTORY_LAYER))
 
 class ChopCounter(Counter):
     def __init__(self, *args, **kw):
@@ -452,4 +463,7 @@ class IngredientsCounter(Counter):
     def pickup_item(self):
         if(self.game.player.message == self.ingredient):
             if(len(self.game.player.inventory) == 0):
-                self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
+                if self.game.gamemode == "multiplayer":
+                    self.game.player.inventory.append(Ingredient(self.game,self.ingredient,INVENTORY_X,INVENTORY_Y,INVENTORY_LAYER))
+                else:
+                    self.game.player.inventory.append(Ingredient(self.game,self.ingredient,SING_INVENTORY_X,SING_INVENTORY_Y,INVENTORY_LAYER))

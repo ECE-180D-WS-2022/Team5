@@ -21,7 +21,7 @@ from input_box import *
 import new_button
 from pygame import mixer
 import paho.mqtt.client as mqtt
-from timer import *
+# from timer import *
 
 pygame.init()
 
@@ -104,6 +104,7 @@ class Game:
         self.clicked = False
         self.header = header
         self.in_tutorial=False
+        self.gamemode="multiplayer"
         
         self.character_idle_spritesheet = Spritesheet('../img/chef1/chef1_idle_48.png')
         self.character_run_spritesheet = Spritesheet('../img/chef1/chef1_run_48.png')
@@ -466,52 +467,53 @@ class Game:
                 elif column != "." and column != "P":
                     MultiplayerCounter(self, self.kitchen_spritesheet,white_counter[column][0],white_counter[column][1],j,i,layer,(self.all_sprites,self.counters,self.block_counters))
 
-    def single_new(self, timer=None):
+    # def single_new(self, timer=None):
+    #     # a new game starts
+    #     self.playing = True
+
+    #     # initialize empty sprite groups
+    #     self.all_sprites = pygame.sprite.LayeredUpdates()   # layered updates object
+    #     self.counters = pygame.sprite.LayeredUpdates()
+    #     self.block_counters = pygame.sprite.LayeredUpdates()
+    #     self.bottom_perspective_counters = pygame.sprite.LayeredUpdates()
+    #     self.top_perspective_counters = pygame.sprite.LayeredUpdates()
+    #     self.chopping_stations = pygame.sprite.LayeredUpdates()
+    #     self.plate_stations = pygame.sprite.LayeredUpdates()
+    #     self.ingredients_stands = pygame.sprite.LayeredUpdates()
+    #     self.cooking_stations = pygame.sprite.LayeredUpdates()
+    #     self.submit_stations = pygame.sprite.LayeredUpdates()
+    #     self.left_counters = pygame.sprite.LayeredUpdates()
+    #     self.right_counters = pygame.sprite.LayeredUpdates()
+    #     self.cursor = Cursor(self,8,9)
+    #     self.player = Player(self,10,11)
+    #     if timer is not None:
+    #         self.timer = Timer(self,17,0,timer,FPS)
+    #     self.score = Score(self,0,0)
+    #     self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
+    #     # game, x, y
+
+    #     self.animations = pygame.sprite.LayeredUpdates()
+
+
+    #     self.createTilemap(counter_tilemap_back,COUNTER_BACK_LAYER)
+    #     self.createTilemap(counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
+    #     self.createTilemap(counter_tilemap,COUNTER_LAYER)
+    #     self.createTilemap(counter_tilemap_ingredient, COUNTER_LAYER)
+    #     self.createTilemap(counter_tilemap_2,COUNTER_FRONT_LAYER)
+    #     self.createTilemap(counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
+    #     # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
+    #     # initialize_camera()
+
+    #     ProgressBar(self, self.progress_spritesheet, 7*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
+    #     # self.mouse.setupMouse()
+
+    #     # self.setup_audiofile()
+    #     self.setup_mqtt()
+
+    def new(self, gamemode="multiplayer"):
         # a new game starts
         self.playing = True
-
-        # initialize empty sprite groups
-        self.all_sprites = pygame.sprite.LayeredUpdates()   # layered updates object
-        self.counters = pygame.sprite.LayeredUpdates()
-        self.block_counters = pygame.sprite.LayeredUpdates()
-        self.bottom_perspective_counters = pygame.sprite.LayeredUpdates()
-        self.top_perspective_counters = pygame.sprite.LayeredUpdates()
-        self.chopping_stations = pygame.sprite.LayeredUpdates()
-        self.plate_stations = pygame.sprite.LayeredUpdates()
-        self.ingredients_stands = pygame.sprite.LayeredUpdates()
-        self.cooking_stations = pygame.sprite.LayeredUpdates()
-        self.submit_stations = pygame.sprite.LayeredUpdates()
-        self.left_counters = pygame.sprite.LayeredUpdates()
-        self.right_counters = pygame.sprite.LayeredUpdates()
-        self.cursor = Cursor(self,8,9)
-        self.player = Player(self,10,11)
-        if timer is not None:
-            self.timer = Timer(self,17,0,timer,FPS)
-        self.score = Score(self,0,0)
-        self.recipes = [RecipeCard(self,3*TILE_SIZE,0)]
-        # game, x, y
-
-        self.animations = pygame.sprite.LayeredUpdates()
-
-
-        self.createTilemap(counter_tilemap_back,COUNTER_BACK_LAYER)
-        self.createTilemap(counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
-        self.createTilemap(counter_tilemap,COUNTER_LAYER)
-        self.createTilemap(counter_tilemap_ingredient, COUNTER_LAYER)
-        self.createTilemap(counter_tilemap_2,COUNTER_FRONT_LAYER)
-        self.createTilemap(counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
-        # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
-        # initialize_camera()
-
-        ProgressBar(self, self.progress_spritesheet, 7*TILE_SIZE, 4*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
-        # self.mouse.setupMouse()
-
-        # self.setup_audiofile()
-        self.setup_mqtt()
-
-    def new(self):
-        # a new game starts
-        self.playing = True
+        self.gamemode=gamemode
 
         # initialize empty sprite groups
         self.all_sprites = pygame.sprite.LayeredUpdates()   # layered updates object
@@ -528,7 +530,10 @@ class Game:
         self.left_counters = pygame.sprite.LayeredUpdates()
         self.right_counters = pygame.sprite.LayeredUpdates()
         self.cursor = Cursor(self,8,9)
-        self.player = MultiplayerPlayer(self,-1,-1)
+        if self.gamemode == "singleplayer":
+            self.player = MultiplayerPlayer(self,6,6)
+        else:
+            self.player = MultiplayerPlayer(self,-1,-1)
         self.timer = MultiplayerTimer(self,14,0,60,FPS)
         self.score = Score(self,0,0)
         self.score.set_score(0)
@@ -539,16 +544,26 @@ class Game:
 
         self.animations = pygame.sprite.LayeredUpdates()
 
+        if gamemode == "multiplayer":
+            self.createTilemap(mult_counter_tilemap_back,COUNTER_BACK_LAYER)
+            self.createTilemap(mult_counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
+            self.createTilemap(mult_counter_tilemap,COUNTER_LAYER)
+            self.createTilemap(mult_counter_tilemap_2,COUNTER_FRONT_LAYER)
+            self.createTilemap(mult_counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
+            # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
+            # initialize_camera()
 
-        self.createTilemap(mult_counter_tilemap_back,COUNTER_BACK_LAYER)
-        self.createTilemap(mult_counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
-        self.createTilemap(mult_counter_tilemap,COUNTER_LAYER)
-        self.createTilemap(mult_counter_tilemap_2,COUNTER_FRONT_LAYER)
-        self.createTilemap(mult_counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
-        # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
-        # initialize_camera()
+            ProgressBar(self, self.progress_spritesheet, 13*TILE_SIZE, 12*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
+        else:
+            self.createTilemap(sing_counter_tilemap_back,COUNTER_BACK_LAYER)
+            self.createTilemap(sing_counter_tilemap_back_items,COUNTER_BACK_ITEMS_LAYER)
+            self.createTilemap(sing_counter_tilemap,COUNTER_LAYER)
+            self.createTilemap(sing_counter_tilemap_2,COUNTER_FRONT_LAYER)
+            self.createTilemap(sing_counter_front_items_tilemap,COUNTER_FRONT_LAYER+1)
+            # self.createTilemap(foreground_tilemap,FOREGROUND_LAYER)
+            # initialize_camera()
 
-        ProgressBar(self, self.progress_spritesheet, 13*TILE_SIZE, 12*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
+            ProgressBar(self, self.progress_spritesheet, 8*TILE_SIZE, 15*TILE_SIZE, COUNTER_LAYER, (self.all_sprites), 3*TILE_SIZE, TILE_SIZE, self.player)
 
         # self.setup_audiofile()
         self.setup_mqtt()
@@ -594,7 +609,8 @@ class Game:
             self.playing = False
             self.clicked = False
             # DELTA: Resign both players from the game!
-            self.socket_client.send(pickle.dumps([-12345, "fill"])) # CODE: -12345 -> force quit on both players!
+            if g.gamemode == "multiplayer":
+                self.socket_client.send(pickle.dumps([-12345, "fill"])) # CODE: -12345 -> force quit on both players!
             print("We have clicked the RESIGN BUTTON")
         if self.player.location is not None:
             if self.player.location == "Plate Station":
@@ -648,7 +664,6 @@ class Game:
             self.events()
             self.update()
             self.draw()
-
         self.client.publish('overcooked_mic'+str(self.player.client_ID), "stop", qos=1)
         self.client.loop_stop()
         self.client.disconnect()
@@ -690,7 +705,14 @@ class Game:
                         self.screen.blit(self.title_screen, (0,0))
                         self.ready_up_button.draw(self.screen)
                         if self.ready_button.draw(self.screen) and self.clicked is True:
-                            pass
+                            g.new("singleplayer")
+                            g.player.client_ID = 0
+                            self.clicked = False
+                            while g.running:
+                                if self.clicked:
+                                    g.main()
+                                    g.game_over()
+                                self.clicked = True
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
                                 pygame.quit()

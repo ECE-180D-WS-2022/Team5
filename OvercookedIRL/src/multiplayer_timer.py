@@ -141,7 +141,8 @@ class MultiplayerTimer(pygame.sprite.Sprite):
                     five = (random.randint(1,10) > 5)     
                     three = (random.randint(1,10) > 5)
                     four = (random.randint(1,10) > 5)
-                    self.game.socket_client.send(pickle.dumps([33, three, four, five]))
+                    if self.game.gamemode == "multiplayer":
+                        self.game.socket_client.send(pickle.dumps([33, three, four, five]))
                     self.game.recipes.append(RecipeCard(self.game,3*TILE_SIZE+(len(self.game.recipes))*2*TILE_SIZE,0,three,four,five))
         
         self.txt = self.font.render(min+':'+sec, True, self.color)
