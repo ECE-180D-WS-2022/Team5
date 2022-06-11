@@ -11,16 +11,13 @@ References:
 
 Design:
 
-After running the program, the user's webcam is displayed with text that tells the user to put up an object. Once ready, the user will be prompted to select a region of interest (the object), and once selected the user will be able to move their mouse by moving their object. For the clicking functionality, if the user's cursor position does not move for ~2 seconds (by not moving their object) the program will register a click.
+After running the program, the user's webcam is displayed with text that tells the user to place an object within a predetermined bounding box. Once the user does so, there is instruction to press 'b' when ready which will then start the object tracking algorithm on the user's object. Along with being able to move their cursor by moving their object, a user can register a click by staying still for 1-2 seconds. This program uses OpenCV's Mean Shift Algorithm Tracker along with our self-developed bounding box stabilizing algorithms and RGB average profiler. Our stabilizing algorithm predicts when a user wants to stay still and then makes the bounding box have less movement, while our RGB average profiler allows a user to stop tracking when their hand gets tired by placing the object out of frame and comparing RGB average values.
 
 Bugs:
 
-1. Moving the object out of frame will not stop tracking, it will just leave the bounding box on the object's last position before becoming out of frame.
-2. Having the user select a region of interest is a bad design because new users don't know the best calibration needed to have flawless movement.
+1. Bad lighting conditions can make object tracking very unstable
 
 
 Plan:
 
-1. Based on several trials, the program should stop tracking once the object is out of frame and start tracking again once it reenters. This will need to be implemented in the case that a user does not want to always hold up their object.
-2. Automate the region selection stage so the user does not have the full responsibility of getting the perfect calibration
-3. Enhance stabilizer so in the case of bad calibration, the mouse will still not be jittery.
+1. Make it within the game rather than being autonomous while delivering high framerate
