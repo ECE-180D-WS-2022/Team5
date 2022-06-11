@@ -18,8 +18,9 @@ import random
 
 # %% Server Configuration
 config = dict()
-#config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
-config["Host"] = "131.179.39.186"
+config["Host"] = socket.gethostbyname(socket.gethostname()) # automatically get ip address
+#print(config["Host"])
+#config["Host"] = "131.179.39.136"
 config["Port"] = 443 # Unique ID, can be any number but must match client's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 config["Player_Num"] = 4 # Configure the number of players for the server
@@ -47,9 +48,9 @@ ack_time = 2500
 ack_messages = [{}, {}, {}, {}]
 ack_counts = [1,1,1,1]
 no_good = False
-prev_Time = datetime.timedelta(seconds=10*60)
+prev_Time = datetime.timedelta(seconds=10*6000)
 tick = datetime.timedelta(seconds=1)
-time_left = datetime.timedelta(seconds=1)
+time_left = datetime.timedelta(seconds=10*6000)
 
 lock = Lock()
 
@@ -62,7 +63,7 @@ def threaded_client(clients, ID, temp_game_data, startTime):
     # Check for game data
     #prev_Time = datetime.timedelta(seconds=10*60)
     zero_time = datetime.timedelta(seconds=0.0)
-    interval = datetime.timedelta(minutes=10.0)
+    interval = datetime.timedelta(minutes=60.0)
     # interval = datetime.timedelta(seconds=15.0) # DELTA: Uncomment for better testing
     server.setblocking(False)
     clients[ID].setblocking(False)

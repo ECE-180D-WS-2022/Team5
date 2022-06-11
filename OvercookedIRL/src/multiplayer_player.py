@@ -7,7 +7,7 @@ from animations import *
 from counters import *
 import math
 import random
-import speech_recognition as sr 
+import speech_recognition as sr
 from pymouse import PyMouse
 import pickle
 from playground_building_blocks import *
@@ -896,6 +896,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
                         if(self.message is not None):
 
                             # uncomment for keyboard:
+                           
                             self.game.client.publish('overcooked_mic'+str(self.client_ID), self.message, qos=1)
 
                             Effects(self.game,self.game.stirring_animation,self.rect.x,self.rect.y-2*TILE_SIZE,self._layer+1,(self.game.all_sprites),0.2,SPEAK_FRAMES,TILE_SIZE,2*TILE_SIZE,"during",self)
@@ -933,7 +934,7 @@ class MultiplayerPlayer(pygame.sprite.Sprite):
     def send_message(self):
         # send message to pub 
         # uncomment for keyboard:
-        
+    
         if(self.location_sprite.ingredient == 'Tomato'):
             self.game.client.publish('overcooked_mic'+str(self.client_ID), "t", qos=1)
         elif(self.location_sprite.ingredient == 'Bun' or self.location_sprite.ingredient == 'Bun_2'):

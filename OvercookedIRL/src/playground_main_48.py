@@ -26,9 +26,9 @@ import paho.mqtt.client as mqtt
 pygame.init()
 
 mixer.init()
-mixer.music.load("Sounds/jazz_background.wav")
-mixer.music.set_volume(0.3)
-mixer.music.play(-1)
+# mixer.music.load("Sounds/jazz_background.wav")
+# mixer.music.set_volume(0.3)
+# mixer.music.play(-1)
 
 font = pygame.font.SysFont("comicsansms", 40)
 black = (0, 0, 0)
@@ -534,7 +534,7 @@ class Game:
             self.player = MultiplayerPlayer(self,6,6)
         else:
             self.player = MultiplayerPlayer(self,-1,-1)
-        self.timer = MultiplayerTimer(self,14,0,60,FPS)
+        self.timer = MultiplayerTimer(self,14,0,60*15,FPS)
         self.score = Score(self,0,0)
         self.score.set_score(0)
         # self.recipes = [RecipeCard(self,3*48,0)]
@@ -706,7 +706,7 @@ class Game:
                         self.ready_up_button.draw(self.screen)
                         if self.ready_button.draw(self.screen) and self.clicked is True:
                             g.new("singleplayer")
-                            g.player.client_ID = 0
+                            g.player.client_ID = 1
                             self.clicked = False
                             while g.running:
                                 if self.clicked:
@@ -884,8 +884,9 @@ config = dict()
 # # config["Host"] = "192.168.1.91" # IPv4 address of ENG IV lab room
 # config["Host"] = "192.168.1.91"
 # =======
-# config["Host"] = socket.gethostbyname(socket.gethostname())
-config["Host"] = "131.179.39.186"
+config["Host"] = socket.gethostbyname(socket.gethostname())
+#config["Host"] = "131.179.50.16"
+# config["Host"] = "172.31.52.202"
 config["Port"] = 443 # Unique ID, can be any number but must match server's
 config["HEADER"] = 4096 # Defines max number of byte transmission
 

@@ -32,12 +32,12 @@ class CounterItemsGenerator(pygame.sprite.Sprite):
         #print('item_copies lne: ' + str(len(self.item_copies)))
         for item in self.item_copies:
             if(item.y != 10 * TILE_SIZE):
-                print('deleteing: ' + item.ingredient_name + ' ' + str(self.game.player.frame))
+                # print('deleteing: ' + item.ingredient_name + ' ' + str(self.game.player.frame))
                 item.deep_kill()
 
         self.item_copies = [item for item in self.item_copies if not (item.y != 10 * TILE_SIZE)]
         for item in self.item_copies:
-            print('deleteing: ' + item.ingredient_name + ' ' + str(self.game.player.frame))
+            # print('deleteing: ' + item.ingredient_name + ' ' + str(self.game.player.frame))
             item.deep_kill()
             
         self.item_copies.clear()
@@ -45,7 +45,7 @@ class CounterItemsGenerator(pygame.sprite.Sprite):
         for attributes in recv_items:
             # attributes = [self.ingredient_name, self.x, self.y, 
             #   self._layer, self.cut_state, self.cook_state]
-            print('creatingL ' + attributes[0])
+            # print('creatingL ' + attributes[0])
             item = Ingredient(self.game,attributes[0],
                                      attributes[1],attributes[2],attributes[3])
         
